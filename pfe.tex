@@ -1,0 +1,340 @@
+\documentclass[12pt,a4paper]{report}
+
+% Required packages
+\usepackage{tikz}
+\usepackage{soul}
+\usepackage{tabularx}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[a4paper]{geometry}
+\usepackage[hypcap=false]{caption}
+\usepackage{tocloft}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{adjustbox}
+\usepackage[hidelinks]{hyperref}
+
+% Add proper paragraph spacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{12pt plus 2pt minus 2pt}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\huge\bfseries}
+  {%
+    \begin{tikzpicture}[baseline=(num.base)]
+      \node[fill=black!30, text=black, font=\fontsize{60}{60}\selectfont, 
+            inner sep=15pt] at (0.15,-0.15) {\thechapter};
+      \node[fill=black, text=white, font=\fontsize{60}{60}\selectfont, 
+            inner sep=15pt] (num) {\thechapter};
+    \end{tikzpicture}%
+  }
+  {20pt}
+  {\Huge\color{black}\ul} % <--- The \underline applies only to the title text
+  
+  \titleformat{name=\chapter,numberless}[hang]
+  {\normalfont\huge\bfseries}
+  {}
+  {0pt}
+  {\Huge\color{black}}
+  
+  % [\vskip-10pt\textcolor{black}{\rule{0.5\textwidth}{1.5pt}}]
+  
+  \titlespacing*{\chapter}{0pt}{10pt}{40pt}
+
+  
+  
+  \renewcommand{\contentsname}{}
+  \renewcommand{\listfigurename}{}
+  
+
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+
+% Add vertical spacing for table of contents and list of figures
+\setlength{\cftbeforechapskip}{10pt}
+\setlength{\cftbeforesecskip}{8pt}
+\setlength{\cftbeforesubsecskip}{6pt}
+\setlength{\cftbeforefigskip}{8pt}
+
+% Define ISIMS blue color
+\definecolor{ISIMSBlue}{RGB}{57,141,208}
+
+% Set graphics path (adjust if your images are elsewhere)
+\graphicspath{{./}{./images/}}
+
+\begin{document}
+
+\pagestyle{fancy}
+\fancyhf{}
+
+% Header
+\fancyhead[L]{\leftmark}
+
+% Footer
+\fancyfoot[L]{ISIM Sfax}
+\fancyfoot[R]{page \thepage}
+
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\setlength{\headheight}{14.5pt}
+
+
+\fancypagestyle{onlyfooter}{%
+  \fancyhf{}
+
+  \fancyfoot[L]{ISIM Sfax}
+  \fancyfoot[R]{page \thepage}
+  \renewcommand{\headrulewidth}{0pt} 
+  \renewcommand{\footrulewidth}{0.4pt}
+
+}
+
+\fancypagestyle{toc}{%
+  \fancyhf{}
+
+  \fancyhead[L]{TABLE OF CONTENTS}
+  
+  \fancyfoot[L]{ISIM Sfax}
+  \fancyfoot[R]{page \thepage}
+  \renewcommand{\headrulewidth}{0.4pt}  % Remove header line
+  \renewcommand{\footrulewidth}{0.4pt}
+
+  \setlength{\headheight}{14.5pt}
+}
+
+\fancypagestyle{lof}{%
+  \fancyhf{}
+
+  \fancyhead[L]{LIST OF FIGURES}
+  
+  \fancyfoot[L]{ISIM Sfax}
+  \fancyfoot[R]{page \thepage}
+  \renewcommand{\headrulewidth}{0.4pt}  % Remove header line
+  \renewcommand{\footrulewidth}{0.4pt}
+
+  \setlength{\headheight}{14.5pt}
+}
+
+\thispagestyle{empty}
+\begin{titlepage}
+
+% Blue vertical bar on the left
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[color=ISIMSBlue] (current page.north west) rectangle ([xshift=2.5cm]current page.south west);
+\end{tikzpicture}
+
+% Add left margin to avoid overlap with blue bar
+\hspace{4cm}
+\begin{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THE HEADER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace*{-0.8cm}
+{%
+  \fontsize{9pt}{10pt}\selectfont%
+  \begin{tabularx}{\textwidth}{ @{} m{0.35\textwidth} @{} m{0.4\textwidth} @{} m{0.25\textwidth} @{} }
+    %
+    % Left column
+    \centering%
+    Republic of Tunisia\\%
+    Ministry of Higher Education\\% 
+    and Scientific Research\\[0.01cm]
+    {\raisebox{0pt}[0pt][0pt]{\vbox{\hrule width 1.5cm height 0.15pt\kern1pt\hrule width 1.5cm height 0.15pt}}}\\[0.01cm]    
+    University of Sfax\\%
+    {\raisebox{0pt}[0pt][0pt]{\vbox{\hrule width 1.5cm height 0.15pt\kern1pt\hrule width 1.5cm height 0.15pt}}}\\[0.01cm]  
+    Higher Institute of Computer Science and Multimedia of Sfax (ISIMS)%
+    &%
+    % Center column - Logo
+    \centering%
+    \includegraphics[width=3.5cm]{figures/logos/ISIMS-logo.png}%
+    &%
+    % Right column
+    \centering%
+    Engineering Cycle in\\%
+    Computer Science\\[0.1cm]
+    Specialty:\\%
+    Software Engineering%
+    \tabularnewline%
+  \end{tabularx}
+  
+  \vspace{0.1cm}
+  \begin{spacing}{0.05}
+    \noindent\rule{\textwidth}{0.5pt}\\
+    \noindent\rule{\textwidth}{2pt}
+  \end{spacing}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THE PAGE CONTENT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\vspace{25pt} 
+{%
+  \fontsize{36pt}{36pt}\selectfont%
+  \textbf{End of year project}\\%
+}
+
+\vspace{44pt}%
+\textbf{\textit{Presented at}}\\
+
+\vspace{10pt}{%
+  \fontsize{16pt}{16pt}\selectfont%
+  \textbf{%
+  Higher Institute of Computer Science and Multimedia (ISIMS)\\
+  }
+}
+
+\vspace{35pt}
+\textbf{\textit{Prepared by}}\\%
+\vspace{10pt} {%
+  \fontsize{18pt}{18pt}\selectfont%
+  %%% REPLACE WITH YOUR NAME %%%
+  \textbf{OMAR ATRI}\\%
+}%
+
+\vspace{25pt} {%
+  \begin{spacing}{0.05}
+    \rule{200pt}{2pt}\\
+    \rule{200pt}{0.75pt}\\
+  \end{spacing}
+  \fontsize{15pt}{15pt}\selectfont%
+  \vspace{20pt}
+  \textbf{
+  %%% REPLACE WITH YOUR PROJECT TITLE %%%
+  Extending an AI-Powered Call Automation Platform
+  }
+  \vspace{10pt}
+  \begin{spacing}{0.05}
+    \rule{200pt}{0.75pt}\\
+    \rule{200pt}{2pt}\\
+  \end{spacing}
+}
+
+\vspace{35pt}
+%%% REPLACE WITH YOUR HOST ORGANIZATION %%%
+\textbf{Host Organization:} ONRTECH\\%
+% \vspace{10pt}
+%%% REPLACE company-logo.png WITH YOUR LOGO FILE %%%
+% \includegraphics[width=7cm]{onrtech-logo.png}\\%
+% \vspace{10pt}
+
+\vspace{80pt}
+%%% UPDATE ACADEMIC YEAR IF NEEDED %%%
+\textbf{Academic Year:} 2024--2025
+
+
+\end{center}
+\end{titlepage}
+
+\newpage
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newgeometry{
+  top=2.5cm,
+  bottom=2.5cm,
+  left=3cm,
+  right=3cm
+}
+
+\thispagestyle{empty}
+\begin{center}
+  \null
+  \vfill
+
+  \section*{\centering Acknowledgment}
+
+  \vspace{0.5cm}
+
+  First and foremost, I would like to thank \textbf{God} for granting me the strength, patience, and opportunity to successfully complete this internship.
+
+  \vspace{0.4cm}
+
+  I would like to express my sincere gratitude to all those who supported and guided me throughout my internship and contributed to making it a valuable and enriching experience.
+
+  \vspace{0.4cm}
+
+  I would like to particularly thank \textbf{Mr. Marwen RHAYEM} for providing a supportive and motivating work environment that allowed me to learn, grow, and gain practical experience.
+
+  \vspace{0.4cm}
+
+  I would also like to thank all my colleagues who worked with me during the internship for their collaboration, support, and positive team spirit. A special thanks goes to \textbf{Mohamed NAFFETI} for being an exceptional tech lead and an amazing person, whose guidance, expertise, and encouragement greatly contributed to my professional development.
+
+
+  \vfill
+\end{center}
+
+
+\newpage
+
+\pagenumbering{roman}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+{
+\titleformat{name=\chapter,numberless}[hang]
+  {\normalfont\huge\bfseries}
+  {%
+    \begin{tikzpicture}[baseline=(num.base)]
+      \node[fill=black!30, text=black, font=\fontsize{60}{60}\selectfont, inner sep=15pt] at (0.15,-0.15) {T};
+      \node[fill=black, text=white, font=\fontsize{60}{60}\selectfont, inner sep=15pt] (num) {T};
+    \end{tikzpicture}%
+  }
+  {20pt}
+  {\Huge\color{black}\ul} 
+
+\chapter*{Table Of Contents}
+}
+\vskip-100pt
+
+\tableofcontents\thispagestyle{toc}
+
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{
+\titleformat{name=\chapter,numberless}[hang]
+  {\normalfont\huge\bfseries}
+  {%
+    \begin{tikzpicture}[baseline=(num.base)]
+      \node[fill=black!30, text=black, font=\fontsize{60}{60}\selectfont, inner sep=15pt] at (0.15,-0.15) {L};
+      \node[fill=black, text=white, font=\fontsize{60}{60}\selectfont, inner sep=15pt] (num) {L};
+    \end{tikzpicture}%
+  }
+  {20pt}
+  {\Huge\color{black}\ul} 
+
+\chapter*{List Of Figures}
+}
+\vskip-100pt
+
+\listoffigures\thispagestyle{lof}
+
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagenumbering{arabic}
+
+
+
+\chapter*{General Introduction}\thispagestyle{onlyfooter}
+\addcontentsline{toc}{chapter}{\textbf{General Introduction}}
+\markboth{GENERAL INTRODUCTION}{}
+
+
+\end{document}
