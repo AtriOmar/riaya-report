@@ -1,7 +1,7 @@
 \chapter{Project Management Methodology and Modeling}
 
 \section{Introduction}
-This chapter covers how the Riaya project was organized and how the platform was modeled. The first part presents the Kanban method: where it comes from, its principles and metrics, and how it compares with Scrum and Waterfall \cite{schwaber2020scrum, pmi2021pmbok}. It then describes the Notion board used during the internship and explains why Kanban suited this project better than Scrum. The second part models the platform: two use case diagrams for the four actors, three class diagrams of the database, two sequence diagrams for an inbound call and a callback, three activity diagrams, the deployment diagram, and the two halves of the BPMN booking process.
+This chapter covers how the Riaya project was organized and how the platform was modeled. The first part presents the Kanban method: where it comes from, its principles and metrics, and how it compares with Scrum and Waterfall \cite{schwaber2020scrum, pmi2021pmbok}. It then describes the Notion board used during the internship and explains why Kanban suited this project better than Scrum. The second part models the platform: two use case diagrams for the five actors, three class diagrams of the database, two sequence diagrams for an inbound call and a callback, three activity diagrams, the deployment diagram, and the two halves of the BPMN booking process.
 
 \section{The Kanban Method}
 
@@ -29,7 +29,7 @@ Kanban also asks teams to make their rules explicit (for example, what must be t
     \item \textbf{WIP:} the number of cards being worked on at a given moment.
 \end{itemize}
 
-Every card on the Riaya board stores the date it was created, started and finished, so these metrics come straight from the board. \xref{tab:kanban_metrics} gives them for the 143 cards finished between 27 April and 18 October.
+\xref{tab:kanban_metrics} gives these metrics for the 143 cards finished on the Riaya board between 27 April and 18 October.
 
 \begin{table}[H]
     \centering
@@ -42,14 +42,12 @@ Every card on the Riaya board stores the date it was created, started and finish
         \midrule
         Lead time & Creation to completion & 4.2 days on average (median 3.9 days) \\
         Cycle time & Start to completion & 3.2 days on average (median 3.0 days) \\
-        Throughput & Cards finished per week & 4.2 per week until the launch on 2 October, 5.8 per week over the whole internship \\
+        Throughput & Cards finished per week & 5.8 per week over the whole internship \\
         WIP & Cards in ``In Progress'' & 3 (team rule) \\
         \bottomrule
     \end{tabular}
     \\[0.2cm]
 \end{table}
-
-Throughput rose after the launch, when the client started using the platform and sent many small change requests through John.
 
 \subsection{The Riaya Board in Notion}
 The board was a Notion database \cite{notion2026} shared by the three people involved in the project:
@@ -59,8 +57,6 @@ The board was a Notion database \cite{notion2026} shared by the three people inv
     \item \textbf{John Jang}, the founder of Pengguin. He was the only person in contact with the client, so he turned the client's requests into cards, set their priority and decided what came next.
     \item \textbf{Ismail}, the academic supervisor. He followed the progress on the board and added cards of his own, mostly documentation needed for the report and improvements to the interface.
 \end{itemize}
-
-Of the 154 cards created during the internship, John created 123, Ismail 22 and Omar 9. Omar's own cards were technical chores, such as moving the repositories to pnpm or cleaning the migration history, and bugs he found himself. Omar is the assignee of every card but one. John is added on the two cards that needed his accounts, the production server and the go-live, and he alone holds card 041, opening the Konnect merchant account. \xref{tab:board_fields} lists the fields of a card.
 
 \begin{table}[H]
     \centering
@@ -79,8 +75,7 @@ Of the 154 cards created during the internship, John created 123, Ismail 22 and 
         Epic & The part of the product: Voice, Doctor, Patients, Appointments, WhatsApp, Billing, Recordings, AI assistant, Admin, Geo, Infra, Docs, Project or Web. \\
         Priority & High, Medium or Low. \\
         Size & Estimated effort: S (a day or less), M (two or three days) or L (about a week). \\
-        Phase & The stage of the project, from ``1 Kickoff'' to ``5 Post-launch''. \\
-        Created on, Started on, Done on & The dates used to compute the metrics. \\
+        Created on & The date the card was created. \\
         \bottomrule
     \end{tabular}
     \\[0.2cm]
@@ -104,7 +99,7 @@ The page of each card holds a short description of the request. When a card chan
         In Progress & Omar is working on the card. The column holds at most three cards. \\
         Code Review & The change is on a branch with an open pull request on GitHub. Omar re-reads the diff, and John reviews the larger changes before they are merged. \\
         Testing & Omar checks the change in the running application, using the test-call page for phone features. When a change is visible to the client, John shows it to them. \\
-        Done & Merged and deployed to production. \\
+        Done & Merged and deployed to the team's server. \\
         Bin & Dropped after a decision. The card stays on the board so that the decision and its reason are not lost. \\
         \bottomrule
     \end{tabular}
@@ -127,23 +122,17 @@ The same cards appear in three views. The default view (\xref{fig:riaya_board_ta
     \label{fig:riaya_board_kanban}
 \end{figure}
 
-\xref{fig:riaya_board_kanban} shows the board two weeks after the launch. Cards 138 and 139 wait for review, cards 116 and 149 are being tested, and the Backlog holds three ideas for later.
-
-Because the client's needs changed during the project, some cards replace earlier ones. Card 017 made the AI ask which phone number the doctor should use. Card 021 removed that question and took the number from the caller ID instead, so card 017 went to the Bin. The plan limits went through three versions: card 028 defined the first Free and Pro plans, card 089 added limits on recordings and AI messages, and card 121 reworked them after a discussion with the client.
-
 \subsection{Advantages of Kanban for the Riaya Project}
-New work could start as soon as it mattered more than what was planned. Around the launch, the client found the voice's Tunisian pronunciation weak. John added cards to try other speech providers (cards 098 to 106), and they went to the top of ``To Do'' the same week, without waiting for the end of an iteration.
+Kanban let priorities change at any time. When a new request mattered more than the planned work, its card went to the top of ``To Do'' and was picked up next, without waiting for the end of an iteration.
 
-Each card was deployed as soon as it was finished. The deployment pipeline set up in August (card 031) builds and deploys the application on every merge, so the client could see a change a few days after asking for it.
+It also kept the time between a request and its delivery short. Each card was deployed as soon as it was merged, so the client could see a change a few days after asking for it, and a bug found during a demonstration could be fixed and deployed the same day.
 
-Production problems could take a slot at once. When live calls stopped working in production because an environment variable was missing from the build (card 088), the card was created, fixed and deployed on the same day.
+The board made progress visible without meetings. The company founder and the academic supervisor could follow the work at any moment, and documentation tasks for the report went through the same columns as product work.
 
-John and Ismail could check the progress whenever they wanted, without asking for a status report. Ismail's cards for the report, such as the diagrams, the API documentation and the notes on every AI model tested, followed the same flow as product work, so their progress was visible too.
-
-The board also keeps a record of decisions. Card 026 studied whether Riaya could show doctors' prices to patients and concluded that it should not, because the real price depends on a diagnosis that a phone call cannot make. The card stays in the Bin with that conclusion.
+Finally, the board kept a record of decisions. A research card keeps its conclusion even when the idea is dropped, so the reasons behind a choice are not lost.
 
 \subsection{Disadvantages and Limitations of the Method}
-Kanban has no sprints, so nothing forces a regular deadline. John set the go-live date of 2 October and split the internship into phases, and the Phase field of each card shows which stage it belonged to.
+Kanban has no sprints, so nothing forces a regular deadline. John set the milestones of the internship and the order in which features were built.
 
 With a single developer, the board is only accurate if that developer updates it. Moving the card was treated as part of finishing a task: a card was not done until it was in the ``Done'' column.
 
@@ -186,7 +175,7 @@ Second, requests arrived at irregular times. The client spoke only with John, wh
 
 Third, much of the work was research of unknown length. Comparing speech models for Tunisian Arabic (card 023) took almost three weeks, and comparing geocoding services (card 024) took about as long. Such tasks are hard to estimate for a sprint. On the board they were Spike cards that stayed open until they had a written conclusion.
 
-Fourth, after the launch on 2 October Riaya was a live service. Bugs and client feedback had to be handled as they came, next to the planned work, and Kanban lets an urgent card go straight to the top of ``To Do''.
+Fourth, John showed each new feature to the client as soon as it was ready on the team's server. Bugs and feedback from these demonstrations had to be handled as they came, next to the planned work, and Kanban lets an urgent card go straight to the top of ``To Do''.
 
 Finally, the board doubled as a report for the people outside development. John used it to see what the client could expect and when, and Ismail used it to follow the internship and add the documentation he needed, without separate status meetings.
 
@@ -194,7 +183,7 @@ Finally, the board doubled as a report for the people outside development. John 
 Each diagram in this section shows one view of Riaya \cite{omg2017uml, fowler2003uml}: who uses the platform, how the data is organized, how a call runs in time, how the main processes branch, and how the code reaches the server. The use case and sequence diagrams are written in PlantUML \cite{plantuml2026}, the class diagrams in Mermaid \cite{mermaid2026}, and the BPMN diagrams with bpmn-js \cite{bpmnjs2026}. The activity and deployment diagrams were drawn with a small layout script written for this report. Every diagram is kept as a text source next to its image, so it can be corrected and drawn again when the code changes.
 
 \subsection{Use Case Diagrams: Actors and Their Interactions}
-Riaya has four actors, all of them people: the patient, the doctor, the secretary and the administrator. Because the platform has two very different sides, the use cases are split over two diagrams. \xref{fig:use_case} covers the patient and the administrator, and \xref{fig:use_case_doctor} covers the doctor and the secretary.
+Riaya has five actors, all of them people: the patient, the visitor, the doctor, the secretary and the administrator. The visitor is someone who has not signed up yet, usually a doctor discovering the platform. Because the platform has two very different sides, the use cases are split over two diagrams. \xref{fig:use_case} covers the patient and the administrator, and \xref{fig:use_case_doctor} covers the doctor and the secretary.
 
 \begin{figure}[H]
     \centering
@@ -205,23 +194,25 @@ Riaya has four actors, all of them people: the patient, the doctor, the secretar
 
 The patient has no account and no password. The phone number of the line identifies the caller, and the patient only talks to the AI on the phone: the AI picks the language, finds the doctor, books and calls back. The patient has three goals, inside the box ``Phone assistant and WhatsApp''. The main one is ``Book an appointment'': the AI finds the best-fit doctor, or the doctor the patient asks for by name, and the same call can book for a family member or ask for an urgent doctor. The patient can also ``List or cancel pending appointments'' and, after a visit, ``Rate a doctor'' from a link received on WhatsApp. If a doctor refuses or does not answer, the AI calls the patient back with other doctors, and this stays part of the booking.
 
-The administrator runs the back-office through five use cases. ``Manage doctor applications'' covers reading the documents of each applicant and verifying or rejecting the application. ``Monitor live AI calls and bookings'' covers watching the calls in progress with their live transcript, and playing back the recordings. ``Manage reports and blocked numbers'' covers the calls that the AI reported as abusive and the numbers that are blocked: the AI only files the report during the call and never blocks a number itself, so only the administrator can block or unblock one. The last two use cases are ``Manage users'' and ``Manage specialities''. Every administrator use case includes ``Authentication'': the administrator signs in before using the back-office, whereas the patient never signs in.
+The administrator runs the back-office through five use cases. ``Manage doctor applications'' covers reading the documents of each applicant and verifying or rejecting the application. ``Monitor live AI calls and bookings'' covers watching the calls in progress with their live transcript, and playing back the recordings. ``Manage reports and blocked numbers'' covers the calls that the AI reported as abusive and the numbers that are blocked: the AI only files the report during the call and never blocks a number itself, so only the administrator can block or unblock one. The last two use cases are ``Manage users'' and ``Manage specialities''. Every administrator use case includes ``Authentication'', since the back-office requires a signed-in administrator, whereas the patient never signs in.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth,height=0.62\textheight,keepaspectratio]{images/diagrams/use_case_doctor_secretary.png}
-    \caption{Use Cases of the Doctor and the Secretary}
+    \caption{Use Cases of the Visitor, the Doctor and the Secretary}
     \label{fig:use_case_doctor}
 \end{figure}
 
-In \xref{fig:use_case_doctor}, the doctor is a specialization of the secretary, drawn with an open arrow: a doctor can do everything a secretary can. To keep the drawing readable, the practice tasks are therefore connected to the secretary only. They are: accept or refuse phone bookings, manage the calendar, manage patients, create invoices and record payments, send an invoice on WhatsApp, set the weekly availability, and view the dashboard. The secretary exists only in a Pro practice, and sees patients without their medical files.
+In \xref{fig:use_case_doctor}, the visitor is not authenticated yet, so ``Sign up'' is the only use case without an \texttt{include} link to ``Authentication''. It is where a doctor creates an account with an email code and applies for verification.
 
-The other use cases are reserved to the doctor. They start with signing up with an email code and applying for verification. They then cover the medical side of the practice: managing medical files and sending them on WhatsApp, recording a consultation with its transcript, and the AI consultation note, an extension of the recording use case available on Pro. The doctor can ask the AI assistant and confirm the actions it proposes, and link their own WhatsApp number with a QR code. The last three use cases concern the plan: subscribing to Pro and buying recording hours, inviting secretaries in the Team page, and setting the invoice logo and stamp, which is also a Pro feature. Every use case of the diagram includes ``Authentication'' except signing up, which happens before the account exists.
+The secretary and the doctor share the practice's daily work: managing bookings (accepting or refusing phone requests and keeping the calendar), managing patients, creating invoices and updating the weekly availability. The doctor inherits all of these from the secretary through a generalization, so the shared use cases are linked to the secretary only. The secretary exists only in a Pro practice and sees patients without their medical files.
+
+The remaining use cases belong to the doctor alone. They cover the medical side of the practice, with the management of medical files, the addition of consultation recordings with their transcript, and the conversation with the AI assistant, whose proposals take effect only once the doctor confirms them. They also cover the doctor's own setup: linking a WhatsApp number with a QR code, subscribing to the Pro plan and inviting secretaries from the Team page. All of these use cases include ``Authentication'', since the dashboard requires a signed-in user.
 
 \subsection{Class Diagrams: Modeling the PostgreSQL Database}\label{subsec:erd-ref}
-The database runs on PostgreSQL \cite{postgresql2024} and its schema is written in TypeScript with Drizzle ORM \cite{drizzle2024}. It has more than thirty tables, too many for one readable figure, so the class diagram is split into three parts: people and care, the practice, and calls with billing. Each part draws the tables of another part as dashed boxes that show only their identifier. The attributes shown are the ones that matter for the design; timestamps and secondary columns are left out.
+The database runs on PostgreSQL \cite{postgresql2024} and its schema is written in TypeScript with Drizzle ORM \cite{drizzle2024}. It has more than thirty tables, too many for one readable figure, so the class diagram is split into three parts: people and care, the practice, and calls with billing. Tables that belong to another part are repeated with a few of their columns, so that each figure reads on its own. Columns are named as in the database. Primary keys, timestamps and secondary columns are left out.
 
-\paragraph{People and care.} \xref{fig:erd} holds the most important decision of the model: a phone number does not identify a person. One phone can serve a whole family, and one person can use several phones. Riaya therefore keeps three separate tables (the orange classes in the figure). A \texttt{person} is one real human, with names, date of birth, preferred language and the source of the record (a call or a doctor). It has no phone column. A \texttt{person\_phone} row links a person to a phone number in E.164 format, and its \texttt{relationship} column says how that person relates to the owner of the phone: \texttt{self}, \texttt{child}, \texttt{parent}, \texttt{spouse}, \texttt{sibling} or \texttt{other}. A unique index allows only one \texttt{self} per phone. A \texttt{patient} is the link between one doctor and one person, with the details that belong to that doctor's file, such as the CIN and the number the doctor uses. Medical files, consultations and invoices point to the patient, so each doctor keeps a separate file for the same person.
+\paragraph{People and care.} \xref{fig:erd} holds the most important decision of the model: a phone number does not identify a person. One phone can serve a whole family, and one person can use several phones. Riaya therefore keeps three separate tables. A \texttt{person} is one real human, with names, date of birth, preferred language and the source of the record (a call or a doctor). It has no phone column. A \texttt{person\_phone} row links a person to a phone number in E.164 format, and its \texttt{relationship} column says how that person relates to the owner of the phone: \texttt{self}, \texttt{child}, \texttt{parent}, \texttt{spouse}, \texttt{sibling} or \texttt{other}. A unique index allows only one \texttt{self} per phone. A \texttt{patient} is the link between one doctor and one person, with the details that belong to that doctor's file, such as the CIN and the number the doctor uses. Medical files, consultations and invoices point to the patient, so each doctor keeps a separate file for the same person.
 
 \begin{figure}[H]
     \centering
@@ -230,11 +221,11 @@ The database runs on PostgreSQL \cite{postgresql2024} and its schema is written 
     \label{fig:erd}
 \end{figure}
 
-The \texttt{appointment} class carries two references that look alike and mean different things. \texttt{personId} (``is for'') names the person who will see the doctor, and \texttt{contactPhone} is the line that made the booking, where the WhatsApp confirmation and the review link are sent. When a mother books for her son, the appointment is for the son and the messages go to the mother's phone. The link to the doctor's patient file, \texttt{patientId}, is empty while the request is pending and is set when the doctor accepts it (``linked on accept''). The \texttt{status}, \texttt{source}, \texttt{urgent} and \texttt{emergencyGroupId} columns support the pending request flow and the groups of up to three urgent requests.
+The \texttt{appointment} class carries two references that look alike and mean different things. \texttt{person\_id} (``is for'') names the person who will see the doctor, and \texttt{contact\_phone} is the line that made the booking, where the WhatsApp confirmation and the review link are sent. When a mother books for her son, the appointment is for the son and the messages go to the mother's phone. The link to the doctor's patient file, \texttt{patient\_id}, is empty while the request is pending and is set when the doctor accepts it (``linked on accept''). The \texttt{status}, \texttt{source}, \texttt{urgent} and \texttt{emergency\_group\_id} columns support the pending request flow and the groups of up to three urgent requests.
 
-Patient billing follows the same idea of keeping facts and deriving the rest. An invoice is composed of its items and its payments. Each payment is a separate row with an amount, a method (cash or transfer) and a date. The invoice status (\texttt{unpaid}, \texttt{partially\_paid} or \texttt{paid}) and the paid amount are recomputed from the payment rows every time a payment is added or deleted, so they cannot drift from the payments. Only \texttt{cancelled} is set by hand. Amounts are stored in millimes (1~TND = 1000 millimes); the columns keep the suffix \texttt{Centimes} for historical reasons. A \texttt{review} belongs to one appointment and holds the single-use token of the rating link, the rating and the waiting time.
+Patient billing follows the same idea of keeping facts and deriving the rest. An invoice is composed of its items and its payments. Each payment is a separate row with an amount, a method (cash or transfer) and a date. The invoice status (\texttt{unpaid}, \texttt{partially\_paid} or \texttt{paid}) and the paid amount are recomputed from the payment rows every time a payment is added or deleted, so they cannot drift from the payments. Only \texttt{cancelled} is set by hand. Amounts are stored in millimes (1~TND = 1000 millimes); the columns keep the suffix \texttt{\_centimes} for historical reasons. A \texttt{review} belongs to one appointment and holds the single-use token of the rating link, the rating and the waiting time.
 
-\paragraph{Accounts and practice.} \xref{fig:erd_practice} groups the accounts and what a doctor runs. The \texttt{user} table comes from Better Auth \cite{betterauth2024}, and its \texttt{accessId} gives the role level (an administrator has 3 or more). A doctor's \texttt{doctor\_application} is kept apart from the \texttt{doctor\_profile}. A user can submit several applications, each with its status and the reasons of a rejection, while the profile is created only once an administrator approves one. The profile stores the cabinet coordinates used by the best-fit search, the weekly availability as JSON, and the logo and stamp of Pro invoices. It points to one \texttt{speciality} (with English, French and Arabic names) and one city of the list of 24.
+\paragraph{Accounts and practice.} \xref{fig:erd_practice} groups the accounts and what a doctor runs. The \texttt{user} table comes from Better Auth \cite{betterauth2024}, and its \texttt{access\_id} gives the role level (an administrator has 3 or more). A doctor's \texttt{doctor\_application} is kept apart from the \texttt{doctor\_profile}. A user can submit several applications, each with its status and the reasons of a rejection, while the profile is created only once an administrator approves one. The profile stores the cabinet coordinates used by the best-fit search, the weekly availability as JSON, and the logo and stamp of Pro invoices. It points to one \texttt{speciality} (with English, French and Arabic names) and one city of the list of 24.
 
 \begin{figure}[H]
     \centering
@@ -258,10 +249,10 @@ Usage is kept as event rows instead of a single counter that is overwritten. Eac
 
 The abuse classes are drawn in orange. A call has at most one \texttt{call\_report}, with the category and the English summary written by the AI, and a status that an administrator changes when reviewing it. \texttt{blocked\_phone} uses the phone number itself as primary key, so a number has one block at a time, and an administrator changes its expiry or removes it. The table also counts rejected attempts. A block can come from a report or be set directly by an administrator, which is why its link to \texttt{call\_report} is optional.
 
-On the billing side, each doctor has at most one \texttt{subscription}. The effective plan is computed from it: Pro only if the plan is \texttt{pro}, the status is active and the period end is still ahead. A \texttt{billing\_invoice} is either a monthly subscription invoice or a \texttt{top\_up} for an hour pack, in which case \texttt{creditSeconds} holds the hours it grants once paid. It keeps the Konnect payment reference used by the webhook. WhatsApp sends are counted differently from recordings: \texttt{whatsapp\_usage} has one row per doctor and month, and the limit check adds to \texttt{sendCount} in a single SQL statement so two sends at the same moment cannot pass the limit together.
+On the billing side, each doctor has at most one \texttt{subscription}. The effective plan is computed from it: Pro only if the plan is \texttt{pro}, the status is active and the period end is still ahead. A \texttt{billing\_invoice} is either a monthly subscription invoice or a \texttt{top\_up} for an hour pack, in which case \texttt{credit\_seconds} holds the hours it grants once paid. It keeps the Konnect payment reference used by the webhook. WhatsApp sends are counted differently from recordings: \texttt{whatsapp\_usage} has one row per doctor and month, and the limit check adds to \texttt{send\_count} in a single SQL statement so two sends at the same moment cannot pass the limit together.
 
 \subsection{Sequence Diagrams: Inbound Call and Callback}
-The two sequence diagrams follow a call in time between the patient, Twilio, the voice server, Gemini Live \cite{gemini2026live}, the web application and the dashboards. \xref{fig:sequence_call} shows an inbound call from the moment the patient dials to the moment the recording is stored.
+The two sequence diagrams use the boundary, control and entity notation. Boundaries are the entry points of a service (a webhook, the API, the dashboard), controls hold the logic of a call or a job, and entities are the stored data. Twilio and Gemini Live \cite{gemini2026live} are external systems. \xref{fig:sequence_call} shows an inbound call from the moment the patient dials to the moment the recording is available.
 
 \begin{figure}[H]
     \centering
@@ -270,15 +261,9 @@ The two sequence diagrams follow a call in time between the patient, Twilio, the
     \label{fig:sequence_call}
 \end{figure}
 
-The diagram is divided into four phases: Answer, Conversation, Booking and End. The steps below follow them.
+When the patient dials, Twilio calls the voice server's webhook \cite{twilio2024}, which first asks the web application whether the number is blocked. A blocked number is rejected with a busy signal and no AI starts. This check fails open: if the web application does not answer in about 1.5 seconds, the call goes on. For an allowed number, the webhook creates the call record and tells Twilio to open a media stream and start recording.
 
-\begin{enumerate}
-    \item The patient dials Riaya and Twilio sends the \texttt{/incoming-call} webhook to the voice server \cite{twilio2024}. The server first asks the web application whether the number is blocked. If it is, Twilio receives a \texttt{<Reject reason="busy"/>} answer and no AI starts. The check fails open: if the web application does not answer in about 1.5 seconds, the call goes on, so an outage never turns patients away.
-    \item For an allowed number, the server asks the web application to create the call row and to find or create the person of that phone, in parallel. It then answers Twilio with TwiML that opens a media stream, and starts a two-channel recording of the call.
-    \item In the conversation phase, Twilio opens the media WebSocket and the server opens a Gemini Live session. In each turn, the caller's audio goes from Twilio to the server and on to Gemini Live. A separate caller transcriber (\texttt{gemini-3.1-flash-lite}) turns the same audio into text, because Gemini Live's own transcript of the caller is very inaccurate. The AI voice comes back from Gemini Live and is played to the patient through Twilio, and the live transcript is pushed to the administrator's live call view.
-    \item In the booking phase, Gemini Live calls tools such as \texttt{find\_available\_slots}. The voice server runs each tool through the internal API of the web application, which returns doctors and slots. That API rejects any request without the shared secret in its \texttt{x-internal-\allowbreak secret} header. When the patient chooses, \texttt{book\_appointment} creates a pending appointment and a 10-minute timeout job, and an \texttt{appointment\_booked} event reaches the doctor's calendar and the admin view.
-    \item To end the call, the AI calls \texttt{end\_call}, the server hangs up, and it asks the web application to close the call and save its events. Twilio then sends the recording webhook to the web application, which checks Twilio's signature, downloads the audio as MP3 and uploads it to Cloudflare R2 \cite{cloudflare2024r2}.
-\end{enumerate}
+The call session then opens a Gemini Live session with the assistant's instructions and tools, and relays the audio in both directions for each turn of the conversation. When the patient is ready to book, Gemini Live calls \texttt{findAvailableSlots}, and the session forwards the request to the web application's API, which returns doctors and free slots. \texttt{bookAppointment} then creates the appointment with the status \texttt{pending}. The API accepts these calls only with the shared secret of the voice server. At the end, Gemini Live calls \texttt{endCall}, the session hangs up, and Twilio notifies the web application once the recording is ready, so that it can be stored in Cloudflare R2 \cite{cloudflare2024r2}.
 
 \begin{figure}[H]
     \centering
@@ -287,14 +272,9 @@ The diagram is divided into four phases: Answer, Conversation, Booking and End. 
     \label{fig:sequence_callback}
 \end{figure}
 
-\begin{enumerate}
-    \item When the AI booking is saved as pending, the web application adds a job to Redis through BullMQ \cite{bullmq2024}, delayed by 10 minutes.
-    \item If the doctor refuses a normal request, the web application sets its status to \texttt{cancelled}, saves the refusal context in Redis for 24 hours (speciality, area, time and the doctors who already said no) and adds a refusal job that runs at once. If nobody answers, the delayed job becomes due after 10 minutes.
-    \item The worker in the voice server runs the job and asks the web application to process it. On a timeout, the web application cancels the request, or the whole urgent group, and returns the phone number and the message.
-    \item The voice server places an outbound call through Twilio in callback mode. If the patient answers, the media WebSocket opens, and for a refusal the server asks the web application for the refusal context. The web application reads it from Redis and returns up to three other doctors with free slots.
-    \item The AI speaks first. After a refusal it offers the other doctors and books the one the patient picks. After a timeout it asks the patient to call again.
-    \item If Twilio reports \texttt{no-answer}, \texttt{busy} or \texttt{failed}, the voice server sends the same message on WhatsApp from the platform account.
-\end{enumerate}
+\xref{fig:sequence_callback} covers what happens when a pending request is not accepted. Either the doctor refuses it from the dashboard, and the booking controller cancels the appointment and adds a callback job to the queue, or the doctor does not answer within 10 minutes and the delayed job created at booking time becomes due. In both cases the callback worker of the voice server runs the job through BullMQ \cite{bullmq2024}, asks the web application for the phone number and the message, and places an outbound call through Twilio.
+
+If the patient answers, the worker asks the booking controller for up to three other doctors with free slots, the AI offers them, and the doctor the patient chooses gets a new pending request. After a timeout, the AI asks the patient to call again instead. If the call is not answered, is busy or fails, the worker sends the same message on WhatsApp.
 
 \subsection{Activity Diagrams: Sign-up, Urgent Booking and Answers to a Request}
 The three activity diagrams use swimlanes to show who does each step. Decisions are drawn as diamonds and end states as circled dots.
@@ -327,7 +307,7 @@ The three activity diagrams use swimlanes to show who does each step. Decisions 
 \end{figure}
 
 \subsection{Deployment Diagram: Docker, Nginx and the Ubuntu VPS}
-\xref{fig:deployment} shows how the code goes from GitHub to the production server \cite{docker2024}. The modules inside each repository are described in Chapter~3 (\xref{fig:two_repos}).
+\xref{fig:deployment} shows how the code goes from GitHub to the single Ubuntu server used by the development team \cite{docker2024}. The platform is not open to the public yet: the server hosts the version that the team and the client test. The modules inside each repository are described in Chapter~3 (\xref{fig:two_repos}).
 
 \begin{figure}[H]
     \centering
@@ -372,4 +352,4 @@ In the normal path, a gateway checks for urgent signs. If there are any, the AI 
 The timeout and refusal paths merge at a gateway that checks whether the number is blocked. A blocked number gets nothing. For any other number, the AI system calls the patient back, offering three other doctors after a refusal or asking the patient to call again after a timeout. If the patient does not answer, a WhatsApp message goes out from the platform account. Both paths end with the patient informed. Part~B draws the normal request only; the rules of urgent groups, where a refusal leaves the other requests open, are in \xref{fig:activity_urgent}.
 
 \section{Conclusion}
-This chapter presented the Kanban method, compared it with Scrum and Waterfall, and explained why it suited a project with one developer, requests arriving through the company founder and a live service after 2 October. It then modeled Riaya from several angles. The use case diagrams list what each of the four actors does. The three class diagrams explain the data model, in particular the split between person, phone and patient file, and the usage rows behind the plan limits. The sequence, activity and BPMN diagrams follow a call, the urgent flow and the answers to a request step by step, and the deployment diagram shows how the code reaches the VPS. The next chapter covers the technical architecture and the implementation.
+This chapter presented the Kanban method, compared it with Scrum and Waterfall, and explained why it suited a project with one developer, requests arriving through the company founder and frequent feedback from the client. It then modeled Riaya from several angles. The use case diagrams list what each of the five actors does. The three class diagrams explain the data model, in particular the split between person, phone and patient file, and the usage rows behind the plan limits. The sequence, activity and BPMN diagrams follow a call, the urgent flow and the answers to a request step by step, and the deployment diagram shows how the code reaches the VPS. The next chapter covers the technical architecture and the implementation.
