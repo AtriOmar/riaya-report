@@ -42,3 +42,4 @@
 *.xml
 *blx.bib
 build/
+*.xdv

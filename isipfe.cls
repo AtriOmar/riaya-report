@@ -107,12 +107,14 @@
 \RequirePackage{xspace}
 
 %================ Languages used in the doc ================%
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
+% Unicode engine (XeLaTeX/LuaLaTeX) is required for Arabic script
+\usepackage{fontspec}
 % @author: Stoufa
 % Package babel-french Warning: Option `frenchb' for Babel is *deprecated*
 %\usepackage[english,arabic,frenchb]{babel}
-\usepackage[english,arabic,french]{babel}
+\usepackage[english,french]{babel}
+\babelprovide[import]{arabic}
+\babelfont[arabic]{rm}{Geeza Pro}
 
 %%%%%%%%%%%
 
