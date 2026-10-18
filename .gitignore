@@ -23,8 +23,7 @@
 *.lol
 *.lot
 *.maf
-*.mtc
-*.mtc1
+*.mtc*
 *.nav
 *.nlo
 *.nls
@@ -42,6 +41,4 @@
 *.xdy
 *.xml
 *blx.bib
-.bak 
-.mtc
 build/

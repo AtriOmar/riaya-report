@@ -1,0 +1,697 @@
+\chapter{Sprint 7 : Intégration de Power BI et Rapports avancés}
+\label{chap:sprint7-powerbi}
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+Power BI est l'un des outils de Business Intelligence les plus puissants du marché, offrant des capacités de visualisation avancées, une interactivité exceptionnelle et une intégration fluide avec de nombreuses sources de données. Dans le cadre de notre solution décisionnelle, Power BI vient enrichir l'offre de visualisation en proposant des rapports sophistiqués, des analyses multidimensionnelles et des fonctionnalités d'exploration de données. Ce septième sprint est dédié à l'intégration de Power BI avec notre solution, en connectant l'outil au Data Warehouse PostgreSQL, en créant des tableaux de bord adaptés aux besoins des responsables de la BTL, et en intégrant ces rapports dans l'application React via Power BI Embedded.
+
+Dans ce chapitre, nous commencerons par définir les objectifs précis du sprint, puis nous présenterons la conception à travers des diagrammes UML. Nous détaillerons ensuite la connexion de Power BI à PostgreSQL, la modélisation des données, la création des tableaux de bord, l'intégration dans React via l'embedding, et la génération de rapports exportables. Enfin, nous aborderons les tests et la validation, ainsi que les livrables de ce sprint.
+
+\section{Objectifs du Sprint}
+\label{sec:sprint7-objectifs}
+
+Le sprint 7 a pour objectifs principaux :
+
+\begin{itemize}
+    \item Établir la \textbf{connexion} entre Power BI et le Data Warehouse PostgreSQL.
+    \item \textbf{Modéliser} les données dans Power BI pour optimiser les performances et la convivialité des rapports.
+    \item Créer des \textbf{tableaux de bord Power BI} adaptés aux besoins des directeurs et responsables d'agence.
+    \item \textbf{Intégrer} les rapports Power BI dans l'application React via Power BI Embedded.
+    \item Permettre la \textbf{génération de rapports} exportables aux formats PDF et Excel.
+    \item Assurer la \textbf{sécurité} et le contrôle d'accès aux rapports.
+    \item Former les utilisateurs à l'utilisation de Power BI.
+\end{itemize}
+
+À la fin de ce sprint, les responsables de la BTL pourront consulter des rapports Power BI interactifs, directement intégrés dans l'application React, et les exporter pour des présentations ou des analyses approfondies.
+
+\section{Conception du Sprint}
+\label{sec:sprint7-conception}
+
+La phase de conception est essentielle pour structurer l'intégration de Power BI et définir ses composants. Elle permet de visualiser les interactions entre les acteurs et le système, de définir la structure des entités Power BI et de modéliser les flux d'exécution.
+
+\subsection{Diagramme de cas d'utilisation}
+\label{subsec:sprint7-use-case}
+
+Le diagramme de cas d'utilisation présente les fonctionnalités offertes par l'intégration Power BI du point de vue des acteurs. Les acteurs identifiés sont :
+
+\begin{itemize}
+    \item \textbf{Directeur} : Peut consulter les rapports Power BI globaux, explorer les données par agence, par région, par période, et générer des exports.
+    \item \textbf{Responsable d'agence} : Peut consulter les rapports Power BI de son agence uniquement, avec des filtres pré-appliqués.
+    \item \textbf{Administrateur} : Peut configurer les connexions Power BI, gérer les datasets, publier les rapports, et gérer les permissions d'accès.
+    \item \textbf{Système} : Power BI Embedded est utilisé pour intégrer les rapports dans React.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/diagramme_use_case_powerbi.png}
+\caption{Diagramme de cas d'utilisation - Power BI}
+\label{fig:use-case-powerbi}
+\end{figure}
+
+\textbf{Description :} Le diagramme de cas d'utilisation présente les interactions entre les acteurs (Directeur, Responsable d'agence, Administrateur, Système) et les fonctionnalités de l'intégration Power BI : consultation de rapports, exploration des données, export de rapports, configuration des datasets, publication de rapports, gestion des permissions et actualisation des données.
+
+Les cas d'utilisation identifiés pour ce sprint sont :
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{3.5cm}|p{6cm}|}
+\hline
+\textbf{Cas d'utilisation} & \textbf{Acteurs} & \textbf{Description} \\
+\hline
+Consulter un rapport Power BI & Directeur, Responsable & Visualiser un rapport interactif intégré dans React. \\
+\hline
+Explorer les données & Directeur, Responsable & Utiliser les filtres, les slicers et le drill-down dans Power BI. \\
+\hline
+Exporter un rapport & Directeur, Responsable & Télécharger le rapport aux formats PDF ou Excel. \\
+\hline
+Configurer les datasets & Administrateur & Définir les connexions et les modèles de données. \\
+\hline
+Publier un rapport & Administrateur & Publier un nouveau rapport dans l'espace de travail. \\
+\hline
+Gérer les permissions & Administrateur & Attribuer les droits d'accès aux rapports. \\
+\hline
+Actualiser les données & Administrateur & Planifier l'actualisation des datasets Power BI. \\
+\hline
+\end{tabular}
+\caption{Cas d'utilisation du sprint 7}
+\label{tab:use-cases-powerbi}
+\end{table}
+
+\subsection{Diagramme de classes}
+\label{subsec:sprint7-classes}
+
+Le diagramme de classes modélise la structure statique de l'intégration Power BI, en représentant les entités principales et leurs relations.
+
+Les principales classes identifiées sont :
+
+\begin{itemize}
+    \item \textbf{Dataset} : Représente un dataset Power BI, c'est-à-dire un ensemble de données importées ou connectées.
+        \begin{itemize}
+            \item Attributs : id, name, description, source, refresh\_schedule, last\_refresh, tables (liste des tables).
+            \item Méthodes : refresh(), get\_tables(), get\_relationships().
+        \end{itemize}
+    
+    \item \textbf{Report} : Représente un rapport Power BI, composé de plusieurs pages de visualisations.
+        \begin{itemize}
+            \item Attributs : id, name, description, dataset\_id, pages (liste des pages), created\_date, modified\_date.
+            \item Méthodes : generate\_embed\_config(), get\_pages(), apply\_filters(filters).
+        \end{itemize}
+    
+    \item \textbf{Dashboard} : Représente un tableau de bord Power BI qui agrège plusieurs rapports.
+        \begin{itemize}
+            \item Attributs : id, name, description, reports (liste des rapports), tiles (tuiles).
+            \item Méthodes : add\_report(report), remove\_report(report).
+        \end{itemize}
+    
+    \item \textbf{EmbedConfig} : Représente la configuration d'embedding pour intégrer un rapport dans React.
+        \begin{itemize}
+            \item Attributs : report\_id, embed\_url, embed\_token, token\_expiry.
+            \item Méthodes : generate\_token(), is\_token\_valid(), refresh\_token().
+        \end{itemize}
+    
+    \item \textbf{PowerBIService} : Service responsable de l'interaction avec l'API Power BI.
+        \begin{itemize}
+            \item Attributs : client\_id, client\_secret, tenant\_id, workspace\_id.
+            \item Méthodes : get\_reports(), get\_report\_by\_id(report\_id), generate\_embed\_config(report\_id, filters), refresh\_dataset(dataset\_id).
+        \end{itemize}
+    
+    \item \textbf{ReportExporter} : Service responsable de l'export des rapports.
+        \begin{itemize}
+            \item Attributs : export\_formats (PDF, Excel, etc.).
+            \item Méthodes : export\_pdf(report\_id, parameters), export\_excel(report\_id, parameters), export\_pptx(report\_id, parameters).
+        \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/diagramme_classes_powerbi.png}
+\caption{Diagramme de classes - Power BI}
+\label{fig:class-diagram-powerbi}
+\end{figure}
+
+\textbf{Description :} Le diagramme de classes présente la structure de l'intégration Power BI avec les entités Dataset, Report, Dashboard, EmbedConfig, PowerBIService et ReportExporter. Un Report est basé sur un Dataset, un Dashboard contient plusieurs Reports, EmbedConfig est généré par PowerBIService, et ReportExporter utilise PowerBIService pour exporter les rapports.
+
+Les relations entre les classes sont les suivantes :
+
+\begin{itemize}
+    \item Un \textbf{Report} est basé sur un \textbf{Dataset}.
+    \item Un \textbf{Dashboard} contient plusieurs \textbf{Reports}.
+    \item \textbf{EmbedConfig} est généré par \textbf{PowerBIService} pour un \textbf{Report} donné.
+    \item \textbf{ReportExporter} utilise \textbf{PowerBIService} pour exporter les rapports.
+\end{itemize}
+
+\subsection{Diagramme de séquence}
+\label{subsec:sprint7-sequence}
+
+Les diagrammes de séquence suivants illustrent les principaux flux d'exécution de l'intégration Power BI.
+
+\subsubsection{Génération d'un rapport}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/diagramme_sequence_report_generation.png}
+\caption{Diagramme de séquence - Génération d'un rapport Power BI}
+\label{fig:sequence-report-generation}
+\end{figure}
+
+\textbf{Description :} Le diagramme de séquence de la génération d'un rapport montre les interactions entre l'Administrateur et Power BI Service. L'administrateur se connecte, sélectionne le dataset source, crée les mesures DAX, crée les visualisations, publie le rapport dans l'espace de travail, configure l'embedding, et le rapport devient disponible pour l'application React.
+
+Les étapes de la génération d'un rapport sont :
+
+\begin{enumerate}
+    \item L'administrateur se connecte à Power BI Service (service web de Microsoft).
+    \item L'administrateur sélectionne le dataset source (connecté à PostgreSQL).
+    \item L'administrateur crée les mesures et les calculs nécessaires (DAX).
+    \item L'administrateur crée les visualisations et organise les pages du rapport.
+    \item Le rapport est publié dans l'espace de travail Power BI.
+    \item Le rapport est configuré pour l'embedding (permissions, paramètres).
+    \item Le rapport est disponible pour intégration dans l'application React.
+\end{enumerate}
+
+\subsubsection{Intégration dans React}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/diagramme_sequence_embedding.png}
+\caption{Diagramme de séquence - Intégration du rapport dans React}
+\label{fig:sequence-embedding}
+\end{figure}
+
+\textbf{Description :} Le diagramme de séquence de l'intégration du rapport dans React montre les interactions entre l'Utilisateur, le Frontend React, l'API FastAPI, le PowerBIService, l'API Power BI et le Power BI SDK. L'utilisateur accède à la page, le frontend demande la configuration d'embedding, le PowerBIService génère un token, et le SDK intègre le rapport interactif.
+
+Les étapes de l'intégration du rapport dans React sont :
+
+\begin{enumerate}
+    \item L'utilisateur accède à la page contenant le rapport Power BI dans l'application React.
+    \item Le composant React envoie une requête GET à l'API FastAPI pour obtenir la configuration d'embedding.
+    \item L'API FastAPI appelle le PowerBIService pour générer un EmbedConfig.
+    \item Le PowerBIService demande un token d'accès à l'API Power BI (authentification).
+    \item L'API Power BI retourne le token d'accès avec les permissions.
+    \item Le PowerBIService construit l'EmbedConfig (report\_id, embed\_url, token).
+    \item L'API FastAPI retourne l'EmbedConfig au frontend React.
+    \item Le composant React utilise Power BI JavaScript SDK pour intégrer le rapport.
+    \item Le rapport s'affiche interactif dans l'application React.
+    \item L'utilisateur peut interagir avec le rapport (filtres, drill-down, navigation).
+\end{enumerate}
+
+\subsubsection{Export PDF/Excel}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/diagramme_sequence_export.png}
+\caption{Diagramme de séquence - Export du rapport}
+\label{fig:sequence-export}
+\end{figure}
+
+\textbf{Description :} Le diagramme de séquence de l'export du rapport montre les interactions entre l'Utilisateur, le Frontend React, l'API FastAPI, le ReportExporter et l'API Power BI. L'utilisateur clique sur Exporter, le frontend envoie une requête à l'API, le ReportExporter demande la génération de l'export à l'API Power BI, qui génère le fichier, puis le frontend télécharge le fichier.
+
+Les étapes de l'export du rapport sont :
+
+\begin{enumerate}
+    \item L'utilisateur clique sur le bouton "Exporter" dans l'interface du rapport.
+    \item Le composant React envoie une requête POST à l'API FastAPI pour l'export.
+    \item L'API FastAPI appelle le ReportExporter avec les paramètres demandés.
+    \item Le ReportExporter demande la génération de l'export à l'API Power BI.
+    \item L'API Power BI génère l'export dans le format demandé (PDF ou Excel).
+    \item Le ReportExporter récupère le fichier généré.
+    \item L'API FastAPI retourne le fichier au frontend (en pièce jointe).
+    \item Le navigateur télécharge le fichier sur la machine de l'utilisateur.
+\end{enumerate}
+
+\section{Connexion de Power BI à PostgreSQL}
+\label{sec:sprint7-connexion}
+
+La connexion entre Power BI et PostgreSQL est la première étape pour permettre l'analyse des données décisionnelles.
+
+\subsection{Modes de connexion}
+
+Power BI propose deux modes de connexion principaux :
+
+\begin{itemize}
+    \item \textbf{Import Mode} : Les données sont importées dans Power BI et stockées dans le moteur VertiPaq en mémoire. Ce mode offre les meilleures performances mais nécessite des actualisations régulières.
+    \item \textbf{DirectQuery Mode} : Les requêtes sont exécutées en temps réel sur la base de données PostgreSQL. Ce mode permet un accès aux données en temps réel mais peut être plus lent pour les données volumineuses.
+\end{itemize}
+
+\subsection{Choix du mode}
+
+Pour notre projet, nous utilisons une approche hybride :
+
+\begin{itemize}
+    \item \textbf{DirectQuery} pour les données opérationnelles en temps réel (transactions récentes, KPI du jour).
+    \item \textbf{Import Mode} pour les données historiques agrégées (données mensuelles, trimestrielles) qui sont actualisées quotidiennement.
+\end{itemize}
+
+\subsection{Configuration de la connexion}
+
+La configuration de la connexion inclut :
+
+\begin{itemize}
+    \item \textbf{Hôte} : Adresse du serveur PostgreSQL (ex: btl-dw.database.azure.com).
+    \item \textbf{Port} : 5432 (port par défaut de PostgreSQL).
+    \item \textbf{Base de données} : Nom du Data Warehouse (ex: btl\_dw).
+    \item \textbf{Mode d'authentification} : Authentification SQL (username/password) ou Windows Authentication.
+    \item \textbf{Niveau d'isolation} : Read Committed pour éviter les verrous.
+    \item \textbf{Native Query} : Autorisation d'exécuter des requêtes SQL natives (si nécessaire).
+\end{itemize}
+
+\subsection{Importation des données}
+
+Les données sont importées selon le processus suivant :
+
+\begin{enumerate}
+    \item Sélection des tables du Data Warehouse (Faits : Transactions, Dépôts, Crédits ; Dimensions : Agence, Temps, Client, Produit).
+    \item Définition des requêtes de chargement (SELECT * FROM ...).
+    \item Application des transformations dans Power Query (nettoyage, filtrage, fusion).
+    \item Chargement des données dans le modèle Power BI.
+    \item Planification de l'actualisation (refresh) des datasets.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/connexion_powerbi_postgresql.png}
+\caption{Connexion de Power BI à PostgreSQL}
+\label{fig:connexion-powerbi-postgresql}
+\end{figure}
+
+\textbf{Description :} La connexion de Power BI à PostgreSQL est établie via un connecteur natif. Les données sont importées selon une approche hybride : DirectQuery pour les données opérationnelles en temps réel (transactions récentes, KPI du jour) et Import Mode pour les données historiques agrégées (données mensuelles, trimestrielles) actualisées quotidiennement.
+
+\section{Modélisation des données dans Power BI}
+\label{sec:sprint7-modelisation}
+
+La modélisation des données dans Power BI est essentielle pour garantir des performances optimales et une expérience utilisateur intuitive.
+
+\subsection{Relations entre les tables}
+
+Les relations entre les tables sont définies selon le schéma en étoile :
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{3.5cm}|p{7cm}|}
+\hline
+\textbf{Table de fait} & \textbf{Table de dimension} & \textbf{Type de relation} \\
+\hline
+FaitTransaction & DimAgence & Plusieurs-à-un (via id\_agence) \\
+\hline
+FaitTransaction & DimTemps & Plusieurs-à-un (via id\_temps) \\
+\hline
+FaitTransaction & DimClient & Plusieurs-à-un (via id\_client) \\
+\hline
+FaitTransaction & DimProduit & Plusieurs-à-un (via id\_produit) \\
+\hline
+FaitDepot & DimAgence & Plusieurs-à-un (via id\_agence) \\
+\hline
+FaitDepot & DimTemps & Plusieurs-à-un (via id\_temps) \\
+\hline
+FaitDepot & DimClient & Plusieurs-à-un (via id\_client) \\
+\hline
+FaitCredit & DimAgence & Plusieurs-à-un (via id\_agence) \\
+\hline
+FaitCredit & DimTemps & Plusieurs-à-un (via id\_temps) \\
+\hline
+FaitCredit & DimClient & Plusieurs-à-un (via id\_client) \\
+\hline
+\end{tabular}
+\caption{Relations entre les tables dans Power BI}
+\label{tab:powerbi-relationships}
+\end{table}
+
+\subsection{Mesures et calculs DAX}
+
+Des mesures DAX (Data Analysis Expressions) sont créées pour les KPI :
+
+\begin{itemize}
+    \item \textbf{PNB Total} : Somme des montants des transactions.
+    \item \textbf{Croissance des dépôts} : Variation en pourcentage des dépôts par rapport à la période précédente.
+    \item \textbf{Productivité par employé} : Ratio entre le nombre de transactions et le nombre d'employés.
+    \item \textbf{Taux de transformation} : Ratio entre les comptes ouverts et les prospects.
+    \item \textbf{Taux de croissance annuel} : Calcul du CAGR (Compound Annual Growth Rate).
+    \item \textbf{Moyennes mobiles} : Moyenne glissante sur 3 ou 6 mois.
+\end{itemize}
+
+\subsection{Hiérarchies}
+
+Des hiérarchies sont créées pour faciliter l'exploration des données :
+
+\begin{itemize}
+    \item \textbf{Hiérarchie temporelle} : Année → Trimestre → Mois → Jour.
+    \item \textbf{Hiérarchie géographique} : Région → Ville → Agence.
+    \item \textbf{Hiérarchie produit} : Catégorie → Type → Produit.
+\end{itemize}
+
+\section{Création des tableaux de bord Power BI}
+\label{sec:sprint7-dashboards}
+
+Les tableaux de bord Power BI sont créés pour répondre aux besoins spécifiques des différents acteurs.
+
+\subsection{Tableau de bord Directeur}
+
+Le tableau de bord du directeur offre une vue stratégique de l'ensemble du réseau :
+
+\begin{itemize}
+    \item \textbf{Page 1 - Vue d'ensemble} :
+        \begin{itemize}
+            \item KPI globaux : PNB total, croissance des dépôts, croissance des crédits, ROA.
+            \item Graphique de l'évolution des KPI sur 12 mois.
+            \item Carte géographique des agences avec codes couleur.
+            \item Top 5 des agences par PNB.
+        \end{itemize}
+    \item \textbf{Page 2 - Analyse des agences} :
+        \begin{itemize}
+            \item Matrice de performance (scatter plot : PNB vs croissance).
+            \item Classement des agences par indicateur (avec slicer pour choisir l'indicateur).
+            \item Analyse de répartition (camembert des PNB par région).
+        \end{itemize}
+    \item \textbf{Page 3 - Analyse temporelle} :
+        \begin{itemize}
+            \item Courbes de tendance des KPI avec prévisions.
+            \item Analyse saisonnière (par mois, par trimestre).
+            \item Comparaison année sur année (YoY).
+        \end{itemize}
+    \item \textbf{Page 4 - Analyse des clients} :
+        \begin{itemize}
+            \item Répartition des clients par type (particuliers, entreprises).
+            \item Évolution du nombre de clients.
+            \item Top 10 des clients par volume de transactions.
+        \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/maquette_powerbi_directeur.png}
+\caption{Maquette du tableau de bord Power BI - Directeur}
+\label{fig:powerbi-director-dashboard}
+\end{figure}
+
+\textbf{Description :} Le tableau de bord Directeur offre 4 pages de visualisations stratégiques : Vue d'ensemble avec KPI globaux et carte géographique, Analyse des agences avec matrice de performance et classement, Analyse temporelle avec courbes de tendance et prévisions, et Analyse des clients avec répartition par type et top clients.
+
+\subsection{Tableau de bord Responsable d'agence}
+
+Le tableau de bord du responsable d'agence offre une vue détaillée de sa propre agence :
+
+\begin{itemize}
+    \item \textbf{Page 1 - Performance de l'agence} :
+        \begin{itemize}
+            \item KPI de l'agence avec objectifs et écarts.
+            \item Évolution des KPI sur 12 mois.
+            \item Comparaison avec la moyenne du réseau.
+            \item Indicateurs de performance par catégorie (financier, opérationnel, qualité).
+        \end{itemize}
+    \item \textbf{Page 2 - Détail des opérations} :
+        \begin{itemize}
+            \item Répartition des transactions par type.
+            \item Évolution des dépôts et des crédits.
+            \item Top 10 des clients par encours.
+            \item Analyse des crédits par type.
+        \end{itemize}
+    \item \textbf{Page 3 - Alertes et recommandations} :
+        \begin{itemize}
+            \item Indicateurs en alerte (rouge).
+            \item Recommandations basées sur les écarts.
+            \item Plan d'action suggéré.
+        \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/maquette_powerbi_responsable.png}
+\caption{Maquette du tableau de bord Power BI - Responsable d'agence}
+\label{fig:powerbi-manager-dashboard}
+\end{figure}
+
+\textbf{Description :} Le tableau de bord Responsable d'agence offre 3 pages de visualisations détaillées : Performance de l'agence avec KPI et objectifs, Détail des opérations avec répartition des transactions et top clients, et Alertes et recommandations avec indicateurs en alerte et plan d'action suggéré.
+
+\subsection{Tableau de bord Administrateur}
+
+Le tableau de bord de l'administrateur offre une vue technique du système :
+
+\begin{itemize}
+    \item \textbf{Page 1 - Supervision ETL} :
+        \begin{itemize}
+            \item Statut des jobs ETL (succès/échec).
+            \item Volumes de données chargés.
+            \item Temps d'exécution des jobs.
+        \end{itemize}
+    \item \textbf{Page 2 - Performance système} :
+        \begin{itemize}
+            \item Temps de réponse des requêtes API.
+            \item Utilisation des ressources (CPU, mémoire).
+            \item Logs des erreurs.
+        \end{itemize}
+    \item \textbf{Page 3 - Activité utilisateurs} :
+        \begin{itemize}
+            \item Nombre de connexions par jour.
+            \item Utilisation des différentes fonctionnalités.
+            \item Rapports les plus consultés.
+        \end{itemize}
+\end{itemize}
+
+\section{Intégration des rapports Power BI dans l'application React (Embedding)}
+\label{sec:sprint7-embedding}
+
+L'intégration des rapports Power BI dans l'application React est réalisée via Power BI Embedded.
+
+\subsection{Power BI Embedded}
+
+Power BI Embedded est un service Microsoft Azure qui permet d'intégrer des rapports Power BI dans des applications web :
+
+\begin{itemize}
+    \item \textbf{Avantages} :
+        \begin{itemize}
+            \item Intégration native dans React.
+            \item Interactivité totale des rapports.
+            \item Sécurité et contrôle d'accès.
+            \item Personnalisation de l'expérience utilisateur.
+        \end{itemize}
+    \item \textbf{Configuration requise} :
+        \begin{itemize}
+            \item Espace de travail Power BI.
+            \item Capacité Power BI Embedded (licence).
+            \item Application Azure AD enregistrée.
+        \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/powerbi_embedded_architecture.png}
+\caption{Architecture Power BI Embedded}
+\label{fig:powerbi-embedded-architecture}
+\end{figure}
+
+\textbf{Description :} L'architecture Power BI Embedded comprend l'application React qui intègre les rapports via le Power BI JavaScript SDK, l'API FastAPI qui gère les tokens d'embedding, et le service Power BI qui héberge les rapports et datasets avec gestion des permissions (RLS - Row-Level Security).
+
+\subsection{Processus d'embedding}
+
+Le processus d'embedding se déroule en plusieurs étapes :
+
+\begin{enumerate}
+    \item \textbf{Publication} : Le rapport est publié dans l'espace de travail Power BI.
+    \item \textbf{Configuration} : Le rapport est configuré pour l'embedding avec les permissions appropriées.
+    \item \textbf{Génération du token} : L'API génère un token d'accès temporaire pour l'embedding.
+    \item \textbf{Intégration} : Le token est utilisé par le JavaScript SDK pour intégrer le rapport.
+    \item \textbf{Interaction} : L'utilisateur interagit avec le rapport (filtres, drill-down, etc.).
+\end{enumerate}
+
+\subsection{Composant React d'embedding}
+
+Le composant React d'embedding offre les fonctionnalités suivantes :
+
+\begin{itemize}
+    \item \textbf{Chargement du rapport} : Intégration du rapport dans le conteneur.
+    \item \textbf{Gestion des événements} : Capture des événements du rapport (chargement, erreur, etc.).
+    \item \textbf{Application de filtres} : Application de filtres côté serveur ou côté client.
+    \item \textbf{Navigation entre pages} : Navigation entre les pages du rapport.
+    \item \textbf{Export intégré} : Bouton d'export intégré dans l'interface du rapport.
+    \item \textbf{Responsive} : Adaptation à la taille de l'écran.
+\end{itemize}
+
+\subsection{Gestion des permissions}
+
+Les permissions sont gérées à plusieurs niveaux :
+
+\begin{itemize}
+    \item \textbf{Niveau dataset} : Les données sont filtrées en fonction du rôle de l'utilisateur (RLS - Row-Level Security).
+    \item \textbf{Niveau rapport} : Certains rapports ne sont visibles que par certains rôles.
+    \item \textbf{Niveau token} : Le token d'embedding a une durée de vie limitée et est spécifique à l'utilisateur.
+\end{itemize}
+
+\subsection{Gestion des filtres}
+
+Les filtres peuvent être appliqués de différentes manières :
+
+\begin{itemize}
+    \item \textbf{Filtres d'URL} : Passés dans l'URL d'embedding.
+    \item \textbf{Filtres programmatiques} : Appliqués via l'API JavaScript.
+    \item \textbf{Filtres côté serveur} : Appliqués avant la génération du token.
+    \item \textbf{Bookmarks} : États de rapport prédéfinis.
+\end{itemize}
+
+\section{Génération de rapports PDF / Excel}
+\label{sec:sprint7-export}
+
+La génération de rapports exportables permet aux utilisateurs de partager et de présenter les analyses.
+
+\subsection{Formats d'export}
+
+Power BI prend en charge plusieurs formats d'export :
+
+\begin{itemize}
+    \item \textbf{PDF} : Format idéal pour la présentation et l'impression.
+    \item \textbf{Excel} : Format idéal pour l'analyse et le traitement des données.
+    \item \textbf{PowerPoint (PPTX)} : Format pour les présentations.
+    \item \textbf{CSV} : Format pour l'export des données brutes.
+\end{itemize}
+
+\subsection{Export via l'API Power BI}
+
+L'export via l'API Power BI permet d'automatiser la génération de rapports :
+
+\begin{enumerate}
+    \item Le frontend envoie une requête d'export à l'API FastAPI.
+    \item L'API FastAPI appelle l'API Power BI pour déclencher l'export.
+    \item L'API Power BI génère le fichier dans le format demandé.
+    \item Le fichier est temporairement stocké et un URL de téléchargement est généré.
+    \item Le frontend télécharge le fichier.
+\end{enumerate}
+
+\subsection{Export paramétré}
+
+Les exports peuvent être paramétrés :
+
+\begin{itemize}
+    \item \textbf{Sélection des pages} : Exporter une ou plusieurs pages du rapport.
+    \item \textbf{Application des filtres} : Exporter le rapport avec les filtres actuels.
+    \item \textbf{Sélection des données} : Exporter uniquement les données visibles.
+    \item \textbf{Format d'export} : Choix du format de sortie.
+\end{itemize}
+
+\subsection{Planification d'export}
+
+Les exports peuvent être planifiés :
+
+\begin{itemize}
+    \item \textbf{Envoi automatique par email} : Envoi régulier des rapports par email.
+    \item \textbf{Stockage sur serveur} : Sauvegarde des exports sur un partage réseau.
+    \item \textbf{Push vers d'autres systèmes} : Envoi des données vers d'autres applications.
+\end{itemize}
+
+\section{Tests et validation}
+\label{sec:sprint7-tests}
+
+Les tests et la validation sont essentiels pour garantir la qualité de l'intégration Power BI.
+
+\subsection{Tests de connexion}
+
+Les tests de connexion vérifient :
+
+\begin{itemize}
+    \item \textbf{Connexion à PostgreSQL} : Vérification de l'accès au Data Warehouse.
+    \item \textbf{Import des données} : Vérification du chargement des données.
+    \item \textbf{Actualisation des datasets} : Vérification du rafraîchissement programmé.
+\end{itemize}
+
+\subsection{Tests de performance}
+
+Les tests de performance vérifient :
+
+\begin{itemize}
+    \item \textbf{Temps de chargement} : Vérification du temps d'affichage des rapports.
+    \item \textbf{Performance des requêtes} : Vérification du temps d'exécution des requêtes DAX.
+    \item \textbf{Performance de l'embedding} : Vérification de la fluidité de l'interface.
+\end{itemize}
+
+\subsection{Tests fonctionnels}
+
+Les tests fonctionnels vérifient :
+
+\begin{itemize}
+    \item \textbf{Intégration des rapports} : Vérification de l'affichage des rapports dans React.
+    \item \textbf{Interactivité} : Vérification des filtres, drill-down, navigation.
+    \item \textbf{Export} : Vérification de la génération des fichiers PDF/Excel.
+    \item \textbf{Permissions} : Vérification des restrictions d'accès par rôle.
+\end{itemize}
+
+\subsection{Validation utilisateur}
+
+La validation utilisateur est réalisée avec des responsables de la BTL :
+
+\begin{itemize}
+    \item \textbf{Démonstration} : Présentation des tableaux de bord Power BI.
+    \item \textbf{Ateliers de test} : Les utilisateurs testent les rapports et donnent leur feedback.
+    \item \textbf{Questionnaires} : Recueil des retours sur la pertinence des visualisations.
+\end{itemize}
+
+\subsection{Résultats des tests}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{5cm}|p{4cm}|p{4cm}|}
+\hline
+\textbf{Type de test} & \textbf{Nombre de tests} & \textbf{Taux de réussite} \\
+\hline
+Connexion PostgreSQL & 10 & 100\% \\
+\hline
+Import des données & 10 & 100\% \\
+\hline
+Performance des rapports & 20 & 95\% \\
+\hline
+Intégration React & 15 & 100\% \\
+\hline
+Export PDF/Excel & 10 & 100\% \\
+\hline
+Permissions & 10 & 100\% \\
+\hline
+Validation utilisateur & 5 sessions & Satisfaction : 4,4/5 \\
+\hline
+\end{tabular}
+\caption{Résultats des tests Power BI}
+\label{tab:powerbi-tests}
+\end{table}
+
+\section{Livrables du Sprint}
+\label{sec:sprint7-livrables}
+
+À l'issue de ce sprint, les livrables suivants sont produits :
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\textbf{Livrable} & \textbf{Description} \\
+\hline
+Connexion Power BI - PostgreSQL & Connexion établie avec les modes Import et DirectQuery. \\
+\hline
+Modèle de données Power BI & Modèle avec tables, relations, mesures DAX, hiérarchies. \\
+\hline
+Tableau de bord Directeur & 4 pages de visualisations stratégiques. \\
+\hline
+Tableau de bord Responsable & 3 pages de visualisations détaillées. \\
+\hline
+Tableau de bord Administrateur & 3 pages de supervision technique. \\
+\hline
+Intégration React & Rapports intégrés avec Power BI Embedded. \\
+\hline
+Export PDF/Excel & Fonctionnalité d'export paramétrée. \\
+\hline
+Documentation utilisateur & Guide d'utilisation des tableaux de bord Power BI. \\
+\hline
+Rapport de tests & Résultats des tests de performance et fonctionnels. \\
+\hline
+\end{tabular}
+\caption{Livrables du sprint 7}
+\label{tab:sprint7-livrables}
+\end{table}
+
+
+\textbf{Description :} Les livrables du sprint 7 comprennent : la connexion Power BI-PostgreSQL avec modes Import et DirectQuery, le modèle de données Power BI (tables, relations, mesures DAX), les tableaux de bord Directeur (4 pages), Responsable (3 pages) et Administrateur (3 pages), l'intégration React avec Power BI Embedded, l'export PDF/Excel, la documentation utilisateur et le rapport de tests.
+
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+Ce septième sprint a permis d'enrichir notre solution décisionnelle avec les capacités avancées de Power BI, offrant ainsi aux responsables de la BTL des rapports interactifs, esthétiques et performants. La connexion au Data Warehouse PostgreSQL, la modélisation des données et la création de tableaux de bord adaptés aux différents acteurs constituent une valeur ajoutée significative.
+
+L'intégration des rapports dans l'application React via Power BI Embedded offre une expérience utilisateur fluide et unifiée, où les utilisateurs peuvent passer des tableaux de bord React aux rapports Power BI sans quitter l'application. La fonctionnalité d'export vers PDF et Excel permet de partager facilement les analyses et de préparer des présentations.
+
+Les tests et la validation utilisateur confirment la qualité et la pertinence des tableaux de bord créés, avec un taux de satisfaction de 4,4/5. Ce sprint marque l'achèvement de la couche de visualisation de notre solution décisionnelle.
+
+Le prochain et dernier sprint sera dédié aux tests, à la validation, au déploiement et à la formation des utilisateurs pour garantir une mise en production réussie et une adoption optimale de la solution par les équipes de la BTL.

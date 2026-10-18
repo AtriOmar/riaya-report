@@ -1,0 +1,83 @@
+
+%=== File containing Global Configuration of the report ===%
+%                                                          %
+% Copyright (C) ISI - All Rights Reserved                  %
+% Proprietary                                              %
+% Written by Med Hossam <med.hossam@gmail.com>, April 2016 %
+%                                                          %
+% @author: HEDHILI Med Houssemeddine                       %
+% @linkedin: http://tn.linkedin.com/in/medhossam           %
+%==========================================================%
+
+%=========== You MUST type your information here ==========%
+% global_config.tex file is designed to configure your     %
+% cover pages (main, back and black covers)                %
+%==========================================================%
+
+%============= Config new columns type ==============%
+\newcolumntype{L}{>{\raggedright\arraybackslash}}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}}
+\newcolumntype{C}{>{\centering\arraybackslash}}
+%==================================================%
+
+%========= Config the cover section ==========%
+
+\title{
+
+Riaya: An AI-Powered Voice-First Doctor Appointment Platform for Tunisia
+
+}
+
+\author{Atri Omar}
+%%% if necessary
+% Set isBinomal to true and type second author name
+%\setboolean{isBinomal}{true}
+%\secondAuthor{Prénom NOM}
+
+\diplomaName{Department of Engineering and Architecture}
+\speciality{ Telecommunication and Network Engineering }
+%\speciality{Génie des Télécommunications et Réseaux}
+%\speciality{Génie Informatique des Systèmes Industriels}
+
+%% Encadrant professionnel
+\proFramerName{Monsieur XXX YYY}
+\proFramerSpeciality{Directeur technique}
+
+%% Encadrant académique
+\academicFramerName{Monsieur ZZZ WWW}
+\academicFramerSpeciality{Ingénieur Informatique}
+
+%% Entreprise d'accueil
+\companyName{Università di Parma }
+
+%% Année universitaire
+\collegeYear{2025 - 2026}
+
+%%%%%% Signatures section %%%%%%
+
+% You can simply remove theses sentences by typing an empty string
+% \proSignSentence{}
+
+\proSignSentence{I authorize the student to submit his/her internship report for the purpose of a defense.}
+
+\academicSignSentence{I authorize the student to submit his/her internship report for the purpose of a defense. }
+
+%%% FR
+\frenchAbstract{Ce rapport présente Riaya, une plateforme de prise de rendez-vous médicaux par IA vocale développée par Pengguin. Les patients interagissent par appel téléphonique avec un agent multilingue et reçoivent des messages WhatsApp, sans compte. Le rapport analyse les besoins, compare les solutions existantes, et détaille la méthodologie Kanban et les diagrammes UML/BPMN. L’architecture repose sur deux dépôts (Next.js et Express.js) avec PostgreSQL, OpenAI Realtime, Twilio, et un déploiement Docker sur VPS. Les défis (latence, best-fit, urgences) et perspectives sont abordés.}
+
+\frenchAbstractKeywords{ IA, rendez-vous médicaux, agent vocal, WhatsApp, Kanban, BPMN.}
+
+%%% EN
+\englishAbstract{This report presents Riaya, an AI-powered doctor appointment platform developed by Pengguin. Patients interact via phone call with a multilingual AI agent and receive WhatsApp messages, without an account. The report covers requirements, existing solutions, Kanban methodology, and UML/BPMN diagrams. The architecture uses two repositories (Next.js and Express.js) with PostgreSQL, OpenAI Realtime, Twilio, and Docker deployment on a VPS. Challenges (latency, best-fit, emergencies) and future work are discussed.}
+
+\englishAbstractKeywords{AI, medical appointment, voice agent, WhatsApp, Kanban, BPMN.}
+
+%% if you want to get rid of the company address just set the boolean variable to false
+% PS : it's optional
+\setboolean{wantToTypeCompanyAddress}{false}
+
+\companyEmail{contact@company.com}
+\companyTel{71 111 111}
+\companyFax{71 222 222}
+\companyAddressAR{نهج بحيرة ملاران - ضفاف البحيرة - تونس}
+\companyAddressFR{Rue du Lac Malaren, Les Berges du Lac 1053 Tunis}

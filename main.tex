@@ -1,0 +1,114 @@
+% !TEX program = pdflatex
+%========= File containing the main LaTex document ========%
+%                                                          %
+% Copyright (C) ISI - All Rights Reserved                  %
+% Proprietary                                              %
+% Written by Med Hossam <med.hossam@gmail.com>, April 2016 %
+%                                                          %
+% @author: HEDHILI Med Houssemeddine                       %
+% @linkedin: http://tn.linkedin.com/in/medhossam           %
+%==========================================================%
+
+%\documentclass[pfe]{./tpl/isipfe}
+\PassOptionsToPackage{shortlabels,inline}{enumitem}
+\PassOptionsToPackage{colorlinks=true,linkcolor=black,urlcolor=blue,citecolor=black}{hyperref}
+\PassOptionsToPackage{italian}{babel}
+\documentclass[]{isipfe}
+\graphicspath{{./images/}}
+\usepackage{pdfpages}
+
+%\usepackage{hyperref}
+
+\input{new_commands}
+
+% @author: Stoufa
+% the command `\makeindex` is mandatory to create the index file main.idx
+% https://tex.stackexchange.com/questions/9913/input-index-file-not-found
+\makeindex
+
+\begin{document}
+    \input{global_config}
+    
+    \frontmatter
+        % Official university cover, included as-is (no headers, no scaling crop)
+        \includepdf[pages=1,fitpaper=true,pagecommand={\thispagestyle{empty}}]{images/page_de_garde.pdf}
+        \newpage
+        \thispagestyle{empty}
+        \null
+        \newpage
+        
+        \setcounter{page}{1}
+        \input{dedicaces}
+        \thispagestyle{frontmatter}
+        \input{remerciement}
+        \thispagestyle{frontmatter}
+        
+        \setcounter{secnumdepth}{3}
+        \setcounter{tocdepth}{2}
+        \dominitoc
+        \tableofcontents
+        \adjustmtc
+        \thispagestyle{frontmatter}
+        
+        \listoffigures
+        \thispagestyle{frontmatter}
+        \listoftables
+        \thispagestyle{frontmatter}
+        
+        \input{acronymes}
+        \thispagestyle{frontmatter}
+    
+    \mainmatter
+       \input{introduction}
+        \clearpage
+        
+        \input{chap_01}
+        \clearpage
+
+        \input{chap_02}
+        \clearpage
+        
+        \input{chap_03}
+        \clearpage
+
+        %\input{chap_04}
+        %\clearpage
+
+        %\input{chap_05}
+        %\clearpage
+        
+        %\input{chap_06}
+        %\clearpage
+        
+        %\input{chap_07}
+        %\clearpage
+        
+        
+        %\input{chap_08}
+        %\clearpage
+        
+        %\input{chap_09}
+        %\clearpage
+        
+        \input{conclusion}
+        \clearpage
+        
+        % @author: Stoufa
+		% the command `\nocite{*}` is mandatory to avoid the “no \citation commands” error
+        % https://tex.stackexchange.com/questions/18045/problem-with-compiling-bibtex-no-citation-commands-error
+        %\nocite{*}
+        
+        % \input{webo}
+        \clearpage
+        
+        \printbibliography[title={Bibliographie},heading=bibintoc]
+        
+       
+        
+        %\input{annexes}
+        %\clearpage
+
+    %\backmatter
+        %\input{./tpl/resume}
+    
+\end{document}

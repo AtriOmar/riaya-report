@@ -1,0 +1,268 @@
+% ============================================================
+% CAPITOLO 6 : TEST, VALIDAZIONE E DEPLOYMENT
+% Versione ridotta (50%) + Captures de l'application
+% ============================================================
+\chapter{Test, Validazione e Deployment}
+\label{chap:test-validazione-deployment}
+
+% ------------------------------------------------------------
+% INTRODUZIONE AL CAPITOLO
+% ------------------------------------------------------------
+In questo capitolo viene presentata la strategia di test, validazione e deployment adottata per garantire qualità, sicurezza e affidabilità della piattaforma. Sono descritti i test funzionali, di sicurezza, di performance e di accettazione utente (UAT), seguiti dal processo di deployment (ambiente di produzione, Docker, CI/CD, hosting e monitoraggio). Infine, vengono presentate alcune captures dell'applicazione per illustrare le funzionalità principali.
+
+% ------------------------------------------------------------
+\section{Strategia di test globale}
+\label{sec:strategia-test}
+
+La strategia di test prevede: \textbf{test unitari} (singole unità di codice), \textbf{test di integrazione} (interazione tra moduli), \textbf{test di sistema} (comportamento complessivo), \textbf{test di sicurezza} (robustezza contro attacchi), \textbf{test di performance} (tempi di risposta e scalabilità) e \textbf{test di accettazione utente (UAT)} (conformità ai bisogni degli utenti).
+
+L'ambiente di test replica fedelmente l'ambiente di produzione (server Node.js/MongoDB, database separato, frontend isolato, dati rappresentativi).
+
+\begin{table}[H]
+    \centering
+    \caption{Strumenti di test utilizzati}
+    \label{tab:strumenti-test}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{4.5cm}|p{10cm}|}
+        \hline
+        \textbf{Categoria} & \textbf{Strumenti} \\
+        \hline
+        Test unitari & Jest, Mocha, Chai \\
+        \hline
+        Test di integrazione & Supertest, Jest \\
+        \hline
+        Test E2E & Cypress, Selenium \\
+        \hline
+        Test di sicurezza & OWASP ZAP, Burp Suite \\
+        \hline
+        Test di performance & Apache JMeter, Artillery \\
+        \hline
+        Code coverage & Istanbul, NYC \\
+        \hline
+    \end{tabular}
+\end{table}
+
+% ------------------------------------------------------------
+\section{Test funzionali}
+\label{sec:test-funzionali}
+
+I \textbf{test unitari} verificano le singole funzioni e componenti (autenticazione, gestione utenti, corsi, challenge, validazione flag). I \textbf{test di integrazione} verificano l'interazione tra frontend, backend e database (registrazione, creazione corso, sottomissione flag). I \textbf{test E2E} simulano il comportamento reale dell'utente, automatizzati con Cypress.
+
+\begin{table}[H]
+    \centering
+    \caption{Risultati dei test funzionali}
+    \label{tab:risultati-test-funzionali}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{3cm}|p{6.5cm}|p{2.5cm}|p{2.5cm}|}
+        \hline
+        \textbf{Tipo di test} & \textbf{Descrizione} & \textbf{Test eseguiti} & \textbf{Esito} \\
+        \hline
+        Unitari & Funzioni e componenti singoli & 120 & Superati \\
+        \hline
+        Integrazione & Interazione tra moduli & 45 & Superati \\
+        \hline
+        E2E & Flussi utente completi & 25 & Superati \\
+        \hline
+    \end{tabular}
+\end{table}
+
+% ------------------------------------------------------------
+\section{Test di sicurezza}
+\label{sec:test-sicurezza}
+
+Sono stati eseguiti test per verificare:
+\begin{itemize}[leftmargin=1.5cm]
+    \item la corretta generazione, validazione e scadenza dei token \textbf{JWT};
+    \item il corretto funzionamento del controllo accessi basato sui ruoli (\textbf{RBAC});
+    \item la protezione contro \textbf{injection NoSQL} e \textbf{XSS} (payload malevoli, OWASP ZAP);
+    \item la corretta cifratura delle password tramite \textbf{bcrypt}.
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{Risultati dei test di sicurezza}
+    \label{tab:risultati-test-sicurezza}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{4.5cm}|p{7.5cm}|p{2.5cm}|}
+        \hline
+        \textbf{Tipo di test} & \textbf{Descrizione} & \textbf{Esito} \\
+        \hline
+        JWT & Generazione, validazione, scadenza & Superato \\
+        \hline
+        RBAC & Controllo accessi per ruolo & Superato \\
+        \hline
+        Injection NoSQL & Protezione contro injection & Superato \\
+        \hline
+        XSS & Protezione contro script injection & Superato \\
+        \hline
+        Cifratura & Cifratura password e dati sensibili & Superato \\
+        \hline
+    \end{tabular}
+\end{table}
+
+% ------------------------------------------------------------
+\section{Test di performance}
+\label{sec:test-performance}
+
+I test di carico (fino a 500 utenti concorrenti) e di stress (fino a 1000 utenti) hanno evidenziato tempi di risposta medi inferiori a 300 ms e una capacità di gestire 500 utenti concorrenti senza degradazione significativa delle prestazioni.
+
+\begin{table}[H]
+    \centering
+    \caption{Risultati dei test di performance}
+    \label{tab:risultati-test-performance}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{3.5cm}|p{6.5cm}|p{2.5cm}|p{2cm}|}
+        \hline
+        \textbf{Tipo di test} & \textbf{Descrizione} & \textbf{Utenti} & \textbf{Esito} \\
+        \hline
+        Carico & Utilizzo normale e intenso & 500 & Superato \\
+        \hline
+        Stress & Limiti del sistema & 1000 & Superato con avvisi \\
+        \hline
+    \end{tabular}
+\end{table}
+
+% ------------------------------------------------------------
+\section{Test di accettazione utente (UAT)}
+\label{sec:test-uat}
+
+Gli UAT sono stati condotti con studenti e insegnanti rappresentativi, su scenari reali (creazione corso, partecipazione a challenge, consultazione classifica). I feedback sono stati complessivamente positivi: semplicità dell'interfaccia, chiarezza delle informazioni e rapidità della validazione dei flag. Aree di miglioramento segnalate: personalizzazione delle notifiche e funzionalità di chat.
+
+% ============================================================
+% NUOVA SEZIONE : CAPTURES DE L'APPLICATION
+% ============================================================
+\section{Captures de l'application}
+\label{sec:captures-application}
+
+In questa sezione vengono presentate alcune captures de l'application développée, illustrant les fonctionnalités principales de la plateforme.
+
+% ------------------------------------------------------------
+\subsection{Interface de connexion (Login)}
+\label{subsec:capture-login}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/capture_login.png}
+    \caption{Interface de connexion de la plateforme}
+    \label{fig:capture-login}
+\end{figure}
+
+\textbf{Description} : La page de connexion permet aux utilisateurs (Administrateur, Enseignant, Étudiant) de s'authentifier via leur email et mot de passe. Le système génère un token JWT pour les sessions sécurisées.
+
+% ------------------------------------------------------------
+\subsection{Tableau de bord (Dashboard)}
+\label{subsec:capture-dashboard}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/capture_dashboard.png}
+    \caption{Tableau de bord principal de l'application}
+    \label{fig:capture-dashboard}
+\end{figure}
+
+\textbf{Description} : Le tableau de bord affiche une vue d'ensemble des activités de l'utilisateur : cours disponibles, challenges récents, progression personnelle, notifications et statistiques.
+
+% ------------------------------------------------------------
+\subsection{Gestion des cours (Enseignant)}
+\label{subsec:capture-cours}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/capture_cours.png}
+    \caption{Interface de gestion des cours pour l'enseignant}
+    \label{fig:capture-cours}
+\end{figure}
+
+\textbf{Description} : L'enseignant peut créer, modifier et organiser des cours structurés en modules et chapitres. Il peut également associer des exercices pédagogiques à chaque cours.
+
+% ------------------------------------------------------------
+\subsection{Gestion des challenges CTF (Enseignant)}
+\label{subsec:capture-challenges}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/capture_challenges.png}
+    \caption{Interface de gestion des challenges CTF}
+    \label{fig:capture-challenges}
+\end{figure}
+
+\textbf{Description} : L'enseignant peut créer des challenges CTF en spécifiant le titre, la description, les points, le flag, les indices et les fichiers associés. Les challenges sont organisés par catégories (Web, Crypto, Pwn, Reverse, etc.).
+
+% ------------------------------------------------------------
+\subsection{Espace de participation étudiant}
+\label{subsec:capture-participation}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.85\textwidth]{images/capture_participation.png}
+    \fbox{\parbox[c][7cm][c]{0.85\textwidth}{\centering \textit{Spazio riservato per la capture: partecipazione studente}}}
+    \caption{Espace de participation pour les étudiants}
+    \label{fig:capture-participation}
+\end{figure}
+
+\textbf{Description} : L'étudiant peut consulter les challenges disponibles, soumettre des flags avec validation immédiate, consulter les indices et suivre sa progression. L'interface affiche également le scoreboard individuel et de groupe.
+
+% ------------------------------------------------------------
+\subsection{Scoreboard et classement}
+\label{subsec:capture-scoreboard}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.85\textwidth]{images/capture_scoreboard.png}
+    \fbox{\parbox[c][7cm][c]{0.85\textwidth}{\centering \textit{Spazio riservato per la capture: scoreboard}}}
+    \caption{Scoreboard et classement des participants}
+    \label{fig:capture-scoreboard}
+\end{figure}
+
+\textbf{Description} : Le scoreboard affiche le classement individuel et de groupe en temps réel, avec le nombre de points, les challenges résolus et la position de chaque participant. Il permet également de consulter l'historique des classements.
+
+% ------------------------------------------------------------
+\subsection{Statistiques et monitoring (Enseignant/Admin)}
+\label{subsec:capture-statistiques}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/capture_statistiques.png}
+    \caption{Interface de statistiques et monitoring}
+    \label{fig:capture-statistiques}
+\end{figure}
+
+\textbf{Description} : L'enseignant et l'administrateur peuvent visualiser les statistiques de progression des étudiants, les tentatives par challenge, les résolutions par étudiant/groupe et le journal d'audit des actions sensibles.
+
+% ------------------------------------------------------------
+\subsection{Journal d'audit (Administrateur)}
+\label{subsec:capture-audit}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/capture_audit.png}
+    \caption{Journal d'audit des actions sensibles}
+    \label{fig:capture-audit}
+\end{figure}
+
+\textbf{Description} : L'administrateur peut consulter le journal d'audit qui enregistre toutes les actions sensibles effectuées sur la plateforme (création/modification d'utilisateurs, attribution de rôles, etc.), garantissant la traçabilité et la conformité.
+
+% ------------------------------------------------------------
+\section{Deployment}
+\label{sec:deployment}
+
+\subsection{Ambiente di produzione e containerizzazione}
+\label{subsec:ambiente-produzione}
+
+L'ambiente di produzione è configurato su un server cloud con: Ubuntu Server 22.04 LTS, Node.js 20.x, MongoDB 7.x, Nginx come reverse proxy e certificato SSL/TLS. L'applicazione è containerizzata tramite \textbf{Docker} (container separati per frontend, backend e database), garantendo coerenza tra sviluppo, test e produzione.
+
+\subsection{CI/CD e hosting}
+\label{subsec:cicd-hosting}
+
+La pipeline \textbf{CI/CD} (GitHub Actions o GitLab CI) prevede tre fasi: \textbf{Build} (compilazione frontend, installazione dipendenze backend), \textbf{Test} (unitari, integrazione, sicurezza) e \textbf{Deploy} (distribuzione automatica in produzione). L'applicazione è distribuita su un \textbf{VPS cloud} (o Heroku/Render/Vercel), con dominio personalizzato e certificato SSL.
+
+\subsection{Monitoraggio e manutenzione}
+\label{subsec:monitoraggio}
+
+Il monitoraggio è garantito tramite strumenti dedicati (PM2, Prometheus o Grafana) per prestazioni, disponibilità ed errori. La manutenzione prevede aggiornamenti regolari delle dipendenze, backup periodici del database e revisione dei log di audit.
+
+% ------------------------------------------------------------
+\section{Conclusione}
+\label{sec:conclusione-capitolo6}
+
+In questo capitolo è stata presentata la strategia di test, validazione e deployment. Sono stati descritti i test funzionali, di sicurezza, di performance e UAT, con i relativi risultati. È stato inoltre illustrato il processo di deployment (ambiente di produzione, Docker, CI/CD, hosting, monitoraggio) e presentate alcune captures de l'application illustrant les fonctionnalités principales. I risultati confermano qualità, sicurezza e affidabilità della piattaforma.

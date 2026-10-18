@@ -1,0 +1,660 @@
+% ============================================================
+% CAPITOLO 5 : SVILUPPO PER SPRINT
+% Versione ridotta (50%)
+% ============================================================
+\chapter{Sviluppo per Sprint}
+\label{chap:sviluppo-sprint}
+
+% ------------------------------------------------------------
+% INTRODUZIONE AL CAPITOLO
+% ------------------------------------------------------------
+In questo capitolo viene presentato lo sviluppo dettagliato del progetto attraverso gli otto sprint previsti dalla roadmap. Per ciascuno sprint vengono descritti l'obiettivo, il backlog delle User Stories, i casi d'uso principali, l'implementazione e il bilancio. Il capitolo si conclude con una sintesi complessiva degli sprint (velocità del team, burndown chart e lezioni apprese).
+
+% ============================================================
+% SPRINT 0
+% ============================================================
+\section{Sprint 0 -- Configurazione dell'ambiente e fondazioni}
+\label{sec:sprint0}
+
+\subsection{Obiettivo e backlog}
+\label{subsec:sprint0-obiettivo}
+
+L'obiettivo dello Sprint 0 è predisporre l'ambiente di sviluppo (repository Git, progetto React/Node.js, database MongoDB) e mettere in piedi le fondazioni dell'autenticazione di base.
+
+\begin{table}[H]
+    \centering
+    \caption{Backlog dello Sprint 0}
+    \label{tab:sprint0-backlog}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{1.8cm}|p{7cm}|p{2.5cm}|p{1.5cm}|}
+        \hline
+        \textbf{ID} & \textbf{User Story} & \textbf{Priorità} & \textbf{Stima} \\
+        \hline
+        US00-01 & Inizializzare il repository Git & Alta & 2 \\
+        \hline
+        US00-02 & Configurare l'ambiente Node.js & Alta & 3 \\
+        \hline
+        US00-03 & Inizializzare il progetto React & Alta & 3 \\
+        \hline
+        US00-04 & Configurare MongoDB & Alta & 3 \\
+        \hline
+        US00-05 & Implementare l'autenticazione di base & Alta & 5 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Casi d'uso e diagrammi}
+\label{subsec:sprint0-casi-uso}
+
+I casi d'uso principali sono: \textit{Inizializzare il progetto}, \textit{Configurare la base di dati} e \textit{Mettere in piedi l'autenticazione di base}.
+
+\begin{table}[H]
+    \centering
+    \caption{Sintesi dei casi d'uso -- Sprint 0}
+    \label{tab:uc-sprint0}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{3.5cm}|p{3cm}|p{7.5cm}|}
+        \hline
+        \textbf{Caso d'uso} & \textbf{Attore} & \textbf{Scenario nominale} \\
+        \hline
+        Inizializzare il progetto & Sviluppatore & Creazione repository, init Node.js/React, configurazione dipendenze \\
+        \hline
+        Configurare la base di dati & Sviluppatore & Configurazione connessione a MongoDB tramite Mongoose \\
+        \hline
+        Autenticazione di base & Sviluppatore & Implementazione JWT e bcrypt \\
+        \hline
+    \end{tabular}
+\end{table}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/sprint0_diagrammi.png}
+    \caption{Diagrammi -- Sprint 0}
+    \label{fig:diagrammi-sprint0}
+\end{figure}
+
+\subsection{Implementazione e bilancio}
+\label{subsec:sprint0-implementazione}
+
+Sono state implementate le configurazioni iniziali, la connessione al database e le fondazioni dell'autenticazione. Sono stati eseguiti test di connessione, generazione JWT e cifratura password. Lo sprint è stato completato con successo; le difficoltà principali hanno riguardato la configurazione iniziale dell'ambiente.
+
+% ============================================================
+% SPRINT 1
+% ============================================================
+\section{Sprint 1 -- Gestione degli utenti e dei gruppi}
+\label{sec:sprint1}
+
+\subsection{Obiettivo e backlog}
+\label{subsec:sprint1-obiettivo}
+
+Implementare la gestione completa degli utenti e dei gruppi: registrazione, autenticazione, gestione dei ruoli e creazione/adesione ai gruppi.
+
+\begin{table}[H]
+    \centering
+    \caption{Backlog dello Sprint 1}
+    \label{tab:sprint1-backlog}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{1.8cm}|p{7cm}|p{2.5cm}|p{1.5cm}|}
+        \hline
+        \textbf{ID} & \textbf{User Story} & \textbf{Priorità} & \textbf{Stima} \\
+        \hline
+        US01-01 & Registrarsi & Alta & 5 \\
+        \hline
+        US01-02 & Autenticarsi & Alta & 5 \\
+        \hline
+        US01-03 & Gestire i ruoli & Alta & 8 \\
+        \hline
+        US01-04 & Creare un gruppo & Alta & 5 \\
+        \hline
+        US01-05 & Aderire a un gruppo & Alta & 3 \\
+        \hline
+        US01-06 & Gestire gli utenti & Media & 8 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Casi d'uso e diagrammi}
+\label{subsec:sprint1-casi-uso}
+
+\begin{table}[H]
+    \centering
+    \caption{Sintesi dei casi d'uso -- Sprint 1}
+    \label{tab:uc-sprint1}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{3cm}|p{2.5cm}|p{8.5cm}|}
+        \hline
+        \textbf{Caso d'uso} & \textbf{Attore} & \textbf{Scenario nominale} \\
+        \hline
+        Registrarsi & Utente & Inserimento username, email, password; validazione e creazione account \\
+        \hline
+        Autenticarsi & Utente & Inserimento credenziali; verifica e generazione token JWT \\
+        \hline
+        Gestire i ruoli & Admin & Assegnazione o modifica del ruolo di un utente \\
+        \hline
+        Creare un gruppo & Insegnante & Creazione gruppo con nome e descrizione \\
+        \hline
+        Aderire a un gruppo & Studente & Selezione gruppo e richiesta di adesione \\
+        \hline
+        Gestire gli utenti & Admin & Visualizzazione, modifica o disattivazione account \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/sprint1_diagrammi.png}
+    \caption{Diagrammi -- Sprint 1}
+    \label{fig:diagrammi-sprint1}
+\end{figure}
+
+
+
+\subsection{Implementazione e bilancio}
+\label{subsec:sprint1-implementazione}
+
+Sono stati implementati gli schemi Mongoose (\texttt{User}, \texttt{Group}), le rotte API (\texttt{/api/auth}, \texttt{/api/users}, \texttt{/api/groups}) e i componenti React (Login, Register, GroupManagement). Test unitari e di integrazione superati. Lo sprint è stato completato con successo; difficoltà nella gestione delle relazioni utenti-gruppi.
+
+% ============================================================
+% SPRINT 2
+% ============================================================
+\section{Sprint 2 -- Gestione dei corsi e degli esercizi}
+\label{sec:sprint2}
+
+\subsection{Obiettivo e backlog}
+\label{subsec:sprint2-obiettivo}
+
+Implementare la gestione completa dei corsi e degli esercizi pedagogici: creazione, modifica, soppressione e associazione degli esercizi ai corsi.
+
+\begin{table}[H]
+    \centering
+    \caption{Backlog dello Sprint 2}
+    \label{tab:sprint2-backlog}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{1.8cm}|p{7cm}|p{2.5cm}|p{1.5cm}|}
+        \hline
+        \textbf{ID} & \textbf{User Story} & \textbf{Priorità} & \textbf{Stima} \\
+        \hline
+        US02-01 & Creare un corso & Alta & 8 \\
+        \hline
+        US02-02 & Modificare un corso & Alta & 5 \\
+        \hline
+        US02-03 & Eliminare un corso & Media & 3 \\
+        \hline
+        US02-04 & Organizzare moduli e capitoli & Alta & 8 \\
+        \hline
+        US02-05 & Creare un esercizio & Alta & 8 \\
+        \hline
+        US02-06 & Associare un esercizio a un corso & Alta & 5 \\
+        \hline
+        US02-07 & Consultare i corsi & Alta & 3 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Casi d'uso e diagrammi}
+\label{subsec:sprint2-casi-uso}
+
+\begin{table}[H]
+    \centering
+    \caption{Sintesi dei casi d'uso -- Sprint 2}
+    \label{tab:uc-sprint2}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{3cm}|p{2.5cm}|p{8.5cm}|}
+        \hline
+        \textbf{Caso d'uso} & \textbf{Attore} & \textbf{Scenario nominale} \\
+        \hline
+        Creare un corso & Insegnante & Inserimento titolo, descrizione, livello, durata \\
+        \hline
+        Modificare un corso & Insegnante & Modifica dei dati del corso \\
+        \hline
+        Eliminare un corso & Insegnante & Conferma eliminazione del corso \\
+        \hline
+        Organizzare moduli/capitoli & Insegnante & Aggiunta, modifica o riordino di moduli e capitoli \\
+        \hline
+        Creare un esercizio & Insegnante & Inserimento dati esercizio (tipo, soluzione) \\
+        \hline
+        Associare esercizio a corso & Insegnante & Selezione corso e associazione esercizio \\
+        \hline
+        Consultare i corsi & Studente & Visualizzazione elenco corsi e dettagli \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/sprint2_diagrammi.png}
+    \caption{Diagrammi -- Sprint 2}
+    \label{fig:diagrammi-sprint2}
+\end{figure}
+
+
+
+
+\subsection{Implementazione e bilancio}
+\label{subsec:sprint2-implementazione}
+
+Implementati gli schemi Mongoose (\texttt{Course}, \texttt{Exercice}), le rotte API (\texttt{/api/courses}, \texttt{/api/exercices}) e i componenti React (CourseForm, CourseList, ExerciceForm). Test superati. Difficoltà nella gestione della struttura modulare dei corsi.
+
+% ============================================================
+% SPRINT 3
+% ============================================================
+\section{Sprint 3 -- Gestione dei challenge CTF}
+\label{sec:sprint3}
+
+\subsection{Obiettivo e backlog}
+\label{subsec:sprint3-obiettivo}
+
+Implementare la gestione completa dei challenge CTF: categorie, challenge, indizi, file allegati e associazione alle competizioni.
+
+\begin{table}[H]
+    \centering
+    \caption{Backlog dello Sprint 3}
+    \label{tab:sprint3-backlog}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{1.8cm}|p{7cm}|p{2.5cm}|p{1.5cm}|}
+        \hline
+        \textbf{ID} & \textbf{User Story} & \textbf{Priorità} & \textbf{Stima} \\
+        \hline
+        US03-01 & Creare una categoria & Alta & 5 \\
+        \hline
+        US03-02 & Creare un challenge & Alta & 13 \\
+        \hline
+        US03-03 & Modificare un challenge & Alta & 5 \\
+        \hline
+        US03-04 & Eliminare un challenge & Media & 3 \\
+        \hline
+        US03-05 & Aggiungere indizi & Media & 5 \\
+        \hline
+        US03-06 & Caricare un file di challenge & Alta & 8 \\
+        \hline
+        US03-07 & Associare challenge a competizione & Alta & 5 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Casi d'uso e diagrammi}
+\label{subsec:sprint3-casi-uso}
+
+\begin{table}[H]
+    \centering
+    \caption{Sintesi dei casi d'uso -- Sprint 3}
+    \label{tab:uc-sprint3}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{3cm}|p{2.5cm}|p{8.5cm}|}
+        \hline
+        \textbf{Caso d'uso} & \textbf{Attore} & \textbf{Scenario nominale} \\
+        \hline
+        Creare una categoria & Insegnante & Inserimento nome, descrizione, colore, icona \\
+        \hline
+        Creare un challenge & Insegnante & Inserimento nome, descrizione, punti, flag \\
+        \hline
+        Modificare un challenge & Insegnante & Modifica dei dati del challenge \\
+        \hline
+        Eliminare un challenge & Insegnante & Conferma eliminazione del challenge \\
+        \hline
+        Aggiungere indizi & Insegnante & Aggiunta di uno o più indizi al challenge \\
+        \hline
+        Caricare un file & Insegnante & Selezione e caricamento file allegato \\
+        \hline
+        Associare challenge a competizione & Insegnante & Associazione challenge-competizione \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/sprint3_diagrammi.png}
+    \caption{Diagrammi -- Sprint 3}
+    \label{fig:diagrammi-sprint3}
+\end{figure}
+
+\subsection{Implementazione e bilancio}
+\label{subsec:sprint3-implementazione}
+
+Implementati gli schemi Mongoose (\texttt{Category}, \texttt{Challenge}, \texttt{Hint}, \texttt{ChallengeFile}), le rotte API e i componenti React (ChallengeForm, ChallengeList, HintManager). Test superati. Difficoltà nella gestione dei file allegati.
+
+% ============================================================
+% SPRINT 4
+% ============================================================
+\section{Sprint 4 -- Spazio di partecipazione studente e sottomissione di flag}
+\label{sec:sprint4}
+
+\subsection{Obiettivo e backlog}
+\label{subsec:sprint4-obiettivo}
+
+Implementare lo spazio di partecipazione per gli studenti: visualizzazione dei challenge, sottomissione di flag con validazione immediata, consultazione degli indizi e monitoraggio della progressione.
+
+\begin{table}[H]
+    \centering
+    \caption{Backlog dello Sprint 4}
+    \label{tab:sprint4-backlog}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{1.8cm}|p{7cm}|p{2.5cm}|p{1.5cm}|}
+        \hline
+        \textbf{ID} & \textbf{User Story} & \textbf{Priorità} & \textbf{Stima} \\
+        \hline
+        US04-01 & Consultare i challenge disponibili & Alta & 5 \\
+        \hline
+        US04-02 & Sottomettere un flag & Alta & 8 \\
+        \hline
+        US04-03 & Validare un flag (sistema) & Alta & 8 \\
+        \hline
+        US04-04 & Consultare gli indizi & Media & 3 \\
+        \hline
+        US04-05 & Consultare corsi ed esercizi & Media & 3 \\
+        \hline
+        US04-06 & Sottomettere risposta di esercizio & Alta & 5 \\
+        \hline
+        US04-07 & Seguire la propria progressione & Alta & 5 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Casi d'uso e diagrammi}
+\label{subsec:sprint4-casi-uso}
+
+\begin{table}[H]
+    \centering
+    \caption{Sintesi dei casi d'uso -- Sprint 4}
+    \label{tab:uc-sprint4}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{3cm}|p{2.5cm}|p{8.5cm}|}
+        \hline
+        \textbf{Caso d'uso} & \textbf{Attore} & \textbf{Scenario nominale} \\
+        \hline
+        Consultare challenge & Studente & Visualizzazione elenco challenge con filtri \\
+        \hline
+        Sottomettere un flag & Studente & Inserimento flag; validazione immediata \\
+        \hline
+        Validare un flag & Sistema & Confronto flag inviato con quello memorizzato \\
+        \hline
+        Consultare gli indizi & Studente & Visualizzazione indizi associati al challenge \\
+        \hline
+        Consultare corsi/esercizi & Studente & Visualizzazione corsi ed esercizi disponibili \\
+        \hline
+        Sottomettere risposta & Studente & Inserimento risposta e registrazione \\
+        \hline
+        Seguire la progressione & Studente & Visualizzazione avanzamento nei corsi/challenge \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/sprint4_diagrammi.png}
+    \caption{Diagrammi -- Sprint 4}
+    \label{fig:diagrammi-sprint4}
+\end{figure}
+
+\subsection{Implementazione e bilancio}
+\label{subsec:sprint4-implementazione}
+
+Implementati gli schemi Mongoose (\texttt{Submission}, \texttt{Solve}, \texttt{ExerciceAttempt}), le rotte API e i componenti React (ChallengeView, FlagSubmission, ProgressTracker). Test superati. Difficoltà nella validazione immediata dei flag.
+
+% ============================================================
+% SPRINT 5
+% ============================================================
+\section{Sprint 5 -- Scoreboard, competizioni e classifica}
+\label{sec:sprint5}
+
+\subsection{Obiettivo e backlog}
+\label{subsec:sprint5-obiettivo}
+
+Implementare lo scoreboard, la gestione delle competizioni e il sistema di classificazione individuale e di gruppo.
+
+\begin{table}[H]
+    \centering
+    \caption{Backlog dello Sprint 5}
+    \label{tab:sprint5-backlog}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{1.8cm}|p{7cm}|p{2.5cm}|p{1.5cm}|}
+        \hline
+        \textbf{ID} & \textbf{User Story} & \textbf{Priorità} & \textbf{Stima} \\
+        \hline
+        US05-01 & Creare una competizione & Alta & 8 \\
+        \hline
+        US05-02 & Gestire una competizione & Alta & 8 \\
+        \hline
+        US05-03 & Consultare scoreboard individuale & Alta & 5 \\
+        \hline
+        US05-04 & Consultare scoreboard di gruppo & Media & 5 \\
+        \hline
+        US05-05 & Consultare storico classifica & Media & 3 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Casi d'uso e diagrammi}
+\label{subsec:sprint5-casi-uso}
+
+\begin{table}[H]
+    \centering
+    \caption{Sintesi dei casi d'uso -- Sprint 5}
+    \label{tab:uc-sprint5}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{3cm}|p{2.5cm}|p{8.5cm}|}
+        \hline
+        \textbf{Caso d'uso} & \textbf{Attore} & \textbf{Scenario nominale} \\
+        \hline
+        Creare una competizione & Insegnante & Creazione con titolo, date, stato, challenge associati \\
+        \hline
+        Gestire una competizione & Insegnante & Modifica, avvio o conclusione competizione \\
+        \hline
+        Scoreboard individuale & Studente & Visualizzazione classifica individuale \\
+        \hline
+        Scoreboard di gruppo & Studente & Visualizzazione classifica del proprio gruppo \\
+        \hline
+        Storico classifica & Studente/Insegnante & Visualizzazione storico delle classifiche \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/sprint5_diagrammi.png}
+    \caption{Diagrammi -- Sprint 5}
+    \label{fig:diagrammi-sprint5}
+\end{figure}
+
+
+
+\subsection{Implementazione e bilancio}
+\label{subsec:sprint5-implementazione}
+
+Implementati gli schemi Mongoose (\texttt{Competition}, \texttt{LeaderboardHistory}), le rotte API e i componenti React (Scoreboard, CompetitionManager). Test superati. Difficoltà nel calcolo dinamico della classifica.
+
+% ============================================================
+% SPRINT 6
+% ============================================================
+\section{Sprint 6 -- Statistiche, notifiche e journal di audit}
+\label{sec:sprint6}
+
+\subsection{Obiettivo e backlog}
+\label{subsec:sprint6-obiettivo}
+
+Implementare il modulo di statistiche, il sistema di notifiche e il journal di audit per la tracciabilità delle azioni sensibili.
+
+\begin{table}[H]
+    \centering
+    \caption{Backlog dello Sprint 6}
+    \label{tab:sprint6-backlog}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{1.8cm}|p{7cm}|p{2.5cm}|p{1.5cm}|}
+        \hline
+        \textbf{ID} & \textbf{User Story} & \textbf{Priorità} & \textbf{Stima} \\
+        \hline
+        US06-01 & Visualizzare tentativi per challenge & Alta & 5 \\
+        \hline
+        US06-02 & Seguire risoluzioni per studente/gruppo & Alta & 5 \\
+        \hline
+        US06-03 & Consultare statistiche di progressione & Alta & 8 \\
+        \hline
+        US06-04 & Consultare il journal di audit & Alta & 5 \\
+        \hline
+        US06-05 & Ricevere notifiche & Media & 5 \\
+        \hline
+        US06-06 & Gestire i parametri globali & Media & 5 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Casi d'uso e diagrammi}
+\label{subsec:sprint6-casi-uso}
+
+\begin{table}[H]
+    \centering
+    \caption{Sintesi dei casi d'uso -- Sprint 6}
+    \label{tab:uc-sprint6}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{3cm}|p{2.5cm}|p{8.5cm}|}
+        \hline
+        \textbf{Caso d'uso} & \textbf{Attore} & \textbf{Scenario nominale} \\
+        \hline
+        Visualizzare tentativi & Insegnante & Visualizzazione numero tentativi per challenge \\
+        \hline
+        Seguire risoluzioni & Insegnante & Visualizzazione risoluzioni per studente/gruppo \\
+        \hline
+        Statistiche progressione & Insegnante & Visualizzazione statistiche per corso \\
+        \hline
+        Journal di audit & Admin & Visualizzazione azioni sensibili \\
+        \hline
+        Ricevere notifica & Utente & Ricezione notifica su eventi rilevanti \\
+        \hline
+        Gestire parametri globali & Admin & Modifica parametri globali della piattaforma \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/sprint6_diagrammi.png}
+    \caption{Diagrammi -- Sprint 6}
+    \label{fig:diagrammi-sprint6}
+\end{figure}
+
+\subsection{Implementazione e bilancio}
+\label{subsec:sprint6-implementazione}
+
+Implementati gli schemi Mongoose (\texttt{Notification}, \texttt{AuditLog}, \texttt{Setting}), le rotte API e i componenti React (Dashboard, NotificationCenter, AuditLogView). Test superati. Difficoltà nella generazione dinamica delle statistiche.
+
+% ============================================================
+% SPRINT 7
+% ============================================================
+\section{Sprint 7 -- Finalizzazione, test globali e deployment}
+\label{sec:sprint7}
+
+\subsection{Obiettivo e backlog}
+\label{subsec:sprint7-obiettivo}
+
+Finalizzare il progetto, eseguire i test globali, ottimizzare le prestazioni e procedere al deployment della piattaforma.
+
+\begin{table}[H]
+    \centering
+    \caption{Backlog dello Sprint 7}
+    \label{tab:sprint7-backlog}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{1.8cm}|p{7cm}|p{2.5cm}|p{1.5cm}|}
+        \hline
+        \textbf{ID} & \textbf{User Story} & \textbf{Priorità} & \textbf{Stima} \\
+        \hline
+        US07-01 & Eseguire i test globali & Alta & 8 \\
+        \hline
+        US07-02 & Effettuare il deployment & Alta & 8 \\
+        \hline
+        US07-03 & Monitorare l'applicazione & Media & 5 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Casi d'uso e diagrammi}
+\label{subsec:sprint7-casi-uso}
+
+\begin{table}[H]
+    \centering
+    \caption{Sintesi dei casi d'uso -- Sprint 7}
+    \label{tab:uc-sprint7}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{3cm}|p{2.5cm}|p{8.5cm}|}
+        \hline
+        \textbf{Caso d'uso} & \textbf{Attore} & \textbf{Scenario nominale} \\
+        \hline
+        Eseguire test globali & Team & Test funzionali, di sicurezza e performance \\
+        \hline
+        Effettuare il deployment & Team & Configurazione ambiente di produzione e distribuzione \\
+        \hline
+        Monitorare l'applicazione & Team & Monitoraggio prestazioni e disponibilità \\
+        \hline
+    \end{tabular}
+\end{table}
+
+
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/sprint7_diagrammi.png}
+    \caption{Diagrammi -- Sprint 7}
+    \label{fig:diagrammi-sprint7}
+\end{figure}
+
+
+
+
+\subsection{Implementazione e bilancio}
+\label{subsec:sprint7-implementazione}
+
+Configurazione dell'ambiente di produzione (Docker, Nginx), pipeline CI/CD (GitHub Actions), ottimizzazioni finali. Test globali superati. La piattaforma è pronta per l'uso in produzione.
+
+% ============================================================
+% SINTESI DEGLI SPRINT
+% ============================================================
+\section{Sintesi degli sprint}
+\label{sec:sintesi-sprint}
+
+\subsection{Tabella riepilogativa e velocità del team}
+\label{subsec:tabella-riepilogativa}
+
+\begin{table}[H]
+    \centering
+    \caption{Riepilogo degli sprint}
+    \label{tab:riepilogo-sprint}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|p{1.5cm}|p{3cm}|p{7.5cm}|p{1.5cm}|}
+        \hline
+        \textbf{Sprint} & \textbf{Tema} & \textbf{Funzionalità principali} & \textbf{Punti} \\
+        \hline
+        0 & Setup & Ambiente, autenticazione base & 16 \\
+        \hline
+        1 & Utenti \& Gruppi & Registrazione, login, ruoli, gruppi & 34 \\
+        \hline
+        2 & Corsi \& Esercizi & CRUD corsi, moduli, esercizi & 40 \\
+        \hline
+        3 & Challenge CTF & Categorie, challenge, indizi, file & 44 \\
+        \hline
+        4 & Partecipazione & Visualizzazione, sottomissione flag & 37 \\
+        \hline
+        5 & Scoreboard & Classifiche, competizioni & 29 \\
+        \hline
+        6 & Statistiche & Statistiche, notifiche, audit & 33 \\
+        \hline
+        7 & Finalizzazione & Test, deploy, ottimizzazione & 21 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+
+
+
+\subsection{Lezioni apprese}
+\label{subsec:lezioni-apprese}
+
+Le principali lezioni apprese includono l'importanza della comunicazione all'interno del team, la necessità di validare progressivamente le funzionalità e il valore delle retrospettive per il miglioramento continuo.
+
+% ------------------------------------------------------------
+% CONCLUSIONE DEL CAPITOLO
+% ------------------------------------------------------------
+\section*{Conclusione}
+\addcontentsline{toc}{section}{Conclusione}
+
+In questo capitolo è stato presentato lo sviluppo dettagliato del progetto attraverso gli otto sprint previsti dalla roadmap. Per ciascuno sprint sono stati descritti l'obiettivo, il backlog, i casi d'uso principali, l'implementazione e il bilancio. Il capitolo si è concluso con una sintesi complessiva degli sprint. Nel prossimo capitolo verrà presentata la strategia di test, validazione e deployment.

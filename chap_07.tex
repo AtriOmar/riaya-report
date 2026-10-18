@@ -1,0 +1,766 @@
+\chapter{Sprint 6 : Développement du Chatbot intelligent}
+\label{chap:sprint6-chatbot}
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+L'intelligence artificielle ne se limite pas à la prédiction de données chiffrées ; elle peut également transformer la manière dont les utilisateurs interagissent avec l'information. Le chatbot intelligent constitue l'interface conversationnelle de notre solution décisionnelle, permettant aux responsables de la BTL d'interroger les données en langage naturel, comme s'ils s'adressaient à un assistant personnel. Ce sixième sprint est dédié au développement d'un chatbot capable de comprendre les questions des utilisateurs, d'identifier leurs intentions, d'accéder aux données pertinentes et de formuler des réponses claires et utiles.
+
+Dans ce chapitre, nous commencerons par définir les objectifs précis du sprint, puis nous présenterons la conception à travers des diagrammes UML (cas d'utilisation, classes, séquence). Nous détaillerons ensuite les cas d'usage du chatbot, le choix de l'approche NLP, le développement du backend avec FastAPI, l'intégration avec les services existants, le développement du frontend React, la visualisation des résultats, ainsi que les tests et la validation utilisateur. Enfin, nous présenterons les livrables de ce sprint.
+
+\section{Objectifs du Sprint}
+\label{sec:sprint6-objectifs}
+
+Le sprint 6 a pour objectifs principaux :
+
+\begin{itemize}
+    \item Concevoir et développer un \textbf{chatbot intelligent} permettant d'interroger les données décisionnelles en langage naturel.
+    \item Définir les \textbf{cas d'usage} du chatbot en fonction des besoins des responsables de la BTL.
+    \item Choisir et implémenter une \textbf{approche NLP} adaptée (règles, classification, ou LLM) pour la compréhension du langage naturel.
+    \item Développer un \textbf{backend FastAPI} avec un endpoint /chat pour traiter les messages et générer des réponses.
+    \item Intégrer le chatbot avec les \textbf{services existants} (Dashboard, Comparaison, Prédiction) pour répondre aux questions.
+    \item Développer une \textbf{interface React} intuitive pour l'interaction avec le chatbot.
+    \item Implémenter la \textbf{visualisation des résultats} du chatbot (cartes KPI, graphiques, jauges).
+    \item Assurer une \textbf{gestion du contexte} pour des conversations fluides et cohérentes.
+\end{itemize}
+
+À la fin de ce sprint, les responsables de la BTL pourront interroger le système en langage naturel et obtenir des réponses pertinentes, enrichies de visualisations dynamiques.
+
+\section{Conception du Sprint}
+\label{sec:sprint6-conception}
+
+La phase de conception est essentielle pour structurer le chatbot et définir ses composants. Elle permet de visualiser les interactions entre les acteurs et le système, de définir la structure des classes Python et de modéliser les flux d'exécution.
+
+\subsection{Diagramme de cas d'utilisation}
+\label{subsec:sprint6-use-case}
+
+Le diagramme de cas d'utilisation présente les fonctionnalités offertes par le chatbot du point de vue des acteurs. Les acteurs identifiés sont :
+
+\begin{itemize}
+    \item \textbf{Directeur} : Peut interagir avec le chatbot pour poser des questions sur l'ensemble du réseau des agences (KPI globaux, comparaisons, tendances).
+    \item \textbf{Responsable d'agence} : Peut interagir avec le chatbot pour poser des questions sur sa propre agence (KPI détaillés, prévisions, alertes).
+    \item \textbf{Administrateur} : Peut superviser l'activité du chatbot et configurer les paramètres (synonymes, réponses types).
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/diagramme_use_case_chatbot.png}
+\caption{Diagramme de cas d'utilisation - Chatbot}
+\label{fig:use-case-chatbot}
+\end{figure}
+
+\textbf{Description :} Le diagramme de cas d'utilisation présente les interactions entre les acteurs (Directeur, Responsable d'agence, Administrateur) et les fonctionnalités du chatbot : poser une question, obtenir une réponse, consulter un KPI, comparer des agences, obtenir une prédiction, recevoir des suggestions et gérer le contexte de la conversation.
+
+Les cas d'utilisation identifiés pour ce sprint sont :
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{3.5cm}|p{6cm}|}
+\hline
+\textbf{Cas d'utilisation} & \textbf{Acteurs} & \textbf{Description} \\
+\hline
+Poser une question & Directeur, Responsable & Saisir une question en langage naturel. \\
+\hline
+Obtenir une réponse & Directeur, Responsable & Recevoir une réponse pertinente du chatbot. \\
+\hline
+Consulter un KPI & Directeur, Responsable & Obtenir la valeur d'un indicateur spécifique. \\
+\hline
+Comparer des agences & Directeur & Recevoir une comparaison de performances entre agences. \\
+\hline
+Obtenir une prédiction & Directeur, Responsable & Recevoir une prédiction sur les performances futures. \\
+\hline
+Recevoir des suggestions & Directeur, Responsable & Obtenir des questions suggérées (quick replies). \\
+\hline
+Gérer le contexte & Directeur, Responsable & Maintenir le contexte de la conversation. \\
+\hline
+\end{tabular}
+\caption{Cas d'utilisation du sprint 6}
+\label{tab:use-cases-chatbot}
+\end{table}
+
+\subsection{Diagramme de classes}
+\label{subsec:sprint6-classes}
+
+Le diagramme de classes modélise la structure statique du chatbot, en représentant les classes Python principales, leurs attributs et leurs méthodes.
+
+Les principales classes identifiées sont :
+
+\begin{itemize}
+    \item \textbf{NLPService} : Service principal qui orchestre l'ensemble du traitement NLP.
+        \begin{itemize}
+            \item Attributs : intent\_classifier, entity\_extractor, conversation\_manager, response\_generator.
+            \item Méthodes : process\_message(text, user\_id, conversation\_id), get\_response(intent, entities, context).
+        \end{itemize}
+    
+    \item \textbf{IntentClassifier} : Classe responsable de la reconnaissance de l'intention de l'utilisateur.
+        \begin{itemize}
+            \item Attributs : intent\_labels (liste des intentions), classifier (modèle entraîné).
+            \item Méthodes : classify(text), train(data), add\_intent(intent, examples).
+        \end{itemize}
+    
+    \item \textbf{EntityExtractor} : Classe responsable de l'extraction des entités nommées dans le message.
+        \begin{itemize}
+            \item Attributs : entity\_patterns (expressions régulières), entity\_list (liste des entités connues).
+            \item Méthodes : extract(text), extract\_agence(text), extract\_periode(text), extract\_indicateur(text).
+        \end{itemize}
+    
+    \item \textbf{ConversationManager} : Classe responsable de la gestion du contexte de la conversation.
+        \begin{itemize}
+            \item Attributs : conversations (dictionnaire historique par utilisateur), current\_context (contexte actuel).
+            \item Méthodes : get\_context(user\_id), update\_context(user\_id, key, value), reset\_context(user\_id).
+        \end{itemize}
+    
+    \item \textbf{ResponseGenerator} : Classe responsable de la génération des réponses en langage naturel.
+        \begin{itemize}
+            \item Attributs : response\_templates (modèles de réponses), data\_formatter (formatage des données).
+            \item Méthodes : generate(intent, entities, data, context), format\_kpi\_response(kpi\_value), format\_comparaison\_response(data).
+        \end{itemize}
+    
+    \item \textbf{DataFetcher} : Classe responsable de la récupération des données depuis les services métier.
+        \begin{itemize}
+            \item Attributs : dashboard\_service, comparaison\_service, prediction\_service.
+            \item Méthodes : get\_kpi(agence, periode, indicateur), get\_comparaison(agences, criteres), get\_prediction(agence, modele, periode).
+        \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/diagramme_classes_chatbot.png}
+\caption{Diagramme de classes - Chatbot}
+\label{fig:class-diagram-chatbot}
+\end{figure}
+
+\textbf{Description :} Le diagramme de classes présente la structure du chatbot avec le NLPService qui orchestre l'ensemble, l'IntentClassifier (reconnaissance des intentions), l'EntityExtractor (extraction des entités), le ConversationManager (gestion du contexte), le ResponseGenerator (génération des réponses) et le DataFetcher (récupération des données depuis les services métier).
+
+Les relations entre les classes sont les suivantes :
+
+\begin{itemize}
+    \item \textbf{NLPService} utilise \textbf{IntentClassifier}, \textbf{EntityExtractor}, \textbf{ConversationManager}, \textbf{ResponseGenerator} et \textbf{DataFetcher}.
+    \item \textbf{IntentClassifier} est entraîné sur un ensemble de données d'intentions.
+    \item \textbf{EntityExtractor} utilise des patterns et des listes pour identifier les entités.
+    \item \textbf{ConversationManager} maintient l'historique et le contexte des conversations.
+    \item \textbf{ResponseGenerator} utilise des templates pour formater les réponses.
+    \item \textbf{DataFetcher} appelle les services métier pour récupérer les données.
+\end{itemize}
+
+\subsection{Diagramme de séquence}
+\label{subsec:sprint6-sequence}
+
+Les diagrammes de séquence suivants illustrent les principaux flux d'exécution du chatbot.
+
+\subsubsection{Traitement d'un message utilisateur}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/diagramme_sequence_chatbot_message.png}
+\caption{Diagramme de séquence - Traitement d'un message utilisateur}
+\label{fig:sequence-chatbot-message}
+\end{figure}
+
+\textbf{Description :} Le diagramme de séquence du traitement d'un message utilisateur montre les interactions entre l'Utilisateur, le Frontend React, l'API FastAPI, le NLPService, l'IntentClassifier, l'EntityExtractor, le ConversationManager, le DataFetcher, le ResponseGenerator et les services métier (Dashboard, Comparaison, Prédiction). L'utilisateur saisit une question, le frontend envoie la requête à l'API, le NLPService orchestre le traitement (prétraitement, classification, extraction, récupération du contexte, appel des services, génération de la réponse), puis la réponse est renvoyée au frontend.
+
+Les étapes du traitement d'un message utilisateur sont :
+
+\begin{enumerate}
+    \item L'utilisateur saisit une question dans l'interface React du chatbot.
+    \item Le frontend envoie une requête POST à l'API FastAPI endpoint /api/chatbot/message.
+    \item FastAPI reçoit la requête, vérifie l'authentification et transmet le message au NLPService.
+    \item NLPService prétraite le texte : tokenisation, lemmatisation, suppression des mots vides.
+    \item IntentClassifier analyse le texte et détermine l'intention (ex: "demande\_kpi", "comparaison", "prediction").
+    \item EntityExtractor extrait les entités du texte : nom de l'agence, période, indicateur, etc.
+    \item ConversationManager récupère le contexte de la conversation en cours pour enrichir les données.
+    \item En fonction de l'intention identifiée, NLPService appelle le DataFetcher approprié :
+        \begin{itemize}
+            \item Si intention = "demande\_kpi" : DataFetcher appelle le DashboardService.
+            \item Si intention = "comparaison" : DataFetcher appelle le ComparaisonService.
+            \item Si intention = "prediction" : DataFetcher appelle le PredictionService.
+        \end{itemize}
+    \item DataFetcher récupère les données depuis les services correspondants.
+    \item ResponseGenerator génère une réponse en langage naturel à partir des données obtenues.
+    \item ConversationManager met à jour le contexte avec les informations de la conversation.
+    \item La réponse est renvoyée au frontend sous forme de JSON structuré.
+    \item L'interface React affiche la réponse du chatbot.
+\end{enumerate}
+
+\subsubsection{Reconnaissance d'intention}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/diagramme_sequence_intent_recognition.png}
+\caption{Diagramme de séquence - Reconnaissance d'intention}
+\label{fig:sequence-intent-recognition}
+\end{figure}
+
+\textbf{Description :} Le diagramme de séquence de la reconnaissance d'intention montre le processus d'analyse du texte : l'IntentClassifier reçoit le texte prétraité, le transforme en vecteur de caractéristiques (TF-IDF), le classificateur prédit l'intention la plus probable avec un score de confiance, et si le score est inférieur au seuil, l'intention "non\_reconnu" est retournée.
+
+Les étapes de la reconnaissance d'intention sont :
+
+\begin{enumerate}
+    \item IntentClassifier reçoit le texte prétraité.
+    \item Le texte est transformé en vecteur de caractéristiques (TF-IDF, Word Embeddings).
+    \item Le classificateur (entraîné au préalable) prédit l'intention la plus probable.
+    \item Un score de confiance est associé à la prédiction.
+    \item Si le score est inférieur à un seuil défini, l'intention "non\_reconnu" est retournée.
+    \item L'intention identifiée est renvoyée avec les entités extraites.
+\end{enumerate}
+
+\subsubsection{Appel service métier et génération de la réponse}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/diagramme_sequence_service_call.png}
+\caption{Diagramme de séquence - Appel service métier et génération de la réponse}
+\label{fig:sequence-service-call}
+\end{figure}
+
+\textbf{Description :} Le diagramme de séquence de l'appel service métier et génération de la réponse montre les interactions entre le NLPService, le DataFetcher, les services métier (Dashboard, Comparaison, Prédiction) et le ResponseGenerator. Le NLPService transmet l'intention et les entités au DataFetcher, qui identifie le service correspondant, construit la requête, appelle le service, récupère les données, les formate, puis le ResponseGenerator sélectionne le template approprié et génère la réponse en langage naturel.
+
+Les étapes de l'appel service métier et génération de la réponse sont :
+
+\begin{enumerate}
+    \item NLPService transmet l'intention et les entités au DataFetcher.
+    \item DataFetcher identifie le service correspondant à l'intention.
+    \item DataFetcher construit la requête avec les paramètres extraits.
+    \item DataFetcher appelle le service approprié (DashboardService, ComparaisonService, PredictionService).
+    \item Le service retourne les données au DataFetcher.
+    \item DataFetcher formate les données pour la génération de la réponse.
+    \item ResponseGenerator sélectionne le template de réponse approprié.
+    \item ResponseGenerator insère les données dans le template.
+    \item ResponseGenerator génère la réponse finale en langage naturel.
+    \item La réponse est renvoyée au NLPService pour la réponse à l'utilisateur.
+\end{enumerate}
+
+\section{Définition des cas d'usage du chatbot}
+\label{sec:sprint6-use-cases}
+
+La définition des cas d'usage est essentielle pour orienter le développement du chatbot et garantir qu'il réponde aux besoins réels des utilisateurs.
+
+\subsection{Cas d'usage 1 : Consultation d'un KPI}
+
+\begin{itemize}
+    \item \textbf{Exemple de question} : "Quelle est la performance de l'agence de Tunis ?"
+    \item \textbf{Intention} : demande\_kpi
+    \item \textbf{Entités extraites} : agence = "Tunis"
+    \item \textbf{Réponse attendue} : "L'agence de Tunis a réalisé un PNB de 5,2 millions TND ce mois-ci, en hausse de 3,5\% par rapport au mois dernier. La croissance des dépôts est de 4,2\%."
+    \item \textbf{Visualisation} : Carte KPI avec les valeurs et variations.
+\end{itemize}
+
+\subsection{Cas d'usage 2 : Comparaison d'agences}
+
+\begin{itemize}
+    \item \textbf{Exemple de question} : "Compare les agences de Sousse et de Monastir."
+    \item \textbf{Intention} : comparaison
+    \item \textbf{Entités extraites} : agences = ["Sousse", "Monastir"]
+    \item \textbf{Réponse attendue} : "Voici la comparaison entre Sousse et Monastir : Sousse - PNB : 3,8 M TND, Croissance : 5,1\%, Taux de transformation : 12,3\% ; Monastir - PNB : 2,9 M TND, Croissance : 3,2\%, Taux de transformation : 8,7\%. Sousse surpasse Monastir sur tous les indicateurs."
+    \item \textbf{Visualisation} : Graphique à barres comparatif.
+\end{itemize}
+
+\subsection{Cas d'usage 3 : Prédiction des performances}
+
+\begin{itemize}
+    \item \textbf{Exemple de question} : "Prédis-moi les dépôts de l'agence de Sfax pour le mois prochain."
+    \item \textbf{Intention} : prediction
+    \item \textbf{Entités extraites} : agence = "Sfax", periode = "mois prochain", indicateur = "dépôts"
+    \item \textbf{Réponse attendue} : "Selon le modèle Forêt Aléatoire, les dépôts de l'agence de Sfax pour le mois prochain sont estimés à 12,8 millions TND (intervalle de confiance : 12,1 - 13,5). Le modèle a un R² de 0,89."
+    \item \textbf{Visualisation} : Jauge avec la valeur prédite et l'intervalle de confiance.
+\end{itemize}
+
+\subsection{Cas d'usage 4 : Classement des agences}
+
+\begin{itemize}
+    \item \textbf{Exemple de question} : "Quelle agence a le meilleur taux de croissance ?"
+    \item \textbf{Intention} : classement
+    \item \textbf{Entités extraites} : indicateur = "taux de croissance"
+    \item \textbf{Réponse attendue} : "L'agence de Sfax a le meilleur taux de croissance avec 6,8\%, suivie de l'agence de Sousse avec 5,1\%, puis de l'agence de Tunis avec 4,2\%. Voici le classement complet des agences."
+    \item \textbf{Visualisation} : Tableau classé ou graphique à barres.
+\end{itemize}
+
+\subsection{Cas d'usage 5 : Identification des KPI critiques}
+
+\begin{itemize}
+    \item \textbf{Exemple de question} : "Quels sont les KPI critiques qui nécessitent une attention particulière ?"
+    \item \textbf{Intention} : alertes
+    \item \textbf{Entités extraites} : aucune spécifique
+    \item \textbf{Réponse attendue} : "Attention : L'agence de Monastir affiche un taux de croissance des dépôts de -1,2\%, en dessous du seuil d'alerte de 0\%. L'agence de Bizerte a un taux de transformation de 5,8\%, inférieur à l'objectif de 10\%. Ces indicateurs nécessitent une attention particulière."
+    \item \textbf{Visualisation} : Alertes avec indicateurs critiques.
+\end{itemize}
+
+\subsection{Cas d'usage 6 : Questions générales}
+
+\begin{itemize}
+    \item \textbf{Exemple de question} : "Comment se porte le réseau des agences ce trimestre ?"
+    \item \textbf{Intention} : synthese
+    \item \textbf{Entités extraites} : periode = "ce trimestre"
+    \item \textbf{Réponse attendue} : "Au 3ème trimestre 2024, le réseau des agences BTL affiche un PNB total de 25,6 millions TND, en hausse de 4,2\% par rapport au trimestre précédent. La croissance globale des dépôts est de 3,8\%. Les agences de la région nord sont les plus performantes."
+    \item \textbf{Visualisation} : Synthèse avec cartes KPI globales.
+\end{itemize}
+
+\section{Choix de l'approche NLP}
+\label{sec:sprint6-nlp-approach}
+
+Plusieurs approches NLP ont été évaluées pour le chatbot, avec un compromis entre performance, complexité et ressources disponibles.
+
+\subsection{Option 1 : Règles simples (pattern matching + keywords)}
+\label{subsec:nlp-rules}
+
+\textbf{Principe} : Utilisation d'expressions régulières et de correspondances de mots-clés pour identifier les intentions et extraire les entités.
+
+\begin{itemize}
+    \item \textbf{Avantages} :
+        \begin{itemize}
+            \item Simple à implémenter.
+            \item Rapide à exécuter.
+            \item Transparent et facile à déboguer.
+            \item Ne nécessite pas de données d'entraînement.
+        \end{itemize}
+    \item \textbf{Inconvénients} :
+        \begin{itemize}
+            \item Rigide : ne gère pas les variations linguistiques.
+            \item Ne capture pas les nuances du langage naturel.
+            \item Difficile à maintenir avec un grand nombre de cas.
+            \item Sensible à la formulation exacte des questions.
+        \end{itemize}
+    \item \textbf{Conclusion} : Adaptée pour un périmètre très restreint, mais trop limitée pour notre contexte.
+\end{itemize}
+
+\subsection{Option 2 : Modèle de classification (intent recognition avec Scikit-learn)}
+\label{subsec:nlp-classification}
+
+\textbf{Principe} : Utilisation d'un modèle de machine learning (SVM, Random Forest, ou Logistic Regression) entraîné sur un corpus de questions annotées.
+
+\begin{itemize}
+    \item \textbf{Avantages} :
+        \begin{itemize}
+            \item Bonne généralisation sur des formulations variées.
+            \item Performance solide avec des données d'entraînement de qualité.
+            \item Facile à mettre en œuvre avec Scikit-learn.
+            \item Pas de dépendance externe à des API ou modèles lourds.
+        \end{itemize}
+    \item \textbf{Inconvénients} :
+        \begin{itemize}
+            \item Nécessite un corpus d'entraînement annoté (environ 500-1000 exemples).
+            \item Ne gère pas les questions hors périmètre.
+            \item Extractions d'entités limitées (nécessite un module séparé).
+            \item Ne capture pas le contexte de la conversation.
+        \end{itemize}
+    \item \textbf{Conclusion} : Bon compromis pour notre projet. Approche retenue car elle offre une bonne performance avec des ressources limitées.
+\end{itemize}
+
+\subsection{Option 3 : LLM léger (Hugging Face transformers)}
+\label{subsec:nlp-llm}
+
+\textbf{Principe} : Utilisation d'un modèle de langage pré-entraîné (BERT, DistilBERT, etc.) pour la classification et l'extraction d'entités.
+
+\begin{itemize}
+    \item \textbf{Avantages} :
+        \begin{itemize}
+            \item Très bonne performance sur la compréhension du langage naturel.
+            \item Gère les formulations complexes et les nuances.
+            \item Capable de faire du few-shot learning.
+        \end{itemize}
+    \item \textbf{Inconvénients} :
+        \begin{itemize}
+            \item Nécessite des ressources de calcul importantes (GPU).
+            \item Temps d'inférence plus long.
+            \item Complexité d'implémentation et de déploiement.
+            \item Modèle volumineux (plusieurs centaines de Mo).
+        \end{itemize}
+    \item \textbf{Conclusion} : Trop lourd pour notre infrastructure actuelle. À considérer pour une future évolution.
+\end{itemize}
+
+\subsection{Option 4 : RAG (Retrieval-Augmented Generation)}
+\label{subsec:nlp-rag}
+
+\textbf{Principe} : Combinaison de recherche d'informations dans une base de connaissances et de génération de réponses par un LLM.
+
+\begin{itemize}
+    \item \textbf{Avantages} :
+        \begin{itemize}
+            \item Très bonne qualité de réponse.
+            \item Capable de répondre à des questions complexes.
+            \item Basé sur des sources d'information structurées.
+        \end{itemize}
+    \item \textbf{Inconvénients} :
+        \begin{itemize}
+            \item Complexité d'implémentation.
+            \item Nécessite une base de connaissances bien structurée.
+            \item Dépend d'un LLM pour la génération.
+            \item Ressources de calcul importantes.
+        \end{itemize}
+    \item \textbf{Conclusion} : Approche trop avancée pour le périmètre du projet. Perspective pour une évolution future.
+\end{itemize}
+
+\subsection{Choix final : Approche hybride}
+
+Notre chatbot utilisera une \textbf{approche hybride} combinant :
+
+\begin{enumerate}
+    \item \textbf{IntentClassifier basé sur Scikit-learn} : Pour la reconnaissance des intentions principales (6 intentions).
+    \item \textbf{EntityExtractor basé sur des patterns} : Pour l'extraction des entités (agences, périodes, indicateurs) avec des expressions régulières.
+    \item \textbf{ConversationManager} : Pour le maintien du contexte conversationnel.
+    \item \textbf{ResponseGenerator} : Pour la génération de réponses avec des templates paramétrables.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/approche_nlp_hybride.png}
+\caption{Approche NLP hybride du chatbot}
+\label{fig:approche-nlp-hybride}
+\end{figure}
+
+\textbf{Description :} L'approche NLP hybride du chatbot combine quatre composants : l'IntentClassifier basé sur Scikit-learn (reconnaissance des 6 intentions), l'EntityExtractor basé sur des patterns (extraction des agences, périodes, indicateurs), le ConversationManager (maintien du contexte), et le ResponseGenerator (génération de réponses avec templates). Cette approche offre le meilleur compromis entre performance, simplicité et maintenabilité.
+
+\section{Développement du backend chatbot avec FastAPI}
+\label{sec:sprint6-backend}
+
+Le backend du chatbot est développé avec FastAPI et expose un endpoint pour l'interaction conversationnelle.
+
+\subsection{Endpoint /chat}
+
+\begin{itemize}
+    \item \textbf{URL} : POST /api/chatbot/message
+    \item \textbf{Authentification} : Requise (JWT)
+    \item \textbf{Corps de la requête} :
+        \begin{itemize}
+            \item message (string) : Le message de l'utilisateur en langage naturel.
+            \item conversation\_id (string, optionnel) : Identifiant de la conversation en cours.
+        \end{itemize}
+    \item \textbf{Réponse} :
+        \begin{itemize}
+            \item message (string) : La réponse du chatbot.
+            \item intent (string) : L'intention identifiée.
+            \item entities (object) : Les entités extraites.
+            \item visualization (object, optionnel) : Données pour la visualisation (type, data).
+            \item suggestions (array, optionnel) : Suggestions de questions (quick replies).
+            \item conversation\_id (string) : Identifiant de la conversation.
+        \end{itemize}
+\end{itemize}
+
+\subsection{Exemple de réponse}
+
+\begin{verbatim}
+{
+    "message": "L'agence de Tunis a réalisé un PNB de 5,2 millions TND ce mois-ci, en hausse de 3,5% par rapport au mois dernier.",
+    "intent": "demande_kpi",
+    "entities": {
+        "agence": "Tunis",
+        "indicateur": "PNB",
+        "periode": "ce mois-ci"
+    },
+    "visualization": {
+        "type": "kpi_card",
+        "data": {
+            "value": 5.2,
+            "variation": 3.5,
+            "unit": "M TND",
+            "agence": "Tunis"
+        }
+    },
+    "suggestions": [
+        "Quelle est l'évolution des dépôts de Tunis ?",
+        "Compare Tunis avec Sfax",
+        "Prédis-moi les dépôts de Tunis"
+    ],
+    "conversation_id": "conv_abc123"
+}
+\end{verbatim}
+
+\subsection{Intégration avec les services existants}
+
+Le chatbot s'intègre avec les services existants :
+
+\begin{itemize}
+    \item \textbf{DashboardService} : Pour les requêtes de KPI (agrégation, indicateurs spécifiques).
+    \item \textbf{ComparaisonService} : Pour les requêtes de comparaison entre agences.
+    \item \textbf{PredictionService} : Pour les requêtes de prédiction.
+    \item \textbf{UserService} : Pour vérifier les droits d'accès de l'utilisateur.
+\end{itemize}
+
+\subsection{Gestion de la conversation}
+
+La gestion de la conversation inclut :
+
+\begin{itemize}
+    \item \textbf{Historique des messages} : Conservation des échanges pour le contexte.
+    \item \textbf{Contexte implicite} : Dernière agence mentionnée, dernière période mentionnée.
+    \item \textbf{Contexte explicite} : Informations fournies intentionnellement par l'utilisateur.
+    \item \textbf{Gestion des ambiguïtés} : Si une information manque, le chatbot demande des précisions.
+    \item \textbf{Réinitialisation} : Possibilité de réinitialiser la conversation.
+\end{itemize}
+
+\subsection{Gestion des erreurs}
+
+Le chatbot gère les cas d'erreur suivants :
+
+\begin{itemize}
+    \item \textbf{Intention non reconnue} : Message proposant des reformulations ou redirigeant vers une aide.
+    \item \textbf{Entité manquante} : Demande de précision à l'utilisateur.
+    \item \textbf{Données non disponibles} : Information sur l'indisponibilité et proposition d'alternative.
+    \item \textbf{Erreur d'accès} : Message d'autorisation refusée.
+    \item \textbf{Erreur serveur} : Message d'erreur générique avec notification à l'administrateur.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/backend_chatbot_api.png}
+\caption{Architecture du backend chatbot avec FastAPI}
+\label{fig:backend-chatbot-api}
+\end{figure}
+
+\textbf{Description :} L'architecture du backend chatbot avec FastAPI expose l'endpoint /api/chatbot/message, s'intègre avec les services existants (DashboardService, ComparaisonService, PredictionService, UserService), et gère la conversation (historique, contexte implicite/explicite, gestion des ambiguïtés) ainsi que les erreurs (intention non reconnue, entité manquante, données non disponibles, erreur d'accès, erreur serveur).
+
+\section{Développement du frontend chatbot avec React}
+\label{sec:sprint6-frontend}
+
+L'interface du chatbot est développée avec React pour offrir une expérience utilisateur fluide et intuitive.
+
+\subsection{Composant ChatBot (fenêtre de discussion flottante)}
+
+Le composant ChatBot est une fenêtre de discussion flottante qui peut être ouverte ou fermée par l'utilisateur :
+
+\begin{itemize}
+    \item \textbf{Position} : Coin inférieur droit de l'écran.
+    \item \textbf{Bouton d'ouverture} : Icône de chat qui, au clic, ouvre la fenêtre.
+    \item \textbf{Fenêtre} : Popup avec la zone de discussion.
+    \item \textbf{Animations} : Transitions fluides à l'ouverture/fermeture.
+    \item \textbf{Responsive} : Adapté aux différentes tailles d'écran.
+\end{itemize}
+
+\subsection{Saisie du message (input)}
+
+Le champ de saisie permet à l'utilisateur de taper ses questions :
+
+\begin{itemize}
+    \item \textbf{Champ de texte} : Input avec placeholder "Posez votre question...".
+    \item \textbf{Bouton d'envoi} : Icône d'envoi (flèche ou paper plane).
+    \item \textbf{Envoi par Entrée} : Appui sur la touche Entrée pour envoyer.
+    \item \textbf{Validation} : Empêcher l'envoi de messages vides.
+    \item \textbf{Indication de longueur} : Limite de caractères affichée.
+\end{itemize}
+
+\subsection{Affichage des messages (utilisateur / bot)}
+
+Les messages sont affichés sous forme de bulles de discussion :
+
+\begin{itemize}
+    \item \textbf{Message utilisateur} : Bulle alignée à droite, couleur différente.
+    \item \textbf{Message bot} : Bulle alignée à gauche, couleur différente.
+    \item \textbf{Avatar} : Icône pour le bot (logo BTL) et l'utilisateur.
+    \item \textbf{Horodatage} : Heure de chaque message.
+    \item \textbf{Scroll automatique} : Défilement vers le dernier message.
+    \item \textbf{Formatage} : Gras, italique, listes dans les messages du bot.
+\end{itemize}
+
+\subsection{Indicateur de frappe / chargement}
+
+Un indicateur visuel informe l'utilisateur que le chatbot traite sa demande :
+
+\begin{itemize}
+    \item \textbf{Animation de points} : Trois points qui s'allument en séquence.
+    \item \textbf{Message "En cours de réflexion..."} : Texte informatif.
+    \item \textbf{Désactivation du champ de saisie} : Empêche l'envoi de nouveaux messages pendant le traitement.
+\end{itemize}
+
+\subsection{Suggestions de questions (quick replies)}
+
+Les quick replies proposent des questions fréquentes :
+
+\begin{itemize}
+    \item \textbf{Position} : Juste au-dessus du champ de saisie.
+    \item \textbf{Format} : Boutons ou puces cliquables.
+    \item \textbf{Contenu} : Questions types comme "Quel est mon PNB ?", "Compare les agences", "Prédis-moi les dépôts".
+    \item \textbf{Mise à jour dynamique} : Les suggestions peuvent changer en fonction du contexte.
+\end{itemize}
+
+\subsection{Exemple de l'interface}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/maquette_chatbot_react.png}
+\caption{Maquette de l'interface du chatbot React}
+\label{fig:chatbot-interface}
+\end{figure}
+
+\textbf{Description :} La maquette de l'interface du chatbot React présente une fenêtre de discussion flottante dans le coin inférieur droit avec une zone de messages (bulles utilisateur à droite, bot à gauche), un champ de saisie avec bouton d'envoi, des quick replies (suggestions de questions), un indicateur de frappe, des avatars (logo BTL pour le bot, icône utilisateur) et un horodatage pour chaque message.
+
+\section{Visualisation des résultats du chatbot}
+\label{sec:sprint6-visualization}
+
+Les réponses du chatbot sont enrichies de visualisations dynamiques pour rendre les informations plus claires et plus impactantes.
+
+\subsection{Carte KPI}
+
+Si le chatbot donne un chiffre (KPI), il est affiché sous forme de carte :
+
+\begin{itemize}
+    \item \textbf{Valeur} : Le chiffre principal (ex: 5,2 M TND).
+    \item \textbf{Titre} : Nom de l'indicateur (ex: PNB de l'agence de Tunis).
+    \item \textbf{Variation} : Variation en pourcentage avec flèche (hausse/baisse).
+    \item \textbf{Période} : Période concernée.
+    \item \textbf{Couleur} : Vert si positif, rouge si négatif.
+    \item \textbf{Badge} : Statut (ex: "En hausse", "Alerte").
+\end{itemize}
+
+\subsection{Graphique comparatif}
+
+Si le chatbot donne une comparaison, elle est affichée sous forme de graphique :
+
+\begin{itemize}
+    \item \textbf{Type} : Graphique à barres ou graphique radar.
+    \item \textbf{Axes} : Agences en abscisse, valeurs en ordonnée.
+    \item \textbf{Couleurs} : Différentes couleurs par agence.
+    \item \textbf{Légende} : Indicateurs représentés.
+    \item \textbf{Tooltips} : Valeurs précises au survol.
+\end{itemize}
+
+\subsection{Jauge de prédiction}
+
+Si le chatbot donne une prédiction, elle est affichée sous forme de jauge :
+
+\begin{itemize}
+    \item \textbf{Position} : Aiguille indiquant la valeur prédite.
+    \item \textbf{Échelle} : De la valeur minimale à la valeur maximale historique.
+    \item \textbf{Intervalle de confiance} : Zone grisée autour de la valeur prédite.
+    \item \textbf{Score} : Score de confiance affiché.
+    \item \textbf{Modèle} : Nom du modèle utilisé.
+\end{itemize}
+
+\subsection{Tableau de classement}
+
+Si le chatbot donne un classement, il est affiché sous forme de tableau :
+
+\begin{itemize}
+    \item \textbf{Rang} : Position dans le classement.
+    \item \textbf{Agence} : Nom de l'agence.
+    \item \textbf{Valeur} : Valeur de l'indicateur.
+    \item \textbf{Tendance} : Flèche de progression/régression.
+    \item \textbf{Écarts} : Écart par rapport à la moyenne.
+\end{itemize}
+
+\subsection{Alertes et notifications}
+
+Si le chatbot identifie des alertes, elles sont affichées :
+
+\begin{itemize}
+    \item \textbf{Carte d'alerte} : Fond coloré (rouge/orange).
+    \item \textbf{Message} : Description de l'alerte.
+    \item \textbf{Indicateur} : Valeur critique.
+    \item \textbf{Action recommandée} : Suggestion d'action.
+    \item \textbf{Priorité} : Niveau de criticité.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{images/visualisations_chatbot.png}
+\caption{Types de visualisations des résultats du chatbot}
+\label{fig:visualisations-chatbot}
+\end{figure}
+
+\textbf{Description :} Les réponses du chatbot sont enrichies de cinq types de visualisations : cartes KPI (valeur, variation, période), graphiques comparatifs (à barres ou radar), jauges de prédiction (avec intervalle de confiance), tableaux de classement (rang, agence, valeur, tendance), et alertes/notifications (carte d'alerte avec message, indicateur critique, action recommandée).
+
+\section{Tests et validation utilisateur}
+\label{sec:sprint6-tests}
+
+Les tests et la validation sont essentiels pour garantir la qualité et la pertinence du chatbot.
+
+\subsection{Tests unitaires}
+
+Les tests unitaires couvrent :
+
+\begin{itemize}
+    \item \textbf{IntentClassifier} : Validation de la classification des intentions sur un ensemble de test.
+    \item \textbf{EntityExtractor} : Validation de l'extraction des entités sur des cas types.
+    \item \textbf{ConversationManager} : Validation de la gestion du contexte.
+    \item \textbf{ResponseGenerator} : Validation de la génération des réponses.
+\end{itemize}
+
+\subsection{Tests d'intégration}
+
+Les tests d'intégration couvrent :
+
+\begin{itemize}
+    \item \textbf{Endpoint /chat} : Validation des appels API avec différents messages.
+    \item \textbf{Intégration services} : Validation des appels aux services métier (Dashboard, Comparaison, Prédiction).
+    \item \textbf{Gestion du contexte} : Validation de la cohérence des conversations.
+\end{itemize}
+
+\subsection{Tests utilisateur}
+
+Des tests utilisateur sont réalisés avec des responsables de la BTL :
+
+\begin{itemize}
+    \item \textbf{Démonstration} : Présentation des fonctionnalités du chatbot.
+    \item \textbf{Scénarios de test} : Les utilisateurs testent les cas d'usage définis.
+    \item \textbf{Feedbacks} : Recueil des retours sur la pertinence des réponses, la fluidité de la conversation, la qualité des visualisations.
+    \item \textbf{Itérations} : Ajustements basés sur les retours des utilisateurs.
+\end{itemize}
+
+\subsection{Résultats des tests}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{5cm}|p{4cm}|p{4cm}|}
+\hline
+\textbf{Type de test} & \textbf{Nombre de tests} & \textbf{Taux de réussite} \\
+\hline
+Classification des intentions & 200 & 92\% \\
+\hline
+Extraction des entités & 150 & 88\% \\
+\hline
+Appels aux services métier & 80 & 100\% \\
+\hline
+Gestion du contexte & 50 & 100\% \\
+\hline
+Tests utilisateur & 10 sessions & Satisfaction : 4,3/5 \\
+\hline
+\end{tabular}
+\caption{Résultats des tests du chatbot}
+\label{tab:chatbot-tests}
+\end{table}
+
+\section{Livrables du Sprint}
+\label{sec:sprint6-livrables}
+
+À l'issue de ce sprint, les livrables suivants sont produits :
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\textbf{Livrable} & \textbf{Description} \\
+\hline
+Backend Chatbot & Endpoint /api/chatbot/message avec NLPService complet. \\
+\hline
+IntentClassifier & Modèle de classification entraîné sur les 6 intentions. \\
+\hline
+EntityExtractor & Extracteur d'entités basé sur des patterns. \\
+\hline
+ConversationManager & Gestion du contexte et de l'historique. \\
+\hline
+ResponseGenerator & Générateur de réponses avec templates. \\
+\hline
+Frontend Chatbot & Composant React flottant avec interface complète. \\
+\hline
+Visualisations intégrées & Cartes KPI, graphiques, jauges, alertes. \\
+\hline
+Quick replies & Suggestions de questions dynamiques. \\
+\hline
+Documentation utilisateur & Guide d'utilisation du chatbot. \\
+\hline
+\end{tabular}
+\caption{Livrables du sprint 6}
+\label{tab:sprint6-livrables}
+\end{table}
+
+\textbf{Description :} Les livrables du sprint 6 comprennent : le backend chatbot avec l'endpoint /api/chatbot/message, l'IntentClassifier (6 intentions), l'EntityExtractor (patterns), le ConversationManager (contexte), le ResponseGenerator (templates), le frontend React (composant flottant), les visualisations intégrées (cartes KPI, graphiques, jauges, alertes), les quick replies, et la documentation utilisateur.
+
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+Ce sixième sprint a permis de développer un chatbot intelligent qui transforme l'expérience utilisateur de notre solution décisionnelle. Grâce à une approche NLP hybride combinant classification des intentions et extraction d'entités par patterns, le chatbot est capable de comprendre les questions des responsables de la BTL et d'y répondre de manière pertinente.
+
+L'intégration avec les services existants (Dashboard, Comparaison, Prédiction) permet au chatbot d'accéder aux données décisionnelles en temps réel et de fournir des réponses enrichies de visualisations dynamiques (cartes KPI, graphiques comparatifs, jauges de prédiction). La gestion du contexte assure une fluidité conversationnelle, permettant aux utilisateurs d'enchaîner les questions sans répéter les informations.
+
+L'interface React développée offre une expérience utilisateur intuitive avec une fenêtre de discussion flottante, des quick replies, et des indicateurs de chargement. Les tests et la validation utilisateur confirment la pertinence et la qualité des réponses du chatbot, avec un taux de satisfaction de 4,3/5.
+
+Ce sprint marque une avancée significative vers une solution décisionnelle véritablement intelligente et accessible. Le prochain sprint sera dédié à l'intégration de Power BI pour des rapports avancés et des analyses approfondies.

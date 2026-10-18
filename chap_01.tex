@@ -1,0 +1,365 @@
+\chapter{Context, Presentation, and Needs Analysis}
+
+\section{Introduction}
+This chapter establishes the foundation of the Riaya project. It begins by introducing the host company, Pengguin, and its founder, John Jang. It then presents the Riaya product, its value proposition, and the three main actors of the platform: the patient, the doctor, and the administrator. The chapter continues with a detailed analysis of the functional and non-functional requirements, a comparative study of existing solutions, and a global BPMN model of the complete business process. The overall goal is to provide a clear understanding of the problem Riaya aims to solve, the needs of its users, and the way the platform positions itself within the Tunisian healthcare market.
+
+\section{Presentation of the Host Company: Pengguin}
+
+\subsection{Identity and Area of Expertise}
+Pengguin is a company founded by John Jang. It specializes in language e-learning. Its flagship product is SpeakDuo, a platform where users learn a language by speaking face-to-face with a partner. In addition to SpeakDuo, Pengguin occasionally provides custom web development services to external clients. The present internship was carried out within one of these projects: Riaya, a doctor appointment platform for Tunisia, developed on behalf of a Tunisian client.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/pengguin_logo.png}
+    \caption{Pengguin Company Logo}
+    \label{fig:pengguin_logo}
+    \small Source: Pengguin Internal Documentation.
+\end{figure}
+
+Figure~\ref{fig:pengguin_logo} presents the official logo of Pengguin.
+
+\subsection{Internal Organization and Presentation of the Founder (John Jang)}
+John Jang is the founder and driving force behind Pengguin. Under his leadership, the company has adopted agile methodologies, particularly Kanban \cite{anderson2010kanban}, to manage its projects efficiently. The team is organized into small, cross-functional units responsible for the web application, the voice server, and the deployment infrastructure.
+
+John Jang brings extensive experience in software engineering, artificial intelligence, and cloud infrastructure. He is directly involved in the technical direction of the company's projects, providing architectural guidance and mentoring to the development team. His vision for Pengguin is to build products that are not only technically excellent but also solve real-world problems in a meaningful way. This philosophy is clearly reflected in the Riaya project, which aims to make healthcare more accessible to a broader population in Tunisia.
+
+\subsection{Positioning of Pengguin in the Software Development Market}
+Pengguin positions itself as a provider of high-quality, custom software solutions. Its expertise in AI integration, real-time WebSocket communication, and containerized deployment gives it a competitive edge in the Tunisian and North African markets. Unlike many local software companies that focus on traditional web development, Pengguin specializes in advanced, real-time, and AI-driven applications. This positioning allows it to attract clients who need innovative solutions that go beyond standard web applications.
+
+The company's commitment to quality, transparency, and continuous delivery has helped it build a strong reputation with its clients. Pengguin is also committed to staying at the forefront of technology, regularly adopting new tools and frameworks that improve the quality and efficiency of its work.
+
+\section{Presentation of the Riaya Product (Client of Pengguin)}
+
+\subsection{Definition and Genesis of the Project}
+Riaya is an AI-powered doctor appointment platform based in Tunisia. It was born from the need to simplify access to healthcare for patients who may not be comfortable with web portals or mobile applications. The project was initiated by a Tunisian client and developed by Pengguin.
+
+The idea behind Riaya is simple but powerful: instead of asking patients to download an application, create an account, and navigate a complex interface, Riaya allows them to simply call a phone number and speak with an intelligent voice assistant. The assistant understands natural language, gathers the necessary information, and books an appointment with the most suitable doctor. Patients then receive confirmation and follow-up messages via WhatsApp, a platform already widely used in Tunisia \cite{whatsapp2024tunisia}.
+
+This approach addresses several important challenges in the Tunisian healthcare system. First, it removes the digital barrier that prevents many patients, particularly older adults or those with limited digital literacy, from accessing online booking services. Second, it provides a multilingual experience that accommodates Arabic, French, and English speakers. Third, it handles urgent situations intelligently by contacting multiple nearby doctors simultaneously. Finally, it offers doctors a modern dashboard to manage their practice efficiently.
+
+\subsection{Value Proposition: The ``AI-first'' and ``Voice-first'' Concept}
+Riaya distinguishes itself through an ``AI-first'' and ``voice-first'' approach. Patients do not need to create an account or use a web portal. Instead, they interact with an intelligent voice assistant through a simple phone call and receive follow-up messages via WhatsApp. The AI assistant can communicate in English, French, and Tunisian Arabic, making the service accessible to a wide audience.
+
+The AI-first approach means that artificial intelligence is not just an add-on feature but the core of the user experience. The voice agent uses the OpenAI Realtime API \cite{openai2024realtime}, accessed through Microsoft Azure \cite{azure2024openai}, to provide low-latency, natural-sounding speech-to-speech interaction. It can understand the patient's intent, ask clarifying questions, and make tool calls back into the Riaya system to search for doctors, check availability, and create appointments.
+
+The voice-first approach means that the primary channel of interaction is the phone call. This is a deliberate design choice that reflects the reality of the Tunisian market, where phone calls remain a trusted and familiar way to communicate. WhatsApp is used as a secondary channel for confirmations, documents, invoices, and rating requests, providing a seamless follow-up experience.
+
+\subsection{The Three Pillars of the Platform: Patient, Doctor, Administrator}
+The platform is built around three main actors:
+\begin{itemize}
+    \item \textbf{Patient:} No account required. Interacts via phone calls and WhatsApp. The phone number is used as the unique identifier. The patient can book standard or urgent appointments, consult or cancel pending bookings, receive WhatsApp messages from the doctor, and rate the doctor after a visit.
+    \item \textbf{Doctor:} Uses a web dashboard to manage appointments, patients, invoices, and WhatsApp communication. The doctor must register, submit professional documents, and be approved by an administrator before accessing the full dashboard. Once approved, the doctor can set availability, accept or decline AI bookings, create invoices, record and transcribe consultations, use the AI assistant, and link a personal WhatsApp number.
+    \item \textbf{Administrator:} Uses a back-office to verify doctors, monitor live AI calls, and configure the platform. The administrator can approve or reject doctor applications, observe ongoing calls with live transcripts, run best-fit searches, and consult global statistics.
+\end{itemize}
+
+\subsection{Business Model (Freemium: Free vs Pro)}
+Riaya offers two subscription plans for doctors: a Free tier and a Pro tier. The Free tier provides access to the main dashboard features, including patient and appointment management, invoices, and medical files. However, it imposes limits on advanced features: five AI phone bookings per month, fifty WhatsApp messages per month, five conversation recordings per month, and twenty AI messages per month.
+
+The Pro tier offers unlimited access to all features. Doctors can upgrade to Pro at any time and must pay recurring invoices to keep their subscription active. Payments are processed through the Konnect.network API \cite{konnect2024}. A daily BullMQ job \cite{bullmq2024} checks for subscriptions ending soon and generates invoices for them. Doctors can view these invoices in their dashboard and must pay them to keep their subscription active.
+
+This freemium model allows doctors to try the platform without commitment while providing a clear upgrade path for those who need more capacity. It also ensures that the platform generates sustainable revenue to support its development and operation.
+
+\begin{table}[H]
+    \centering
+    \caption{Comparison of Free and Pro Subscription Plans}
+    \label{tab:plans}
+    \small
+    \begin{tabular}{p{5cm}p{4cm}p{4cm}}
+        \toprule
+        \textbf{Feature} & \textbf{Free} & \textbf{Pro} \\
+        \midrule
+        Patient and appointment management & Yes & Yes \\
+        Invoices and medical files & Yes & Yes \\
+        AI phone bookings per month & 5 & Unlimited \\
+        WhatsApp messages per month & 50 & Unlimited \\
+        Conversation recordings per month & 5 & Unlimited \\
+        AI messages per month & 20 & Unlimited \\
+        Payment & Free & Recurring via Konnect.network \\
+        \bottomrule
+    \end{tabular}
+    \\[0.2cm]
+    \small Source: Author's own work based on Riaya internal documentation (\texttt{DESCRIPTION.md}).
+\end{table}
+
+Table~\ref{tab:plans} summarizes the differences between the two subscription plans.
+
+\section{Presentation of Functional Requirements}
+
+\subsection{Functional Requirements of the Patient (No Account)}
+Patients have no account. Their identity is the calling phone number. The interaction channels are the phone call and WhatsApp. The functional requirements for the patient are as follows:
+\begin{itemize}
+    \item \textbf{Voice Interaction with AI:} Reach the AI in English, French, or Tunisian Arabic. Change preferred language for current and future interactions. The assistant does not give medical advice.
+    \item \textbf{Appointment Booking (Standard and Urgent):} Provide name (if unknown), reason or speciality, location, and preferred time. Choose among best-fit doctors within a 50~km radius. A pending appointment is created. Urgent requests can contact up to 3 nearby doctors simultaneously.
+    \item \textbf{Consultation and Cancellation of Pending Appointments:} Ask about upcoming or recent AI appointments. Cancel while status is pending. Confirmed bookings cannot be cancelled via the assistant.
+    \item \textbf{Receiving WhatsApp Messages:} Receive appointment confirmations, medical documents, and invoices from the doctor's own WhatsApp number.
+    \item \textbf{Rating System via Magic Link:} Open a magic link received by WhatsApp after a confirmed appointment and submit a rating without creating an account.
+    \item \textbf{Notification on Request Expiry:} Be notified by callback or WhatsApp if a pending request expires without a doctor accepting.
+\end{itemize}
+
+\subsection{Functional Requirements of the Doctor}
+The doctor interacts with the platform through a web dashboard. The functional requirements are grouped into several categories:
+\begin{itemize}
+    \item \textbf{Registration and Verification:} Create an account with email OTP. Submit professional and cabinet details (identity documents, Medical Council info, speciality, location on map, etc.). The account must be approved by an administrator. If rejected, the doctor can correct the information and reapply.
+    \item \textbf{Profile, Availability, and Calendar Management:} Update cabinet and professional information. Set weekly working hours used when patients book via AI. Create, move, edit, or cancel appointments on the practice calendar.
+    \item \textbf{Patient and Medical Record Management:} Create and update patient records. Attach patients created from AI bookings. Create consultation notes, prescriptions, and other medical files.
+    \item \textbf{Invoicing and Sending via WhatsApp:} Create invoices, record payments, and cancel invoices as needed. Send invoice PDF to the patient via WhatsApp.
+    \item \textbf{Recording and Transcription of Consultations:} Record a conversation with a patient. Generate a transcript from a recording.
+    \item \textbf{Integrated AI Assistant:} Ask how to use Riaya and what is allowed under the current plan. Ask medical questions. Attach a recording transcript and ask questions about it.
+    \item \textbf{WhatsApp Configuration (QR Code):} Link a personal WhatsApp number by scanning a QR code so outbound messages to patients use that number \cite{baileys2024}.
+    \item \textbf{Subscription Management:} View Free vs Pro limits and current usage. Upgrade and pay recurring Riaya invoices (Konnect) to keep Pro active.
+\end{itemize}
+
+\subsection{Functional Requirements of the Administrator}
+The administrator uses a dedicated back-office to manage the platform. The functional requirements are as follows:
+\begin{itemize}
+    \item \textbf{Doctor Verification and Validation:} Browse and search doctor applications and profiles. Approve or reject a doctor application (rejection may include reasons shown to the doctor).
+    \item \textbf{Real-Time Monitoring of AI Calls:} Observe live patient AI calls and conversation transcripts. Inspect best-fit results for operations and debugging.
+    \item \textbf{``Best-fit'' Search and Platform Management:} Manage platform-level data exposed in the admin interface (e.g., users, specialities, settings). Link the admin WhatsApp number for platform outbound messages.
+    \item \textbf{Consultation of Global Statistics:} Consult aggregate statistics on doctors, appointments, and calls.
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{Summary of Functional Requirements by Actor}
+    \label{tab:functional_requirements}
+    \small
+    \begin{tabular}{p{3cm}p{10cm}}
+        \toprule
+        \textbf{Actor} & \textbf{Key Functional Requirements} \\
+        \midrule
+        Patient & Voice interaction, appointment booking (standard/urgent), consultation/cancellation, WhatsApp messages, rating via magic link, expiry notification. \\
+        \addlinespace
+        Doctor & Registration and verification, profile/availability/calendar management, patient and medical record management, invoicing via WhatsApp, recording and transcription, AI assistant, WhatsApp configuration, subscription management. \\
+        \addlinespace
+        Administrator & Doctor verification, real-time call monitoring, best-fit search, platform configuration, global statistics. \\
+        \bottomrule
+    \end{tabular}
+    \\[0.2cm]
+    \small Source: Author's own work based on Riaya documentation.
+\end{table}
+
+Table~\ref{tab:functional_requirements} provides a consolidated view of the functional requirements by actor.
+
+\section{Presentation of Non-Functional Requirements}
+
+\subsection{Performance and Real-Time}
+The platform uses WebSockets \cite{fette2011websocket} to notify doctors of new appointment requests in real time. Pending AI requests are automatically cancelled after 10 minutes if no doctor accepts. The best-fit search algorithm is optimized to run within a few hundred milliseconds, ensuring a smooth experience for the patient. The voice server must bridge audio between Twilio \cite{twilio2024} and the OpenAI Realtime API with minimal latency to provide a natural conversational experience.
+
+\subsection{Security and Confidentiality}
+Doctors authenticate using Better Auth \cite{betterauth2024} with email OTP (stored in the Drizzle verification table \cite{drizzle2024}). Data is encrypted in transit and at rest. Medical documents are stored in Cloudflare R2 \cite{cloudflare2024r2}, which provides encryption and access control. WhatsApp conversations remain private because they go through the doctor's own number. The platform must comply with Tunisian data protection regulations (INPDP) \cite{inpdp2004} and, where applicable, GDPR principles \cite{gdpr2016}.
+
+\subsection{Scalability and High Availability}
+The architecture is split into two repositories: the web app (Next.js \cite{nextjs2024}) and the voice real-time server (Express.js \cite{express2024}). This separation allows independent scaling and maintenance. Each repository has its own CI/CD pipeline, enabling the team to deploy changes to one application without redeploying the other. The use of Docker containers and Docker Compose \cite{docker2024} simplifies scaling and infrastructure management.
+
+\subsection{Resilience and Fault Tolerance}
+If outbound calling fails, Riaya sends a WhatsApp message via the admin WhatsApp account. Background jobs are handled by BullMQ and Redis \cite{redis2024} to ensure scheduled tasks (e.g., review requests, recurring invoices) are processed reliably. The emergency fan-out mechanism ensures that urgent patients are not blocked by subscription caps. The timeout mechanism ensures that unanswered requests are automatically cancelled and the patient is notified.
+
+\subsection{Ergonomics and User Experience (UX/UI)}
+The doctor dashboard is built with TailwindCSS \cite{tailwind2024} for a modern and responsive interface. The patient experience is designed to be frictionless: no app installation, no account creation. The AI assistant uses natural language and asks one question at a time, making the interaction simple and intuitive. WhatsApp messages are sent in the patient's preferred language.
+
+\subsection{Technical and Regulatory Constraints}
+The platform is restricted to Tunisia for location search and operates in Tunisian local time (GMT+1). Doctor cabinets are stored with exact latitude and longitude from the registration map, so matching is GPS-to-GPS rather than city-name matching. The platform must comply with local data protection regulations (INPDP) and, where applicable, GDPR principles for data minimization, purpose limitation, and the right to erasure.
+
+\section{Presentation of Existing Solutions}
+Before designing Riaya, the Pengguin team conducted a thorough analysis of the existing solutions in the medical appointment booking market. This analysis focused on three main categories of solutions: international web and mobile platforms, local Tunisian directories, and classic Interactive Voice Response (IVR) systems \cite{ivr2019}. The goal was to identify their strengths, their limitations, and the gaps that Riaya could fill. This section presents each solution in detail, analyzes its features, and explains why it does not fully address the needs of the Tunisian market.
+
+\subsection{Solution 1: Doctolib (Classic Web/Mobile Platform)}
+Doctolib \cite{doctolib2024} is one of the leading European platforms for online medical appointment booking. Founded in France in 2013, it has grown to become the dominant player in the French, German, and Italian markets, with millions of users and tens of thousands of healthcare professionals registered on the platform.
+
+\subsubsection{Features and Functionality}
+Doctolib offers a comprehensive set of features for both patients and doctors:
+\begin{itemize}
+    \item \textbf{For patients:} Doctor search by speciality, location, and availability; online appointment booking; appointment reminders by email and SMS; access to medical documents; and teleconsultation services.
+    \item \textbf{For doctors:} A complete practice management dashboard, including calendar management, patient records, billing, and integration with third-party software.
+    \item \textbf{For the healthcare system:} Integration with national health insurance systems and electronic health records in some countries.
+\end{itemize}
+
+\subsubsection{Strengths}
+Doctolib's main strengths are its user-friendly interface, its large network of healthcare professionals, and its integration with the broader healthcare ecosystem. It has become the de facto standard for online appointment booking in France and has expanded successfully to other European countries.
+
+\subsubsection{Limitations and Why It Does Not Fit the Tunisian Context}
+Despite its success in Europe, Doctolib presents several limitations that make it unsuitable for the Tunisian market:
+\begin{itemize}
+    \item \textbf{Requirement for a patient account:} Patients must create an account and use a web or mobile interface. This excludes a significant portion of the Tunisian population, particularly older adults, individuals with limited digital literacy, and those without reliable internet access.
+    \item \textbf{No voice-based AI assistant:} Doctolib does not offer a voice assistant for non-connected users. All interactions must go through the web or mobile application.
+    \item \textbf{No WhatsApp integration:} WhatsApp is the most widely used messaging platform in Tunisia, but Doctolib does not integrate with it.
+    \item \textbf{No urgent booking flow:} Doctolib does not provide a mechanism for urgent or emergency bookings that contact multiple doctors simultaneously.
+    \item \textbf{Not adapted to the Tunisian market:} Doctolib is designed for European healthcare systems and does not support Tunisian-specific features such as local payment methods (Konnect.network) or Tunisian Arabic language support.
+    \item \textbf{Language limitations:} While Doctolib supports multiple languages, it does not support Tunisian Arabic, which is the preferred language for many patients.
+\end{itemize}
+
+In summary, while Doctolib is an excellent platform for European markets, it does not address the specific needs and constraints of the Tunisian healthcare context.
+
+\begin{table}[H]
+    \centering
+    \caption{Doctolib: Key Features and Limitations}
+    \label{tab:doctolib}
+    \small
+    \begin{tabular}{p{5cm}p{9cm}}
+        \toprule
+        \textbf{Aspect} & \textbf{Description} \\
+        \midrule
+        Main features & Doctor search, online booking, reminders, teleconsultation, practice management dashboard. \\
+        Target market & France, Germany, Italy, and other European countries. \\
+        Strengths & Large network, user-friendly interface, integration with healthcare systems. \\
+        Limitations & Requires patient account, no voice AI, no WhatsApp, no urgent booking, not adapted to Tunisia, no Tunisian Arabic. \\
+        \bottomrule
+    \end{tabular}
+    \\[0.2cm]
+    \small Source: Author's own work based on Doctolib public documentation \cite{doctolib2024}.
+\end{table}
+
+\subsection{Solution 2: TunisieDocteur / Mondocteur (Local Directories)}
+TunisieDocteur \cite{tunisiedoctor2024} and Mondocteur are two of the most well-known Tunisian platforms for finding doctors and booking appointments online. They serve as directories that list doctors by speciality, location, and other criteria, and allow patients to request appointments.
+
+\subsubsection{Features and Functionality}
+These platforms offer the following features:
+\begin{itemize}
+    \item \textbf{Doctor directory:} A searchable database of doctors with information about their speciality, location, and contact details.
+    \item \textbf{Appointment request:} Patients can send an appointment request to a doctor, who then confirms or declines it.
+    \item \textbf{Patient reviews:} Some platforms include reviews and ratings from other patients.
+    \item \textbf{Basic search filters:} Search by speciality, city, and doctor name.
+\end{itemize}
+
+\subsubsection{Strengths}
+The main strengths of these platforms are their local focus, their familiarity with the Tunisian market, and their ability to connect patients with local doctors. They are also relatively easy to use for patients who are comfortable with web interfaces.
+
+\subsubsection{Limitations and Why They Do Not Fully Address the Need}
+Despite their local presence, these platforms have significant limitations:
+\begin{itemize}
+    \item \textbf{Requirement for internet access and account creation:} Patients must have internet access and create an account, which excludes a portion of the population.
+    \item \textbf{No voice interaction:} There is no voice-based AI assistant. All interactions are text-based and require the patient to navigate a web interface.
+    \item \textbf{No urgent booking:} There is no mechanism for urgent or emergency bookings that contact multiple doctors simultaneously.
+    \item \textbf{No WhatsApp integration:} There is no integration with WhatsApp, which is the preferred messaging platform for many Tunisians.
+    \item \textbf{Limited real-time features:} The platforms do not offer real-time notifications to doctors or live call monitoring for administrators.
+    \item \textbf{No intelligent best-fit matching:} The search is based on simple filters and does not use geolocation or a scoring algorithm to find the best doctor for the patient.
+    \item \textbf{Limited multilingual support:} While some platforms support French and Arabic, they do not offer full multilingual voice interaction.
+\end{itemize}
+
+In summary, while these platforms are a step in the right direction for the Tunisian market, they do not provide the level of accessibility, real-time interaction, and intelligent matching that Riaya offers.
+
+\begin{table}[H]
+    \centering
+    \caption{TunisieDocteur / Mondocteur: Key Features and Limitations}
+    \label{tab:tunisiedoctor}
+    \small
+    \begin{tabular}{p{5cm}p{9cm}}
+        \toprule
+        \textbf{Aspect} & \textbf{Description} \\
+        \midrule
+        Main features & Doctor directory, appointment request, patient reviews, basic search filters. \\
+        Target market & Tunisia. \\
+        Strengths & Local focus, familiarity with the Tunisian market, connection with local doctors. \\
+        Limitations & Requires internet and account, no voice AI, no urgent booking, no WhatsApp, limited real-time features, no intelligent matching. \\
+        \bottomrule
+    \end{tabular}
+    \\[0.2cm]
+    \small Source: Author's own work based on public information about TunisieDocteur and Mondocteur \cite{tunisiedoctor2024}.
+\end{table}
+
+\subsection{Solution 3: Classic IVR Systems (Interactive Voice Response)}
+Some hospitals and clinics in Tunisia use classic Interactive Voice Response (IVR) systems to handle appointment requests. These systems are automated phone menus that allow callers to select options using their phone keypad \cite{ivr2019}.
+
+\subsubsection{Features and Functionality}
+Classic IVR systems typically offer the following features:
+\begin{itemize}
+    \item \textbf{Automated menu:} Callers are presented with a menu of options (e.g., ``Press 1 for appointments, Press 2 for information'').
+    \item \textbf{Keypad input:} Callers navigate the menu by pressing numbers on their phone keypad.
+    \item \textbf{Basic routing:} Calls can be routed to a specific department or to a human operator.
+    \item \textbf{Appointment scheduling:} Some systems allow callers to schedule appointments by entering a date and time using the keypad.
+\end{itemize}
+
+\subsubsection{Strengths}
+The main strengths of classic IVR systems are their simplicity, their low cost, and their ability to handle a large volume of calls without human intervention. They are also accessible to anyone with a phone, regardless of internet access or digital literacy.
+
+\subsubsection{Limitations and Why They Are Insufficient}
+Despite their accessibility, classic IVR systems have significant limitations:
+\begin{itemize}
+    \item \textbf{Rigid menu structure:} Callers must navigate a fixed menu of options, which can be frustrating and time-consuming.
+    \item \textbf{No natural language understanding:} The system cannot understand natural speech. It only responds to keypad input.
+    \item \textbf{No geolocation:} The system cannot determine the caller's location or find nearby doctors.
+    \item \textbf{No urgent booking:} There is no mechanism for urgent or emergency bookings.
+    \item \textbf{No WhatsApp integration:} There is no integration with WhatsApp for confirmations or follow-up messages.
+    \item \textbf{No intelligent matching:} The system cannot match patients with the best-fit doctor based on distance, availability, or speciality.
+    \item \textbf{No multilingual support:} Most IVR systems only support one language, typically French or Arabic, but not both, and certainly not English.
+    \item \textbf{Poor user experience:} Long menus and repetitive prompts can lead to caller frustration and abandoned calls.
+\end{itemize}
+
+In summary, while classic IVR systems are accessible to a wide audience, they lack the intelligence, flexibility, and real-time capabilities that modern patients and doctors expect.
+
+\begin{table}[H]
+    \centering
+    \caption{Classic IVR Systems: Key Features and Limitations}
+    \label{tab:ivr}
+    \small
+    \begin{tabular}{p{5cm}p{9cm}}
+        \toprule
+        \textbf{Aspect} & \textbf{Description} \\
+        \midrule
+        Main features & Automated menu, keypad input, basic routing, appointment scheduling. \\
+        Target market & Hospitals and clinics in Tunisia and elsewhere. \\
+        Strengths & Simple, low cost, accessible to anyone with a phone. \\
+        Limitations & Rigid menu, no natural language, no geolocation, no urgent booking, no WhatsApp, no intelligent matching, limited multilingual support, poor UX. \\
+        \bottomrule
+    \end{tabular}
+    \\[0.2cm]
+    \small Source: Author's own work based on public information about IVR systems \cite{ivr2019}.
+\end{table}
+
+\subsection{Comparative Table and Positioning of Riaya}
+To summarize the analysis of the three existing solutions and to clearly position Riaya, Table~\ref{tab:comparison_solutions} presents the key criteria for each solution.
+
+\begin{table}[H]
+    \centering
+    \caption{Comparison of Existing Solutions and Riaya}
+    \label{tab:comparison_solutions}
+    \small
+    \begin{tabular}{p{2.5cm}p{2.5cm}p{2.5cm}p{2.5cm}p{2.5cm}}
+        \toprule
+        \textbf{Criteria} & \textbf{Doctolib} & \textbf{TunisieDocteur} & \textbf{Classic IVR} & \textbf{Riaya} \\
+        \midrule
+        Patient Account Required & Yes & Yes & No & No \\
+        Voice AI Assistant & No & No & Limited & Yes \\
+        Multilingual Support & Limited & No & No & Yes (AR, FR, EN) \\
+        Urgent Booking & No & No & No & Yes \\
+        WhatsApp Integration & No & No & No & Yes \\
+        Geolocation Search & Yes & Yes & No & Yes (50 km radius) \\
+        Real-Time Notifications & No & No & No & Yes \\
+        Best-Fit Matching & No & No & No & Yes \\
+        Accessible Without Internet & No & No & Yes & Yes \\
+        Adapted to Tunisia & No & Partially & Partially & Yes \\
+        \bottomrule
+    \end{tabular}
+    \\[0.2cm]
+    \small Source: Author's own work.
+\end{table}
+
+As shown in Table~\ref{tab:comparison_solutions}, Riaya is the only solution that combines voice AI, multilingual support, urgent booking, WhatsApp integration, geolocation-based search, real-time notifications, and best-fit matching, while remaining accessible to patients without internet access. This unique combination of features makes Riaya a novel and highly relevant solution for the Tunisian healthcare market.
+
+\subsection{Conclusion of the Analysis}
+The analysis of existing solutions reveals a clear gap in the Tunisian market. International platforms such as Doctolib are not adapted to the local context, local directories such as TunisieDocteur and Mondocteur require internet access and account creation, and classic IVR systems lack intelligence and flexibility. Riaya fills this gap by offering a voice-first, AI-powered, multilingual, and WhatsApp-integrated solution that is accessible to all patients, regardless of their digital literacy or internet access. This positioning is a key factor in the success of the platform and in its ability to differentiate itself from existing solutions.
+
+\section{BPMN Modeling of the Complete Project}
+
+\subsection{Description of Business Flows (Standard, Urgent, Timeout)}
+The BPMN model \cite{omg2011bpmn} covers three main flows:
+\begin{itemize}
+    \item \textbf{Standard Flow:} The patient calls, the AI gathers information (name, reason, location, preferred time), a best-fit search is run, the patient selects a doctor, a pending appointment is created, and the doctor accepts or declines. If accepted, a WhatsApp confirmation is sent to the patient. If declined, the appointment is cancelled.
+    \item \textbf{Urgent Flow:} The AI detects urgency, confirms with the patient, creates up to 3 urgent pending appointments (emergency group), the first doctor to accept wins, and the others are cancelled automatically. If the patient later cancels one of the urgent requests, the whole group is cancelled.
+    \item \textbf{Timeout Flow:} If no doctor accepts within 10 minutes, the pending request is auto-cancelled. The platform calls the patient back or sends a WhatsApp message asking them to call again to book with another doctor.
+\end{itemize}
+
+These flows are represented in the BPMN diagram using pools for the patient, the AI system, the doctor, and the administrator, along with message flows and sequence flows that show the interactions between them.
+
+\subsection{Global BPMN Diagram}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/global_bpmn_ch122.png}
+    \caption{Global BPMN Diagram of the Riaya Project}
+    \label{fig:bpmn_global}
+\end{figure}
+
+Figure~\ref{fig:bpmn_global} presents the global BPMN diagram of the Riaya project, covering the standard, urgent, and timeout flows described above.
+
+\section{Conclusion}
+This chapter has presented the context of the Riaya project, the host company Pengguin, and the product itself. It has detailed the functional and non-functional requirements for all three actors, compared Riaya with existing solutions, and provided a global BPMN model. The next chapter will focus on the project management methodology, particularly Kanban, and the modeling diagrams used.
