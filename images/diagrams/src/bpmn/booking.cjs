@@ -5,10 +5,10 @@ module.exports = {
   id: 'booking', font: 18, efont: 17,
   pool: {name: 'Riaya phone booking', x: 0, y: 0, w: 1420},
   lanes: [
-    {id: L.P, name: 'Patient', h: 110, fill: '#F7FDFC'},
-    {id: L.A, name: 'AI system', h: 330, fill: '#FFFFFF'},
-    {id: L.D, name: 'Doctor', h: 160, fill: '#F6F6F6'},
-    {id: L.M, name: 'Administrator', h: 200, fill: '#F6F6F6'},
+    {id: L.P, name: 'Patient', h: 110, fill: '#FAFBFC'},
+    {id: L.A, name: 'AI system', h: 330, fill: '#FAFBFC'},
+    {id: L.D, name: 'Doctor', h: 160, fill: '#FAFBFC'},
+    {id: L.M, name: 'Administrator', h: 200, fill: '#FAFBFC'},
   ],
   nodes: [
     {id: 'start', type: 'startEvent', lane: L.P, cx: 180, cy: 55, name: 'Patient calls', lpos: 'r', lw: 130, lh: 24},

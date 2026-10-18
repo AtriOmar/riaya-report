@@ -1,46 +1,48 @@
 @startuml sequence_callback
 skinparam dpi 192
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam ParticipantBackgroundColor white
+skinparam ActorBackgroundColor white
+skinparam BoundaryBackgroundColor white
+skinparam ControlBackgroundColor white
+skinparam EntityBackgroundColor white
+skinparam QueueBackgroundColor white
+skinparam SequenceGroupHeaderBackgroundColor white
 hide footbox
-skinparam maxMessageSize 210
 
 actor "Doctor" as Dr
-participant "Web app" as W
-queue "Redis\n(BullMQ)" as Q
-participant "Voice server\n+ Gemini Live" as V
+boundary "Dashboard\n(Web app)" as UI
+control "Booking Controller\n(Web app)" as B
+entity "Appointment" as E
+queue "Job Queue\n(Redis)" as Q
+control "Callback Worker\n(Voice server)" as W
 participant "Twilio" as T
 actor "Patient" as P
 
-== Pending request ==
-note over W : AI booking saved\nas pending
-W -> Q : delayed job, 10 min
-
-alt doctor refuses (normal request)
-  Dr -> W : Refuse
-  W -> W : status = cancelled
-  W -> Q : save refusal context (24 h)
-  W -> Q : refused job, run now
-else no answer for 10 minutes
-  Q -> Q : delayed job is due
+alt doctor refuses
+  Dr -> UI : refuse(request)
+  UI -> B : refuse(request_id)
+  B -> E : setStatus(cancelled)
+  B -> Q : addJob(refused)
+else no answer within 10 minutes
+  Q -> Q : timeoutJobDue()
 end
-
-Q -> V : run job (refused or timeout)
-V -> W : process pending timeout
-W -> W : on timeout, cancel request\n(or the urgent group)
-W --> V : phone, message
-
-== Call the patient back ==
-V -> T : outbound call\n(mode = callback)
-T -> P : rings
-
+Q -> W : runJob(request_id)
+W -> B : processJob(request_id)
+B --> W : phone, message
+W -> T : call(phone, mode = callback)
+T -> P : ring()
 alt patient answers
-  T -> V : media WebSocket
-  V -> W : refusal context
-  W -> Q : read context
-  W --> V : up to 3 other doctors\nwith free slots
-  V -> P : AI speaks first:\nother doctors (refusal)\nor "call again" (timeout)
-  P -> V : picks one, AI books it
-else no-answer, busy, failed
-  T -> V : status callback
-  V -> P : WhatsApp from the\nplatform account
+  W -> B : getAlternatives(request_id)
+  B --> W : up to 3 other doctors
+  W -> P : offerDoctors()
+  P -> W : chooseDoctor()
+  W -> B : book(doctor, slot)
+  B -> E : create(status = pending)
+else no answer, busy or failed
+  T --> W : callStatus(no-answer)
+  W -> P : sendWhatsApp(message)
 end
 @enduml

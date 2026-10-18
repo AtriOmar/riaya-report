@@ -1,7 +1,11 @@
 classDiagram
 direction TB
 
-class doctor_profile
+class doctor_profile {
+  varchar first_name, last_name
+  varchar status
+  varchar cabinet_name
+}
 class person {
   varchar first_name, last_name
   timestamp date_of_birth
@@ -73,7 +77,3 @@ appointment "0..1" -- "0..*" invoice
 patient "1" -- "0..*" invoice
 invoice "1" *-- "1..*" invoice_item
 invoice "1" *-- "0..*" invoice_payment
-style doctor_profile fill:#FFFFFF,stroke:#94A3B8,stroke-dasharray:4 3
-style person fill:#FEF3C7,stroke:#D97706
-style person_phone fill:#FEF3C7,stroke:#D97706
-style patient fill:#FEF3C7,stroke:#D97706

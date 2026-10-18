@@ -1,51 +1,50 @@
 @startuml sequence_call_flow
 skinparam dpi 192
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam ParticipantBackgroundColor white
+skinparam ActorBackgroundColor white
+skinparam BoundaryBackgroundColor white
+skinparam ControlBackgroundColor white
+skinparam EntityBackgroundColor white
+skinparam QueueBackgroundColor white
+skinparam SequenceGroupHeaderBackgroundColor white
 hide footbox
-skinparam maxMessageSize 200
 
 actor "Patient" as P
 participant "Twilio" as T
-participant "Voice\nserver" as V
-participant "Gemini\nLive" as G
-participant "Web app" as W
-participant "Doctor and\nadmin UI" as D
+boundary "Call Webhook\n(Voice server)" as H
+control "Call Session\n(Voice server)" as S
+participant "Gemini Live" as G
+boundary "API\n(Web app)" as A
+entity "Appointment" as E
 
-== Answer ==
-P -> T : dials Riaya
-T -> V : /incoming-call
-V -> W : number blocked? (fails open)
-alt blocked
-  V --> T : <Reject busy/>, no AI starts
-else allowed
-  V -> W : call row + person (parallel)
-  V --> T : TwiML <Stream>,\nstart recording
+P -> T : dial()
+T -> H : incomingCall(from)
+H -> A : isBlocked(from)
+A --> H : blocked
+alt number is blocked
+  H --> T : reject(busy)
+else number is allowed
+  H -> A : createCall(from)
+  H --> T : openStream(), startRecording()
+  T -> S : mediaStream()
+  S -> G : openSession(instructions, tools)
+  loop each turn
+    T -> S : callerAudio
+    S -> G : callerAudio
+    G --> S : aiAudio
+    S --> T : aiAudio
+  end
+  G -> S : findAvailableSlots(speciality, place, time)
+  S -> A : findSlots()
+  A --> S : doctors, slots
+  G -> S : bookAppointment(doctor, slot)
+  S -> A : book()
+  A -> E : create(status = pending)
+  G -> S : endCall()
+  S -> T : hangUp()
+  T -> A : recordingReady(url)
 end
-
-== Conversation ==
-T -> V : media WebSocket
-V -> G : open Live session
-loop each turn
-  P -> T : speaks
-  T -> V : caller audio
-  V -> G : audio
-  V -> V : caller transcriber\n(flash-lite) to text
-  G --> V : AI voice
-  V --> P : AI audio (through Twilio)
-  V ->> D : live transcript
-end
-
-== Booking (tools) ==
-G -> V : find_available_slots
-V -> W : internal API
-W --> V : doctors, slots
-G -> V : book_appointment
-V -> W : pending appointment,\n10 min timeout job
-V ->> D : appointment_booked
-
-== End ==
-G -> V : end_call
-V -> T : hang up
-V -> W : close call, save events
-T -> W : recording webhook
-W -> W : check signature,\nMP3 to R2
 @enduml

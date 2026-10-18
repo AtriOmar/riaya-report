@@ -5,17 +5,17 @@ const PUP = process.env.PUPPETEER_DIR || '/private/tmp/claude-502/-Users-mac-Dev
 const BPMNJS = process.env.BPMNJS_DIR || '/private/tmp/claude-502/-Users-mac-Development-riaya-voice/ccf364d3-e672-4b9c-813d-a5b919b25020/scratchpad/tools/node_modules/bpmn-js';
 
 const COL = {
-  task: {fill: '#F0FDFA', stroke: '#0F766E'},
-  ai: {fill: '#F0FDFA', stroke: '#0F766E'},
-  admin: {fill: '#F0FDFA', stroke: '#0F766E'},
-  warn: {fill: '#F0FDFA', stroke: '#0F766E'},
-  bad: {fill: '#F0FDFA', stroke: '#0F766E'},
-  good: {fill: '#F0FDFA', stroke: '#0F766E'},
-  gw: {fill: '#FFFFFF', stroke: '#111111'},
-  start: {fill: '#F0FDFA', stroke: '#0F766E'},
-  end: {fill: '#FFFFFF', stroke: '#111111'},
-  inter: {fill: '#FFFFFF', stroke: '#111111'},
-  flow: {stroke: '#404040'},
+  task: {fill: '#E6F2F0', stroke: '#7FADA6'},
+  ai: {fill: '#E6F2F0', stroke: '#7FADA6'},
+  admin: {fill: '#FFE9CC', stroke: '#CDA06A'},
+  warn: {fill: '#FFE9CC', stroke: '#CDA06A'},
+  bad: {fill: '#FBE1DD', stroke: '#C98F88'},
+  good: {fill: '#E4F1DC', stroke: '#8FB07F'},
+  gw: {fill: '#FFFFFF', stroke: '#64748B'},
+  start: {fill: '#FFF5C9', stroke: '#C9B458'},
+  end: {fill: '#FFFFFF', stroke: '#64748B'},
+  inter: {fill: '#FFFFFF', stroke: '#64748B'},
+  flow: {stroke: '#64748B'},
 };
 const SIZE = {task: [180, 92], startEvent: [44, 44], endEvent: [44, 44], intermediateCatchEvent: [44, 44], intermediateThrowEvent: [44, 44], boundaryEvent: [40, 40], exclusiveGateway: [56, 56], eventBasedGateway: [56, 56], parallelGateway: [56, 56]};
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');

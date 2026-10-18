@@ -1,7 +1,12 @@
 classDiagram
 direction TB
 
-class appointment
+class appointment {
+  integer person_id
+  integer patient_id
+  timestamp start, end
+  varchar status
+}
 class callrow["call"] {
   varchar call_sid
   varchar from, to
@@ -29,9 +34,15 @@ class blocked_phone {
   integer rejected_call_count
 }
 class user {
-  <<Better Auth>>
+  varchar name
+  varchar email
+  integer access_id
 }
-class doctor_profile
+class doctor_profile {
+  varchar first_name, last_name
+  varchar status
+  varchar cabinet_name
+}
 class subscription {
   varchar plan_id
   varchar status
@@ -61,8 +72,3 @@ doctor_profile "1" -- "0..1" subscription
 doctor_profile "1" -- "0..*" billing_invoice
 subscription "0..1" -- "0..*" billing_invoice
 doctor_profile "1" -- "0..*" whatsapp_usage
-style appointment fill:#FFFFFF,stroke:#94A3B8,stroke-dasharray:4 3
-style doctor_profile fill:#FFFFFF,stroke:#94A3B8,stroke-dasharray:4 3
-style user fill:#EEF2FF,stroke:#6366F1
-style call_report fill:#FEF3C7,stroke:#D97706
-style blocked_phone fill:#FEF3C7,stroke:#D97706

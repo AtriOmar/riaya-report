@@ -25,7 +25,7 @@ function draw(K) {
   K.act({id: 'refuse', cx: D, cy: 1035, text: 'Refuses one: only\nthat request is\ncancelled', kind: 'admin'});
   K.act({id: 'cancel', cx: RL, cy: 1180, text: 'Cancel the whole\nemergency group', kind: 'bad'});
   K.dec({id: 'to', cx: RL, cy: 1300, text: 'Timeout?'});
-  K.act({id: 'cb', cx: RL, cy: 1410, text: 'Call the patient back', kind: 'warn'});
+  K.act({id: 'cb', cx: RL, cy: 1410, text: 'Call the patient back', kind: 'neutral'});
   K.act({id: 'acc', cx: RR, cy: 1200, text: 'Confirm that request\ncancel the siblings', kind: 'good'});
   K.act({id: 'wa', cx: RR, cy: 1320, text: 'WhatsApp confirmation\nto the patient', kind: 'sys'});
   K.end({id: 'e1', cx: RR, cy: 1430});
@@ -39,7 +39,7 @@ function draw(K) {
   K.guard(R + 230, 420, 'no,\nurgent only', '#111111');
   E({pts: [K.P('samu', 'b'), K.P('offer', 't')]});
   E({pts: [K.P('offer', 'b'), [R, 605], [P, 605], K.P('agree', 't')]});
-  E({pts: [K.P('agree', 'r'), K.P('fit', 'l')], kind: 'teal'});
+  E({pts: [K.P('agree', 'r'), K.P('fit', 'l')], kind: 'amber'});
   K.guard((K.P('agree', 'r')[0] + K.P('fit', 'l')[0]) / 2 - 20, 658, 'yes', '#111111');
   E({pts: [K.P('agree', 'b'), K.P('e0', 't')], kind: 'amber'});
   K.guard(P + 14, 750, 'no', '#111111', 'start');
@@ -53,7 +53,7 @@ function draw(K) {
   E({pts: [K.P('refuse', 't'), [D, 915], K.P('wait', 'r')]});
   K.guard(D - 6, 952, 'others stay open', '#111111');
   // patient cancel or timeout
-  E({pts: [K.P('ev', 'l'), [RL, 1035], K.P('cancel', 't')], kind: 'red'});
+  E({pts: [K.P('ev', 'l'), [RL, 1035], K.P('cancel', 't')], kind: 'amber'});
   K.guard(RL - 4, 1074, 'patient cancels one\nor 10 min pass', '#333333');
   E({pts: [K.P('cancel', 'b'), K.P('to', 't')]});
   E({pts: [K.P('to', 'b'), K.P('cb', 't')], kind: 'amber'});
@@ -62,7 +62,7 @@ function draw(K) {
   E({pts: [K.P('to', 'l'), [RL - 145, 1300], [RL - 145, 1480], K.P('e2', 'l')]});
   K.guard(RL - 145, 1390, 'no');
   // accept
-  E({pts: [K.P('ev', 'b'), [R, 1128], [RR, 1128], K.P('acc', 't')], kind: 'teal'});
+  E({pts: [K.P('ev', 'b'), [R, 1128], [RR, 1128], K.P('acc', 't')], kind: 'amber'});
   K.guard(RR + 12, 1128, 'a doctor accepts', '#111111', 'start');
   E({pts: [K.P('acc', 'b'), K.P('wa', 't')]});
   E({pts: [K.P('wa', 'b'), K.P('e1', 't')]});

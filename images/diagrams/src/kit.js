@@ -156,21 +156,16 @@ const K = {
 
 // ---------- activity diagram helpers ----------
 const ACT = {
-  doctor: {fill: '#F0FDFA', stroke: '#0F766E'},
-  patient: {fill: '#F0FDFA', stroke: '#0F766E'},
-  sys: {fill: '#FFFFFF', stroke: '#737373'},
-  admin: {fill: '#F0FDFA', stroke: '#0F766E'},
-  warn: {fill: '#F0FDFA', stroke: '#0F766E'},
-  bad: {fill: '#F0FDFA', stroke: '#0F766E'},
-  good: {fill: '#F0FDFA', stroke: '#0F766E'},
+  patient: {fill: '#FFF5C9', stroke: '#C9B458'},
+  doctor: {fill: '#FFF5C9', stroke: '#C9B458'},
+  sys: {fill: '#E6F2F0', stroke: '#7FADA6'},
+  admin: {fill: '#FFE9CC', stroke: '#CDA06A'},
+  warn: {fill: '#FFE9CC', stroke: '#CDA06A'},
+  bad: {fill: '#FBE1DD', stroke: '#C98F88'},
+  good: {fill: '#E4F1DC', stroke: '#8FB07F'},
+  neutral: {fill: '#EFEFEA', stroke: '#A3A39A'},
 };
-const LANES = {
-  doctor: {fill: '#F7FDFC', head: '#CCFBF1', text: '#111111'},
-  patient: {fill: '#F7FDFC', head: '#CCFBF1', text: '#111111'},
-  sys: {fill: '#F9F9F9', head: '#E3E3E3', text: '#111111'},
-  admin: {fill: '#F6F6F6', head: '#EAEAEA', text: '#111111'},
-  ext: {fill: '#FAFAFA', head: '#EDEDED', text: '#111111'},
-};
+const LANES = Object.fromEntries(['doctor','patient','sys','admin','ext'].map(k => [k, {fill: '#FAFBFC', head: '#EEF1F4', text: '#334155'}]));
 Object.assign(K, {
   AF: 19,
   lanes({x, y, h, head = 52, lanes}) {
@@ -183,7 +178,7 @@ Object.assign(K, {
       this.el(this.gZones, 'rect', {x: cx, y, width: ln.w, height: head, fill: st.head, stroke: '#E3E3E3', 'stroke-width': 1.2});
       if (ln.icon) {
         const tw = this.textW(ln.title, 21, 600);
-        this.el(this.gZones, 'image', {href: ln.icon, x: cx + ln.w / 2 - (tw + 34) / 2, y: y + head / 2 - 12, width: 24, height: 24});
+        this.el(this.gZones, 'image', {style: 'filter: grayscale(1) brightness(0.8)', href: ln.icon, x: cx + ln.w / 2 - (tw + 34) / 2, y: y + head / 2 - 12, width: 24, height: 24});
         this.el(this.gZones, 'text', {x: cx + ln.w / 2 - (tw + 34) / 2 + 34, y: y + head / 2 + 7, 'font-size': 21, 'font-weight': 600, fill: st.text}, ln.title);
       } else this.el(this.gZones, 'text', {x: cx + ln.w / 2, y: y + head / 2 + 7, 'text-anchor': 'middle', 'font-size': 21, 'font-weight': 600, fill: st.text}, ln.title);
       out[ln.key || ln.kind] = cx + ln.w / 2;
@@ -204,7 +199,7 @@ Object.assign(K, {
     const st = ACT[kind];
     const g = this.g(this.gNodes);
     this.el(g, 'rect', {x, y, width: w, height: h, rx: 14, fill: st.fill, stroke: st.stroke, 'stroke-width': 1.8, filter: 'url(#sh)'});
-    lines.forEach((l, i) => this.el(g, 'text', {x: cx, y: y + 13 + (i + 1) * lh - 6, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 500, fill: '#111111'}, l));
+    lines.forEach((l, i) => this.el(g, 'text', {x: cx, y: y + 13 + (i + 1) * lh - 6, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 400, fill: '#1F2937'}, l));
     this.boxes[id] = {x, y, w, h};
     return this.boxes[id];
   },
@@ -216,14 +211,14 @@ Object.assign(K, {
     h = h || Math.ceil(lines.length * (fs + 5) * 1.6 + 46);
     const x = cx - w / 2, y = cy - h / 2;
     const g = this.g(this.gNodes);
-    this.el(g, 'path', {d: `M${cx},${y} L${x + w},${cy} L${cx},${y + h} L${x},${cy} Z`, fill: '#F7F7F7', stroke: '#333333', 'stroke-width': 1.8, 'stroke-linejoin': 'round', filter: 'url(#sh)'});
+    this.el(g, 'path', {d: `M${cx},${y} L${x + w},${cy} L${cx},${y + h} L${x},${cy} Z`, fill: '#FFFFFF', stroke: '#64748B', 'stroke-width': 1.6, 'stroke-linejoin': 'round', filter: 'url(#sh)'});
     const lh = fs + 5;
-    lines.forEach((l, i) => this.el(g, 'text', {x: cx, y: cy - (lines.length * lh) / 2 + (i + 1) * lh - 5, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 600, fill: '#111111'}, l));
+    lines.forEach((l, i) => this.el(g, 'text', {x: cx, y: cy - (lines.length * lh) / 2 + (i + 1) * lh - 5, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 400, fill: '#1F2937'}, l));
     this.boxes[id] = {x, y, w, h};
     return this.boxes[id];
   },
   start({id, cx, cy}) {
-    this.el(this.gNodes, 'circle', {cx, cy, r: 14, fill: '#0F766E'});
+    this.el(this.gNodes, 'circle', {cx, cy, r: 14, fill: '#1F2937'});
     this.boxes[id] = {x: cx - 14, y: cy - 14, w: 28, h: 28};
   },
   end({id, cx, cy, kind = 'end'}) {
@@ -233,7 +228,7 @@ Object.assign(K, {
   },
   // small guard label (yes / no) near a point
   guard(x, y, text, color, anchor = 'middle') {
-    this.label(x, y, text, color || '#111111', anchor, 17, 600);
+    this.label(x, y, text, '#334155', anchor, 17, 400);
   },
   fork({id, cx, cy, w = 300, vertical = false}) {
     const r = vertical ? {x: cx - 4, y: cy - w / 2, width: 8, height: w} : {x: cx - w / 2, y: cy - 4, width: w, height: 8};

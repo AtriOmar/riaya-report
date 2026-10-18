@@ -2,7 +2,6 @@ classDiagram
 direction TB
 
 class user {
-  <<Better Auth>>
   varchar email
   integer access_id
 }
@@ -33,7 +32,11 @@ class secretary {
   integer doctor_id
   text user_id
 }
-class patient
+class patient {
+  integer person_id
+  integer doctor_id
+  varchar cin
+}
 class consultation_recording {
   varchar audio_url
   integer duration_seconds
@@ -69,5 +72,3 @@ consultation_recording "0..1" -- "0..1" recording_usage
 doctor_profile "1" -- "0..*" ai_chat_conversation
 ai_chat_conversation "0..*" -- "0..1" consultation_recording : discusses
 ai_chat_conversation "1" *-- "0..*" ai_chat_message
-style user fill:#EEF2FF,stroke:#6366F1
-style patient fill:#FFFFFF,stroke:#94A3B8,stroke-dasharray:4 3

@@ -3,13 +3,13 @@
   "themeVariables": {
     "fontFamily": "Helvetica Neue, Inter, Arial, sans-serif",
     "fontSize": "16px",
-    "primaryColor": "#F0FDFA",
-    "primaryBorderColor": "#0F766E",
+    "primaryColor": "#FEF9E7",
+    "primaryBorderColor": "#B8A55A",
     "primaryTextColor": "#1F2937",
     "lineColor": "#94A3B8",
     "textColor": "#1F2937",
-    "mainBkg": "#F0FDFA",
-    "nodeBorder": "#0F766E",
+    "mainBkg": "#FEF9E7",
+    "nodeBorder": "#B8A55A",
     "classText": "#1F2937",
     "background": "#FFFFFF"
   },

@@ -37,7 +37,7 @@ function draw(K) {
   E({pts: [K.P('call', 'r'), [R, 200], K.P('create', 't')]});
   E({pts: [K.P('create', 'r'), K.P('see', 'l')], label: 'live', at: [(K.P('create', 'r')[0] + K.P('see', 'l')[0]) / 2, 280]});
   E({pts: [K.P('create', 'b'), K.P('ans', 't')]});
-  E({pts: [K.P('ans', 'l'), [RL, 430], K.P('conf', 't')], kind: 'teal'});
+  E({pts: [K.P('ans', 'l'), [RL, 430], K.P('conf', 't')], kind: 'amber'});
   K.guard(RL, 470, 'accepts', '#111111');
   E({pts: [K.P('ans', 'b'), K.P('ref', 't')], kind: 'amber'});
   K.guard(R + 14, 500, 'refuses', '#111111', 'start');
@@ -51,15 +51,15 @@ function draw(K) {
   E({pts: [K.P('to', 'b'), [RR, 640], [R, 640]]});
   K.gEdges.lastChild.removeAttribute('marker-end');
   K.el(K.gEdges, 'circle', {cx: R, cy: 640, r: 4.5, fill: '#737373'});
-  E({pts: [K.P('blk', 'r'), K.P('e2', 'l')], kind: 'red'});
+  E({pts: [K.P('blk', 'r'), K.P('e2', 'l')], kind: 'amber'});
   K.guard((K.P('blk', 'r')[0] + K.P('e2', 'l')[0]) / 2, 692, 'yes: nothing sent', '#333333');
-  E({pts: [K.P('blk', 'b'), K.P('cb', 't')], kind: 'teal'});
+  E({pts: [K.P('blk', 'b'), K.P('cb', 't')], kind: 'amber'});
   K.guard(R + 14, 790, 'no', '#111111', 'start');
   E({pts: [K.P('cb', 'b'), K.P('pick', 't')]});
   E({pts: [K.P('pick', 'r'), K.P('wam', 'l')], kind: 'amber'});
   K.guard((K.P('pick', 'r')[0] + K.P('wam', 'l')[0]) / 2, 988, 'no', '#111111');
   E({pts: [K.P('wam', 'b'), K.P('e3', 't')]});
-  E({pts: [K.P('pick', 'b'), [R, 1130], K.P('talk', 'r')], kind: 'teal'});
+  E({pts: [K.P('pick', 'b'), [R, 1130], K.P('talk', 'r')], kind: 'amber'});
   K.guard(R + 14, 1080, 'yes', '#111111', 'start');
   E({pts: [K.P('talk', 'b'), K.P('e4', 't')]});
   K.text(D, 560, 'Urgent request:\nno callback,\nother doctors of\nthe group can\nstill accept.', {size: 16, color: '#404040', anchor: 'middle'});

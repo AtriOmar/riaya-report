@@ -43,7 +43,7 @@ function draw(K) {
   // no tries left -> new code
   E({pts: [K.P('left', 'r'), [ln.S + 218, 520], [ln.S + 218, 300], K.P('otp', 'r')], kind: 'amber'});
   K.guard(ln.S + 218, 420, 'no:\nnew code');
-  E({pts: [K.P('ok', 'b'), K.P('create', 't')], kind: 'teal'});
+  E({pts: [K.P('ok', 'b'), K.P('create', 't')], kind: 'amber'});
   K.guard(S + 26, 600, 'yes', '#111111', 'start');
   E({pts: [K.P('create', 'l'), [D, K.P('create', 'l')[1]], K.P('app', 't')]});
   E({pts: [K.P('app', 'b'), [D, 900], K.P('pend', 'l')]});
@@ -54,9 +54,9 @@ function draw(K) {
   E({pts: [K.P('rej', 'l'), K.P('fix', 'r')]});
   E({pts: [K.P('fix', 't'), [D, 1010], [S - 40, 1010], [S - 40, K.P('pend', 'b')[1]]]});
   K.guard(D + 120, 1010, 'back to pending', '#111111');
-  E({pts: [K.P('dec', 'b'), [A, 1290], K.P('ver', 'r')], kind: 'teal'});
+  E({pts: [K.P('dec', 'b'), [A, 1290], K.P('ver', 'r')], kind: 'amber'});
   K.guard(A + 14, 1230, 'approve', '#111111', 'start');
-  E({pts: [K.P('dec', 'r'), [A + 130, 1140], [A + 130, 1430], K.P('ban', 'r')], kind: 'red'});
+  E({pts: [K.P('dec', 'r'), [A + 130, 1140], [A + 130, 1430], K.P('ban', 'r')], kind: 'amber'});
   K.guard(A + 130, 1360, 'ban', '#333333');
   E({pts: [K.P('ver', 'l'), K.P('use', 'r')]});
   E({pts: [K.P('use', 'b'), K.P('e1', 't')]});

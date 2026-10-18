@@ -7,12 +7,12 @@ module.exports = {
   id: 'callback', font: 18, efont: 17,
   pool: {name: 'Riaya', x: 0, y: 100, w: W},
   blackPools: [
-    {id: 'Pool_Patient', name: 'Patient (phone and WhatsApp)', x: 0, y: 0, w: W, h: 70, fill: '#F0FDFA'},
-    {id: 'Pool_Doctor', name: 'Doctor (dashboard)', x: 0, y: 720, w: W, h: 70, fill: '#F3F3F3'},
+    {id: 'Pool_Patient', name: 'Patient (phone and WhatsApp)', x: 0, y: 0, w: W, h: 70, fill: '#EEF1F4'},
+    {id: 'Pool_Doctor', name: 'Doctor (dashboard)', x: 0, y: 720, w: W, h: 70, fill: '#EEF1F4'},
   ],
   lanes: [
-    {id: L.A, name: 'AI system', h: 200, fill: '#F7FDFC'},
-    {id: L.S, name: 'Server and jobs', h: 390, fill: '#FFFFFF'},
+    {id: L.A, name: 'AI system', h: 200, fill: '#FAFBFC'},
+    {id: L.S, name: 'Server and jobs', h: 390, fill: '#FAFBFC'},
   ],
   nodes: [
     {id: 'from', type: 'intermediateCatchEvent', def: 'link', link: 'B', lane: L.S, cx: 115, cy: r2, name: 'From booking (A)', lw: 110, lh: 44},
