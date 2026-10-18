@@ -35,7 +35,7 @@ The doctor side uses AI as well. A doctor can record a consultation in the brows
 \subsection{The Actors of the Platform}
 The platform is built around three main actors, plus the secretary who works on behalf of a doctor:
 \begin{itemize}
-    \item \textbf{Patient:} has no account and uses only the phone and WhatsApp. The calling number identifies the line. The patient can book standard or urgent appointments for themselves or for a family member on the same phone, list or cancel pending bookings, change language, receive callbacks and WhatsApp messages, and rate the doctor after a visit.
+    \item \textbf{Patient:} has no account and uses only the phone and WhatsApp. The calling number identifies the line. The patient can book standard or urgent appointments for themselves or for a family member on the same phone, list or cancel pending bookings, and rate the doctor after a visit. The AI assistant handles the rest of the call, such as the language, the callbacks and the WhatsApp messages.
     \item \textbf{Doctor:} signs up on the website, submits professional documents and waits for an administrator's approval. Once verified, the doctor sets weekly availability, accepts or refuses phone bookings, manages patients, medical files and invoices, records consultations, uses the AI assistant, links their own WhatsApp number and manages the subscription.
     \item \textbf{Secretary:} is invited by email by a doctor on the Pro plan. A secretary handles appointments, patients, invoices and availability for that doctor, without access to medical files, recordings, the AI assistant or billing.
     \item \textbf{Administrator:} runs the platform from a back-office. The administrator verifies doctors, watches live calls, reviews calls reported as abusive, blocks numbers, runs best-fit searches, manages specialities and users, links the platform WhatsApp account and reads platform statistics.
@@ -77,7 +77,7 @@ Doctors can upgrade at any time. Payments go through the Konnect.network API \ci
 
 \subsection{How the Limits Are Counted}\label{subsec:usage-limits}
 
-The Free and Pro plans limit three things that cost us money: WhatsApp sends, recording time and use of the AI assistant. Each one needed its own counting rule. Phone booking by the AI has no limit on any plan, because limiting it would punish patients for a doctor's plan. Figure~\ref{fig:plan_limits} shows how an action is checked.
+The Free and Pro plans limit three things that cost us money: WhatsApp sends, recording time and use of the AI assistant. Each one needed its own counting rule. Phone booking by the AI has no limit on any plan, because limiting it would punish patients for a doctor's plan. \xref{fig:plan_limits} shows how an action is checked.
 
 \begin{figure}[H]
     \centering
@@ -308,7 +308,7 @@ The caller has to go through a fixed menu, which is slow and often frustrating, 
     \\[0.2cm]
 \end{table}
 
-Among the solutions in Table~\ref{tab:comparison_solutions}, Riaya is the only one that lets a patient book by talking in Derja, without an account or internet access, and then follows up on WhatsApp.
+Among the solutions in \xref{tab:comparison_solutions}, Riaya is the only one that lets a patient book by talking in Derja, without an account or internet access, and then follows up on WhatsApp.
 
 \subsection{Conclusion of the Analysis}
 The comparison shows a gap in the Tunisian market. Doctolib is built for European health systems and requires an account. Local directories such as TunisieDocteur and Mondocteur know the market but still need a website, an account and internet access. Classic IVR systems reach everyone with a phone but cannot understand speech or find a doctor. Riaya sits between these: it keeps the phone call that everyone already uses, and adds a voice assistant that understands Derja, ranks doctors by distance and free slot, and follows up on WhatsApp.
@@ -316,7 +316,7 @@ The comparison shows a gap in the Tunisian market. Doctolib is built for Europea
 \section{BPMN Modeling of the Complete Project}
 
 \subsection{Description of Business Flows (Standard, Urgent, Refusal and Timeout)}
-We modeled the booking process in BPMN 2.0 \cite{omg2011bpmn}. The model has two parts, stacked in Figure~\ref{fig:bpmn_global}. Part A goes from the call to the pending request and uses four lanes: Patient, AI system, Doctor and Administrator. Part B covers what happens after the request. In part B, the patient and the doctor are drawn as closed pools that only exchange messages with Riaya, and the Riaya pool has two lanes, AI system and Server and jobs. A link event joins the end of part A to the start of part B.
+We modeled the booking process in BPMN 2.0 \cite{omg2011bpmn}. The model has two parts, stacked in \xref{fig:bpmn_global}. Part A goes from the call to the pending request and uses four lanes: Patient, AI system, Doctor and Administrator. Part B covers what happens after the request. In part B, the patient and the doctor are drawn as closed pools that only exchange messages with Riaya, and the Riaya pool has two lanes, AI system and Server and jobs. A link event joins the end of part A to the start of part B.
 
 \paragraph{Standard flow.} The process starts when the patient calls. A first gateway checks whether the number is blocked; if it is, the call ends at once, rejected as busy. Otherwise the AI greets the caller and asks for the reason, the place and the time. A gateway then checks for urgent signs. Without them, the AI runs the best-fit search, offers two or three doctors and creates one pending request. The doctor sees the request live on the calendar, and the flow continues in part B. There, an event-based gateway waits for whichever comes first of three events. When the message ``doctor accepts'' arrives, Riaya confirms the appointment, links it to the patient file and sends a WhatsApp confirmation. A timer then fires two hours after the visit and Riaya sends the review link, which ends the process.
 
@@ -334,7 +334,7 @@ We modeled the booking process in BPMN 2.0 \cite{omg2011bpmn}. The model has two
     \label{fig:bpmn_global}
 \end{figure}
 
-Figure~\ref{fig:bpmn_global} shows the whole process. Part A, at the top, contains the standard and urgent paths of the call and the abuse review by the administrator. Part B, at the bottom, contains the doctor's answer, the refusal and timeout callbacks with the WhatsApp fallback, and the review request.
+\xref{fig:bpmn_global} shows the whole process. Part A, at the top, contains the standard and urgent paths of the call and the abuse review by the administrator. Part B, at the bottom, contains the doctor's answer, the refusal and timeout callbacks with the WhatsApp fallback, and the review request.
 
 \section{Conclusion}
 This chapter presented the host company Pengguin and the Riaya product, its actors and its plans, with the way their limits are counted and two product decisions about free doctors and prices. It listed the functional requirements of patients, doctors, secretaries and administrators, and the non-functional requirements on speed, security, scalability, resilience, usability and constraints. The comparison with Doctolib, local directories and classic IVR systems showed what Riaya adds for Tunisian patients, and the BPMN model described the booking process from the call to the review. The next chapter covers the project management method, Kanban, and the modeling diagrams.

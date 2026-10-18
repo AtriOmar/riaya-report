@@ -191,7 +191,7 @@
 
 %% disabling chapter numbers
 \newcommand{\filterminitoc}[1]{#1}
-\renewcommand{\thesection}{\csname filterminitoc \endcsname{\arabic{chapter}.}\arabic{section}}
+\renewcommand{\thesection}{\arabic{chapter}.\arabic{section}}
 \newcommand{\minitocsection}{\begingroup\renewcommand{\filterminitoc}[1]{}\minitoc\endgroup}
 
 %=============== Customizing Chapters Names ===============%
@@ -203,7 +203,7 @@
 %(pstcol) \usepackage{pstricks}
 %(pstcol) ************************************
 %\usepackage{pstcol}
-\usepackage{pstricks}
+%\usepackage{pstricks} % unused, breaks LuaLaTeX
 \makeatletter
 \def\thickhrulefill{\leavevmode \leaders \hrule height 1.2ex \hfill \kern \z@}
 

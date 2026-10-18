@@ -41,7 +41,7 @@ The voice server has no database connection. Every read and write, from checking
 This split has a cost: each tool call during a phone conversation makes one extra HTTP request to the web application. In return, the business rules exist in a single place, only the web application holds the database credentials, and the voice server can be restarted or redeployed without touching the database or its migrations. A crash in the voice server stops calls but leaves the doctor dashboard working, and the reverse is also true.
 
 \subsection{Technical Architecture Schema (Microservices, Event-Driven)}
-Riaya is not a full microservices system \cite{newman2015microservices}. It has two services with clear interfaces, one database owned by the web application, and a Redis instance shared for jobs. Figure~\ref{fig:global_arch} shows the users, the edge, the two servers, the data stores and the external services.
+Riaya is not a full microservices system \cite{newman2015microservices}. It has two services with clear interfaces, one database owned by the web application, and a Redis instance shared for jobs. \xref{fig:global_arch} shows the users, the edge, the two servers, the data stores and the external services.
 
 \begin{figure}[H]
     \centering
@@ -68,7 +68,7 @@ Riaya is not a full microservices system \cite{newman2015microservices}. It has 
 \paragraph{WhatsApp.} Each doctor links a WhatsApp account by scanning a QR code that the voice server streams to the WhatsApp page over a WebSocket. After that, the web application asks the voice server to send each message, and the message leaves from the doctor's own number. The platform account, linked by the administrator, sends the system messages that do not come from a doctor.
 
 \section{Technology Stack and Component Description}\label{sec:stack}
-This section goes through the stack area by area. For each tool, it says what the tool does in Riaya and why we chose it. Table~\ref{tab:stack} gives the whole stack at a glance.
+This section goes through the stack area by area. For each tool, it says what the tool does in Riaya and why we chose it. \xref{tab:stack} gives the whole stack at a glance.
 
 \begin{table}[H]
     \centering
@@ -210,7 +210,7 @@ Geoapify \cite{geoapify2024} provides road distances through its Route Matrix \c
 \end{figure}
 
 \subsection{Infrastructure: Docker, GitHub Actions, Nginx, Ubuntu}
-Each repository has its own GitHub Actions workflow \cite{githubactions2026}. On every push to the \texttt{main} branch, a GitHub-hosted runner builds the Docker image \cite{docker2024}, pushes it to the GitHub Container Registry \cite{ghcr2026}, and deploys it over SSH to a self-hosted Ubuntu server \cite{ubuntu2026}. The environment files come from a GitHub secret. On the server, Docker Compose runs the web and voice containers next to PostgreSQL and Redis on a shared Docker network, and Nginx \cite{nginx2026} sits in front as the reverse proxy that handles TLS and routes requests and WebSockets. A web deployment runs the Drizzle migrations before starting the new container. The deployment diagram in Figure~\ref{fig:deployment} shows these steps. We followed the continuous delivery idea of making every change on \texttt{main} deployable by a script \cite{humble2010continuous}.
+Each repository has its own GitHub Actions workflow \cite{githubactions2026}. On every push to the \texttt{main} branch, a GitHub-hosted runner builds the Docker image \cite{docker2024}, pushes it to the GitHub Container Registry \cite{ghcr2026}, and deploys it over SSH to a self-hosted Ubuntu server \cite{ubuntu2026}. The environment files come from a GitHub secret. On the server, Docker Compose runs the web and voice containers next to PostgreSQL and Redis on a shared Docker network, and Nginx \cite{nginx2026} sits in front as the reverse proxy that handles TLS and routes requests and WebSockets. A web deployment runs the Drizzle migrations before starting the new container. The deployment diagram in \xref{fig:deployment} shows these steps. We followed the continuous delivery idea of making every change on \texttt{main} deployable by a script \cite{humble2010continuous}.
 
 \begin{figure}[H]
     \centering

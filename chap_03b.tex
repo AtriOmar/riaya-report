@@ -14,7 +14,7 @@ An account alone does not make someone a doctor on Riaya. After sign-up the doct
 
 Authorization is checked on the server for every request. Each API route starts with one of a few helpers: \texttt{requireSession} for any signed-in user, \texttt{requireDoctorProfile} for a verified doctor, \texttt{requirePractice} for routes that a doctor's secretary may also use, \texttt{requireAdmin} for the back office, and \texttt{requireInternal} for calls from the voice server. Hiding a menu item in the interface is never the only protection. Administrators are users whose access level is set in the database; nobody can become one through the sign-up page.
 
-Secretaries are a Pro feature. The doctor invites them by email from the Team page. The link \texttt{/join/<token>} expires after 7 days, can be resent or cancelled, and the database stores only a SHA-256 hash of the token, so a copy of the database does not contain working invitation links. The secretary must sign in with the invited email address. Their access covers the appointments, patients, invoices and availability of that one doctor, without medical files, recordings, the AI assistant or billing. If the doctor drops back to Free or loses verification, the secretary's access is paused, not deleted, and it comes back when Pro is renewed. This follows the principle of least privilege \cite{owasp2024}. Table~\ref{tab:auth_matrix} sums up the roles.
+Secretaries are a Pro feature. The doctor invites them by email from the Team page. The link \texttt{/join/<token>} expires after 7 days, can be resent or cancelled, and the database stores only a SHA-256 hash of the token, so a copy of the database does not contain working invitation links. The secretary must sign in with the invited email address. Their access covers the appointments, patients, invoices and availability of that one doctor, without medical files, recordings, the AI assistant or billing. If the doctor drops back to Free or loses verification, the secretary's access is paused, not deleted, and it comes back when Pro is renewed. This follows the principle of least privilege \cite{owasp2024}. \xref{tab:auth_matrix} sums up the roles.
 
 \begin{table}[H]
     \centering
@@ -81,7 +81,7 @@ Silence was the other problem. Some callers put the phone down without hanging u
 
 \subsection{Best-Fit Algorithm (Haversine, Google Places, Scoring)}\label{subsec:bestfit}
 
-While the patient waits on the line, the platform has to turn ``a dermatologist near Ariana tomorrow morning'' into two or three concrete offers. Figure~\ref{fig:bestfit_pipeline} shows the six steps of the search.
+While the patient waits on the line, the platform has to turn ``a dermatologist near Ariana tomorrow morning'' into two or three concrete offers. \xref{fig:bestfit_pipeline} shows the six steps of the search.
 
 \begin{figure}[H]
     \centering
@@ -111,14 +111,14 @@ The doctor's plan plays no part in this ranking (Section~\ref{subsec:free-doctor
 
 \subsection{Management of Urgencies and Timeouts}\label{subsec:urgencies}
 
-Some callers are in danger. When a caller describes signs of a life-threatening condition, such as chest pain, trouble breathing, signs of a stroke, heavy bleeding, fainting, a seizure or a serious injury, the AI first tells them to call the SAMU at 190. Riaya books visits and does not replace the emergency services, so the offer of urgent requests to nearby doctors only comes after that advice. For urgent cases that are not life-threatening, the AI asks whether the patient wants the closest available doctors right now. Figure~\ref{fig:activity_urgent} in Chapter~2 shows the whole flow.
+Some callers are in danger. When a caller describes signs of a life-threatening condition, such as chest pain, trouble breathing, signs of a stroke, heavy bleeding, fainting, a seizure or a serious injury, the AI first tells them to call the SAMU at 190. Riaya books visits and does not replace the emergency services, so the offer of urgent requests to nearby doctors only comes after that advice. For urgent cases that are not life-threatening, the AI asks whether the patient wants the closest available doctors right now. \xref{fig:activity_urgent} in Chapter~2 shows the whole flow.
 
 A patient in an urgent case should not wait 10 minutes for one doctor and then start again. An urgent booking therefore runs the best-fit search with ``now'' as the preferred time and sends up to 3 pending requests at once, all sharing one emergency group id. The first doctor to accept keeps the patient and the other requests of the group are cancelled automatically, so the patient never ends up with several appointments. A doctor who refuses cancels only their own request, since the others can still accept, and for the same reason a refused urgent request triggers no callback. When the patient cancels one urgent request by phone, the whole group is cancelled. If nobody accepts within 10 minutes, a delayed BullMQ job \cite{bullmq2024} cancels the group and Riaya calls the patient back, as for a normal request. Urgent requests are never limited by a doctor's plan. The delayed jobs and the events between the servers follow the message-based style described by Hohpe and Woolf \cite{hohpe2003eip}.
 
 \subsection{Rejection Handling and Callbacks}
 \label{subsec:rejection-handling}
 
-We had to decide what happens when a doctor refuses a request or does not answer. Our first idea was to ask the patient for a backup doctor during the call. The call already asks many questions, though, and we wanted to keep it short. So the patient picks one doctor, and if that doctor says no or stays silent, Riaya calls the patient back with new options. After a refusal, Riaya keeps what the patient asked for in Redis for 24 hours, and the AI speaks first in the callback and offers up to 3 other doctors with free slots. If the patient calls Riaya before that, the AI offers these doctors first. After a timeout, the callback only asks the patient to call again. A callback that does not reach the patient is replaced by the same message on WhatsApp from the platform account, and blocked numbers get neither. Figure~\ref{fig:activity_refusal} in Chapter~2 shows the three outcomes of a normal request, and Figure~\ref{fig:sequence_callback} shows how the queue, the web app, the voice server and Twilio work together for these callbacks.
+We had to decide what happens when a doctor refuses a request or does not answer. Our first idea was to ask the patient for a backup doctor during the call. The call already asks many questions, though, and we wanted to keep it short. So the patient picks one doctor, and if that doctor says no or stays silent, Riaya calls the patient back with new options. After a refusal, Riaya keeps what the patient asked for in Redis for 24 hours, and the AI speaks first in the callback and offers up to 3 other doctors with free slots. If the patient calls Riaya before that, the AI offers these doctors first. After a timeout, the callback only asks the patient to call again. A callback that does not reach the patient is replaced by the same message on WhatsApp from the platform account, and blocked numbers get neither. \xref{fig:activity_refusal} in Chapter~2 shows the three outcomes of a normal request, and \xref{fig:sequence_callback} shows how the queue, the web app, the voice server and Twilio work together for these callbacks.
 
 \section{Evaluations and Tests}\label{sec:evaluations}
 
@@ -138,7 +138,7 @@ Road distance is a different service. For the polish step of the best-fit search
 \subsection{Road Distance Experiment}
 \label{subsec:road-distance-experiment}
 
-Road distance costs a call to an outside service on every search, so we measured whether it changes the result. We ran the search for the 4 specialities with the most doctors, with the patient at the centre of each of the 24 cities, which gave 78 comparisons with no failed call. For each one we took the 8 nearest doctors by straight line and asked for their road distance. Table~\ref{tab:road-distance} shows the results. In one case in Tunis, the nearest doctor was 1.3~km away in a straight line but 5.8~km by road, while another doctor was 2.3~km away both ways; road distance correctly picks the second one. Overall, the best doctor changed in about one search out of three, but the trip saved was small, never more than about 4 minutes. Straight-line distance is therefore a good first filter, and road distance is a light polish whose main benefit is that the AI can quote a real road distance. The test has limits: it used distance only, without appointment times, it placed patients at city centres, it ran on our local data, which may include test doctors, and it only checked the 8 nearest doctors.
+Road distance costs a call to an outside service on every search, so we measured whether it changes the result. We ran the search for the 4 specialities with the most doctors, with the patient at the centre of each of the 24 cities, which gave 78 comparisons with no failed call. For each one we took the 8 nearest doctors by straight line and asked for their road distance. \xref{tab:road-distance} shows the results. In one case in Tunis, the nearest doctor was 1.3~km away in a straight line but 5.8~km by road, while another doctor was 2.3~km away both ways; road distance correctly picks the second one. Overall, the best doctor changed in about one search out of three, but the trip saved was small, never more than about 4 minutes. Straight-line distance is therefore a good first filter, and road distance is a light polish whose main benefit is that the AI can quote a real road distance. The test has limits: it used distance only, without appointment times, it placed patients at city centres, it ran on our local data, which may include test doctors, and it only checked the 8 nearest doctors.
 
 \begin{table}[H]
     \centering
@@ -180,7 +180,7 @@ For English and French, almost every model we tried worked. Tunisian Arabic (Der
 
 \subsubsection{Realtime Models}
 
-Table~\ref{tab:realtime-models} gives our verdicts on the realtime models. OpenAI Realtime was the first one we tested and the smartest of the early tests, but its voice did not have the right accent and it was very expensive. Among the Gemini models, the first versions spoke a good dialect but understood the caller poorly, and the extended-thinking version failed to use the tool results in 8 of 18 tries. \texttt{gemini-3.1-flash-live-preview} was the best of the family. It answered in 1.6 to 4.5 seconds, the longer times when it first had to call a tool.
+\xref{tab:realtime-models} gives our verdicts on the realtime models. OpenAI Realtime was the first one we tested and the smartest of the early tests, but its voice did not have the right accent and it was very expensive. Among the Gemini models, the first versions spoke a good dialect but understood the caller poorly, and the extended-thinking version failed to use the tool results in 8 of 18 tries. \texttt{gemini-3.1-flash-live-preview} was the best of the family. It answered in 1.6 to 4.5 seconds, the longer times when it first had to call a tool.
 
 \begin{table}[H]
     \centering
@@ -202,7 +202,7 @@ Table~\ref{tab:realtime-models} gives our verdicts on the realtime models. OpenA
 
 \subsubsection{Speech to Text}
 
-For the chain, the listening step had to handle Derja and keep French words in Latin script. Table~\ref{tab:stt-models} shows the main results. The models that wrote the best text could not stream, so they waited for the end of each sentence before starting. MAI Transcribe 2 gave two different pictures: in the first timed chain it was the best on our sentences, at about 0.5 seconds, but in the later 7-clip run it wrote French words in Arabic script, so we rated it bad for calls. It is still the model that transcribes the doctors' consultation recordings, where it also tells the speakers apart.
+For the chain, the listening step had to handle Derja and keep French words in Latin script. \xref{tab:stt-models} shows the main results. The models that wrote the best text could not stream, so they waited for the end of each sentence before starting. MAI Transcribe 2 gave two different pictures: in the first timed chain it was the best on our sentences, at about 0.5 seconds, but in the later 7-clip run it wrote French words in Arabic script, so we rated it bad for calls. It is still the model that transcribes the doctors' consultation recordings, where it also tells the speakers apart.
 
 \begin{table}[H]
     \centering
@@ -227,7 +227,7 @@ For the chain, the listening step had to handle Derja and keep French words in L
 
 \subsubsection{Language Model}
 
-The language model of the chain had to follow a long prompt, call the booking tools correctly, and start answering fast. Table~\ref{tab:llm-models} shows what we found. Two numbers come from the timed chain: GPT-5.4 mini started its answer in about 1.2 seconds, and Claude Sonnet, the smartest model we tried, took about 3.6 seconds, three times longer.
+The language model of the chain had to follow a long prompt, call the booking tools correctly, and start answering fast. \xref{tab:llm-models} shows what we found. Two numbers come from the timed chain: GPT-5.4 mini started its answer in about 1.2 seconds, and Claude Sonnet, the smartest model we tried, took about 3.6 seconds, three times longer.
 
 \begin{table}[H]
     \centering
@@ -251,7 +251,7 @@ The language model of the chain had to follow a long prompt, call the booking to
 
 \subsubsection{Text to Speech}
 
-For the voice, the problem was the opposite of listening: the voices that spoke real Tunisian Arabic were the slowest, and the fast ones had no Tunisian accent. Table~\ref{tab:tts-models} shows the main results.
+For the voice, the problem was the opposite of listening: the voices that spoke real Tunisian Arabic were the slowest, and the fast ones had no Tunisian accent. \xref{tab:tts-models} shows the main results.
 
 \begin{table}[H]
     \centering
@@ -275,7 +275,7 @@ For the voice, the problem was the opposite of listening: the voices that spoke 
 
 \subsubsection{Lessons Learned}
 
-The best models were often the slowest: the best listening model and the best voice were both slow. In a chain, the delays add up, because the caller waits for every step in turn. Table~\ref{tab:voice-model-comparison} shows the step timings of the chains we measured. The fastest chain we built waited about 6.8 seconds before answering, and with Gemini for both listening and the voice it took more than 10 seconds, far too long for a phone conversation.
+The best models were often the slowest: the best listening model and the best voice were both slow. In a chain, the delays add up, because the caller waits for every step in turn. \xref{tab:voice-model-comparison} shows the step timings of the chains we measured. The fastest chain we built waited about 6.8 seconds before answering, and with Gemini for both listening and the voice it took more than 10 seconds, far too long for a phone conversation.
 
 \begin{table}[H]
     \centering

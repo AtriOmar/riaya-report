@@ -120,3 +120,5 @@
 \usepackage{url}
 % hyperref goes last; its options are passed in main.tex
 \usepackage{hyperref}
+% "Figure 2.1" / "Table 1.1" as one clickable, colored link (the label type gives the word)
+\newcommand{\xref}[1]{{\hypersetup{linkcolor=isiBlue}\autoref{#1}}}

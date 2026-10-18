@@ -1,4 +1,4 @@
-% !TEX program = xelatex
+% (build recipe: latexmk -lualatex, set in the editor settings; no !TEX program line, it would skip biber)
 %========= File containing the main LaTex document ========%
 %                                                          %
 % Copyright (C) ISI - All Rights Reserved                  %
@@ -90,7 +90,6 @@
         %\clearpage
         
         \input{conclusion}
-        \clearpage
         
         % @author: Stoufa
 		% the command `\nocite{*}` is mandatory to avoid the “no \citation commands” error
@@ -98,11 +97,6 @@
         %\nocite{*}
         
         % \input{webo}
-        \clearpage
-        
-        \printbibliography[title={Bibliography},heading=bibintoc]
-        
-       
         
         %\input{annexes}
         %\clearpage

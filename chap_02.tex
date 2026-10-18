@@ -1,7 +1,7 @@
 \chapter{Project Management Methodology and Modeling}
 
 \section{Introduction}
-This chapter covers how the Riaya project was organized and how the platform was modeled. The first part presents the Kanban method: where it comes from, its principles and metrics, and how it compares with Scrum and Waterfall \cite{schwaber2020scrum, pmi2021pmbok}. It then describes the Notion board used during the internship and explains why Kanban suited this project better than Scrum. The second part models the platform: two use case diagrams for the five actors, three class diagrams of the database, two sequence diagrams for an inbound call and a callback, three activity diagrams, the deployment diagram, and the two halves of the BPMN booking process.
+This chapter covers how the Riaya project was organized and how the platform was modeled. The first part presents the Kanban method: where it comes from, its principles and metrics, and how it compares with Scrum and Waterfall \cite{schwaber2020scrum, pmi2021pmbok}. It then describes the Notion board used during the internship and explains why Kanban suited this project better than Scrum. The second part models the platform: two use case diagrams for the four actors, three class diagrams of the database, two sequence diagrams for an inbound call and a callback, three activity diagrams, the deployment diagram, and the two halves of the BPMN booking process.
 
 \section{The Kanban Method}
 
@@ -29,7 +29,7 @@ Kanban also asks teams to make their rules explicit (for example, what must be t
     \item \textbf{WIP:} the number of cards being worked on at a given moment.
 \end{itemize}
 
-Every card on the Riaya board stores the date it was created, started and finished, so these metrics come straight from the board. Table~\ref{tab:kanban_metrics} gives them for the 143 cards finished between 27 April and 18 October.
+Every card on the Riaya board stores the date it was created, started and finished, so these metrics come straight from the board. \xref{tab:kanban_metrics} gives them for the 143 cards finished between 27 April and 18 October.
 
 \begin{table}[H]
     \centering
@@ -60,7 +60,7 @@ The board was a Notion database \cite{notion2026} shared by the three people inv
     \item \textbf{Ismail}, the academic supervisor. He followed the progress on the board and added cards of his own, mostly documentation needed for the report and improvements to the interface.
 \end{itemize}
 
-Of the 154 cards created during the internship, John created 123, Ismail 22 and Omar 9. Omar's own cards were technical chores, such as moving the repositories to pnpm or cleaning the migration history, and bugs he found himself. Omar is the assignee of every card but one. John is added on the two cards that needed his accounts, the production server and the go-live, and he alone holds card 041, opening the Konnect merchant account. Table~\ref{tab:board_fields} lists the fields of a card.
+Of the 154 cards created during the internship, John created 123, Ismail 22 and Omar 9. Omar's own cards were technical chores, such as moving the repositories to pnpm or cleaning the migration history, and bugs he found himself. Omar is the assignee of every card but one. John is added on the two cards that needed his accounts, the production server and the go-live, and he alone holds card 041, opening the Konnect merchant account. \xref{tab:board_fields} lists the fields of a card.
 
 \begin{table}[H]
     \centering
@@ -72,7 +72,7 @@ Of the 154 cards created during the internship, John created 123, Ismail 22 and 
         \textbf{Field} & \textbf{Content} \\
         \midrule
         Ticket & Number and title, for example ``034 - Let each doctor link their own WhatsApp number''. Cards are numbered in the order they were created. \\
-        Status & The column of the board (Table~\ref{tab:board_statuses}). \\
+        Status & The column of the board (\xref{tab:board_statuses}). \\
         Requested by & Who created the card: John, Ismail or Omar. \\
         Assignee & Who does the work. \\
         Type & Feature, Enhancement, Bug, Spike (a study that ends with a written conclusion), Chore (maintenance) or Docs. \\
@@ -88,7 +88,7 @@ Of the 154 cards created during the internship, John created 123, Ismail 22 and 
 
 The page of each card holds a short description of the request. When a card changes an earlier decision, its description gives the number of the card it replaces.
 
-Table~\ref{tab:board_statuses} describes the seven statuses. Two rules govern how cards move: a card leaves ``To Do'' only when ``In Progress'' has room, and a card is ``Done'' only once it has been merged and deployed.
+\xref{tab:board_statuses} describes the seven statuses. Two rules govern how cards move: a card leaves ``To Do'' only when ``In Progress'' has room, and a card is ``Done'' only once it has been merged and deployed.
 
 \begin{table}[H]
     \centering
@@ -111,7 +111,7 @@ Table~\ref{tab:board_statuses} describes the seven statuses. Two rules govern ho
     \\[0.2cm]
 \end{table}
 
-The same cards appear in three views. The default view (Figure~\ref{fig:riaya_board_table}) is a table of every card, newest first. The ``To Do'' view uses the same table but hides the cards that are Done or in the Bin, so it shows only the work still ahead. The ``Kanban'' view (Figure~\ref{fig:riaya_board_kanban}) groups the cards by status, one column per status.
+The same cards appear in three views. The default view (\xref{fig:riaya_board_table}) is a table of every card, newest first. The ``To Do'' view uses the same table but hides the cards that are Done or in the Bin, so it shows only the work still ahead. The ``Kanban'' view (\xref{fig:riaya_board_kanban}) groups the cards by status, one column per status.
 
 \begin{figure}[H]
     \centering
@@ -127,7 +127,7 @@ The same cards appear in three views. The default view (Figure~\ref{fig:riaya_bo
     \label{fig:riaya_board_kanban}
 \end{figure}
 
-Figure~\ref{fig:riaya_board_kanban} shows the board two weeks after the launch. Cards 138 and 139 wait for review, cards 116 and 149 are being tested, and the Backlog holds three ideas for later.
+\xref{fig:riaya_board_kanban} shows the board two weeks after the launch. Cards 138 and 139 wait for review, cards 116 and 149 are being tested, and the Backlog holds three ideas for later.
 
 Because the client's needs changed during the project, some cards replace earlier ones. Card 017 made the AI ask which phone number the doctor should use. Card 021 removed that question and took the number from the caller ID instead, so card 017 went to the Bin. The plan limits went through three versions: card 028 defined the first Free and Pro plans, card 089 added limits on recordings and AI messages, and card 121 reworked them after a discussion with the client.
 
@@ -194,18 +194,18 @@ Finally, the board doubled as a report for the people outside development. John 
 Each diagram in this section shows one view of Riaya \cite{omg2017uml, fowler2003uml}: who uses the platform, how the data is organized, how a call runs in time, how the main processes branch, and how the code reaches the server. The use case and sequence diagrams are written in PlantUML \cite{plantuml2026}, the class diagrams in Mermaid \cite{mermaid2026}, and the BPMN diagrams with bpmn-js \cite{bpmnjs2026}. The activity and deployment diagrams were drawn with a small layout script written for this report. Every diagram is kept as a text source next to its image, so it can be corrected and drawn again when the code changes.
 
 \subsection{Use Case Diagrams: Actors and Their Interactions}
-Riaya has five actors. The patient, the doctor, the secretary and the administrator are people. The fifth actor, the Phone AI, is the voice assistant itself: it takes part in one use case on its own, the report of an abusive caller. Because the platform has two very different sides, the use cases are split over two diagrams. Figure~\ref{fig:use_case} covers the patient and the administrator, and Figure~\ref{fig:use_case_doctor} covers the doctor and the secretary.
+Riaya has four actors, all of them people: the patient, the doctor, the secretary and the administrator. Because the platform has two very different sides, the use cases are split over two diagrams. \xref{fig:use_case} covers the patient and the administrator, and \xref{fig:use_case_doctor} covers the doctor and the secretary.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth,height=0.62\textheight,keepaspectratio]{images/diagrams/use_case_patient_admin.png}
-    \caption{Use Cases of the Patient, the Phone AI and the Administrator}
+    \caption{Use Cases of the Patient and the Administrator}
     \label{fig:use_case}
 \end{figure}
 
-The patient has no account and no password. The phone number of the line identifies the caller, so every patient use case happens on the phone or on WhatsApp, inside the box ``Phone assistant and WhatsApp''. The main one is ``Book by phone'', where the AI finds the best-fit doctor. ``Book for a family member on the line'' extends it: the same call can book for a child, a parent or a spouse who shares the phone. The patient can also ask for a doctor by name, ask for an urgent doctor, list or cancel pending bookings and change the language of the assistant. Three use cases start on Riaya's side and reach the patient later: answering a callback after a refusal or a timeout, receiving WhatsApp messages, and rating the doctor from a link.
+The patient has no account and no password. The phone number of the line identifies the caller, and the patient only talks to the AI on the phone: the AI picks the language, finds the doctor, books and calls back. The patient has three goals, inside the box ``Phone assistant and WhatsApp''. The main one is ``Book an appointment'': the AI finds the best-fit doctor, or the doctor the patient asks for by name, and the same call can book for a family member or ask for an urgent doctor. The patient can also ``List or cancel pending appointments'' and, after a visit, ``Rate a doctor'' from a link received on WhatsApp. If a doctor refuses or does not answer, the AI calls the patient back with other doctors, and this stays part of the booking.
 
-The Phone AI is linked to ``Report an abusive caller''. The dashed arrow labelled ``feeds'' shows that each report lands in the administrator's ``Review reported calls'' queue. The AI never blocks a number itself. Only the administrator can ``Block or unblock a number''. The other administrator use cases are verifying doctor applications, watching live calls and playing their recordings, running the Best Fit Finder, managing users and specialities, linking the platform WhatsApp account used for system messages, and viewing platform statistics.
+The administrator runs the back-office through five use cases. ``Manage doctor applications'' covers reading the documents of each applicant and verifying or rejecting the application. ``Monitor live AI calls and bookings'' covers watching the calls in progress with their live transcript, and playing back the recordings. ``Manage reports and blocked numbers'' covers the calls that the AI reported as abusive and the numbers that are blocked: the AI only files the report during the call and never blocks a number itself, so only the administrator can block or unblock one. The last two use cases are ``Manage users'' and ``Manage specialities''. Every administrator use case includes ``Authentication'': the administrator signs in before using the back-office, whereas the patient never signs in.
 
 \begin{figure}[H]
     \centering
@@ -214,14 +214,14 @@ The Phone AI is linked to ``Report an abusive caller''. The dashed arrow labelle
     \label{fig:use_case_doctor}
 \end{figure}
 
-In Figure~\ref{fig:use_case_doctor}, the left box holds the practice tasks that a secretary and the doctor can both do: accept or refuse phone bookings, manage the calendar, manage patients, create invoices and record payments, send an invoice on WhatsApp, set the weekly availability, and view the dashboard. To keep the drawing readable, only the secretary is connected to that box. The secretary exists only in a Pro practice, and sees patients without their medical files.
+In \xref{fig:use_case_doctor}, the doctor is a specialization of the secretary, drawn with an open arrow: a doctor can do everything a secretary can. To keep the drawing readable, the practice tasks are therefore connected to the secretary only. They are: accept or refuse phone bookings, manage the calendar, manage patients, create invoices and record payments, send an invoice on WhatsApp, set the weekly availability, and view the dashboard. The secretary exists only in a Pro practice, and sees patients without their medical files.
 
-The right box is reserved to the doctor. It starts with signing up with an email code and applying for verification. It then covers the medical side of the practice: managing medical files and sending them on WhatsApp, recording a consultation with its transcript, and the AI consultation note, an extension of the recording use case available on Pro. The doctor can ask the AI assistant and confirm the actions it proposes, and link their own WhatsApp number with a QR code. The last three use cases concern the plan: subscribing to Pro and buying recording hours, inviting secretaries in the Team page, and setting the invoice logo and stamp, which is also a Pro feature.
+The other use cases are reserved to the doctor. They start with signing up with an email code and applying for verification. They then cover the medical side of the practice: managing medical files and sending them on WhatsApp, recording a consultation with its transcript, and the AI consultation note, an extension of the recording use case available on Pro. The doctor can ask the AI assistant and confirm the actions it proposes, and link their own WhatsApp number with a QR code. The last three use cases concern the plan: subscribing to Pro and buying recording hours, inviting secretaries in the Team page, and setting the invoice logo and stamp, which is also a Pro feature. Every use case of the diagram includes ``Authentication'' except signing up, which happens before the account exists.
 
 \subsection{Class Diagrams: Modeling the PostgreSQL Database}\label{subsec:erd-ref}
 The database runs on PostgreSQL \cite{postgresql2024} and its schema is written in TypeScript with Drizzle ORM \cite{drizzle2024}. It has more than thirty tables, too many for one readable figure, so the class diagram is split into three parts: people and care, the practice, and calls with billing. Each part draws the tables of another part as dashed boxes that show only their identifier. The attributes shown are the ones that matter for the design; timestamps and secondary columns are left out.
 
-\paragraph{People and care.} Figure~\ref{fig:erd} holds the most important decision of the model: a phone number does not identify a person. One phone can serve a whole family, and one person can use several phones. Riaya therefore keeps three separate tables (the orange classes in the figure). A \texttt{person} is one real human, with names, date of birth, preferred language and the source of the record (a call or a doctor). It has no phone column. A \texttt{person\_phone} row links a person to a phone number in E.164 format, and its \texttt{relationship} column says how that person relates to the owner of the phone: \texttt{self}, \texttt{child}, \texttt{parent}, \texttt{spouse}, \texttt{sibling} or \texttt{other}. A unique index allows only one \texttt{self} per phone. A \texttt{patient} is the link between one doctor and one person, with the details that belong to that doctor's file, such as the CIN and the number the doctor uses. Medical files, consultations and invoices point to the patient, so each doctor keeps a separate file for the same person.
+\paragraph{People and care.} \xref{fig:erd} holds the most important decision of the model: a phone number does not identify a person. One phone can serve a whole family, and one person can use several phones. Riaya therefore keeps three separate tables (the orange classes in the figure). A \texttt{person} is one real human, with names, date of birth, preferred language and the source of the record (a call or a doctor). It has no phone column. A \texttt{person\_phone} row links a person to a phone number in E.164 format, and its \texttt{relationship} column says how that person relates to the owner of the phone: \texttt{self}, \texttt{child}, \texttt{parent}, \texttt{spouse}, \texttt{sibling} or \texttt{other}. A unique index allows only one \texttt{self} per phone. A \texttt{patient} is the link between one doctor and one person, with the details that belong to that doctor's file, such as the CIN and the number the doctor uses. Medical files, consultations and invoices point to the patient, so each doctor keeps a separate file for the same person.
 
 \begin{figure}[H]
     \centering
@@ -234,7 +234,7 @@ The \texttt{appointment} class carries two references that look alike and mean d
 
 Patient billing follows the same idea of keeping facts and deriving the rest. An invoice is composed of its items and its payments. Each payment is a separate row with an amount, a method (cash or transfer) and a date. The invoice status (\texttt{unpaid}, \texttt{partially\_paid} or \texttt{paid}) and the paid amount are recomputed from the payment rows every time a payment is added or deleted, so they cannot drift from the payments. Only \texttt{cancelled} is set by hand. Amounts are stored in millimes (1~TND = 1000 millimes); the columns keep the suffix \texttt{Centimes} for historical reasons. A \texttt{review} belongs to one appointment and holds the single-use token of the rating link, the rating and the waiting time.
 
-\paragraph{Accounts and practice.} Figure~\ref{fig:erd_practice} groups the accounts and what a doctor runs. The \texttt{user} table comes from Better Auth \cite{betterauth2024}, and its \texttt{accessId} gives the role level (an administrator has 3 or more). A doctor's \texttt{doctor\_application} is kept apart from the \texttt{doctor\_profile}. A user can submit several applications, each with its status and the reasons of a rejection, while the profile is created only once an administrator approves one. The profile stores the cabinet coordinates used by the best-fit search, the weekly availability as JSON, and the logo and stamp of Pro invoices. It points to one \texttt{speciality} (with English, French and Arabic names) and one city of the list of 24.
+\paragraph{Accounts and practice.} \xref{fig:erd_practice} groups the accounts and what a doctor runs. The \texttt{user} table comes from Better Auth \cite{betterauth2024}, and its \texttt{accessId} gives the role level (an administrator has 3 or more). A doctor's \texttt{doctor\_application} is kept apart from the \texttt{doctor\_profile}. A user can submit several applications, each with its status and the reasons of a rejection, while the profile is created only once an administrator approves one. The profile stores the cabinet coordinates used by the best-fit search, the weekly availability as JSON, and the logo and stamp of Pro invoices. It points to one \texttt{speciality} (with English, French and Arabic names) and one city of the list of 24.
 
 \begin{figure}[H]
     \centering
@@ -247,7 +247,7 @@ A \texttt{secretary} row links a user to a doctor. A user can be the secretary o
 
 Usage is kept as event rows instead of a single counter that is overwritten. Each transcription writes a \texttt{recording\_usage} row with the seconds it used, and each AI reply records its own cost. The month's consumption is the sum of these rows, so the history stays available. The relation between a recording and its usage row is optional on both sides because the usage row stays when the recording is deleted: deleting a recording never gives time back.
 
-\paragraph{Calls, abuse and Riaya billing.} Figure~\ref{fig:erd_calls} covers the phone side and what doctors pay Riaya. A \texttt{call} is identified by its Twilio call SID and stores the numbers, the direction (inbound, or outbound for a callback), the duration and the recording link. It is composed of \texttt{call\_event} rows: transcript sentences, tool calls with their arguments and results, system notes and errors. A call can point to the appointment booked during it.
+\paragraph{Calls, abuse and Riaya billing.} \xref{fig:erd_calls} covers the phone side and what doctors pay Riaya. A \texttt{call} is identified by its Twilio call SID and stores the numbers, the direction (inbound, or outbound for a callback), the duration and the recording link. It is composed of \texttt{call\_event} rows: transcript sentences, tool calls with their arguments and results, system notes and errors. A call can point to the appointment booked during it.
 
 \begin{figure}[H]
     \centering
@@ -261,7 +261,7 @@ The abuse classes are drawn in orange. A call has at most one \texttt{call\_repo
 On the billing side, each doctor has at most one \texttt{subscription}. The effective plan is computed from it: Pro only if the plan is \texttt{pro}, the status is active and the period end is still ahead. A \texttt{billing\_invoice} is either a monthly subscription invoice or a \texttt{top\_up} for an hour pack, in which case \texttt{creditSeconds} holds the hours it grants once paid. It keeps the Konnect payment reference used by the webhook. WhatsApp sends are counted differently from recordings: \texttt{whatsapp\_usage} has one row per doctor and month, and the limit check adds to \texttt{sendCount} in a single SQL statement so two sends at the same moment cannot pass the limit together.
 
 \subsection{Sequence Diagrams: Inbound Call and Callback}
-The two sequence diagrams follow a call in time between the patient, Twilio, the voice server, Gemini Live \cite{gemini2026live}, the web application and the dashboards. Figure~\ref{fig:sequence_call} shows an inbound call from the moment the patient dials to the moment the recording is stored.
+The two sequence diagrams follow a call in time between the patient, Twilio, the voice server, Gemini Live \cite{gemini2026live}, the web application and the dashboards. \xref{fig:sequence_call} shows an inbound call from the moment the patient dials to the moment the recording is stored.
 
 \begin{figure}[H]
     \centering
@@ -299,7 +299,7 @@ The diagram is divided into four phases: Answer, Conversation, Booking and End. 
 \subsection{Activity Diagrams: Sign-up, Urgent Booking and Answers to a Request}
 The three activity diagrams use swimlanes to show who does each step. Decisions are drawn as diamonds and end states as circled dots.
 
-Figure~\ref{fig:activity_signup} shows how a doctor joins the platform. The doctor fills in the sign-up form with an email and a password. Riaya keeps the sign-up pending and emails a 6-digit code, valid for 10 minutes, with 5 tries and a new code available after 60 seconds. If the code is wrong and a retry is allowed, the doctor types it again; otherwise Riaya sends a new code. The user account is created and signed in only after a correct code. The doctor then fills in the application (CIN photos, speciality, Medical Council number, TIN and the cabinet placed on a map), and Riaya saves it with the status \texttt{pending}. The administrator reviews it and decides. ``Approve'' creates the profile, sets the status to \texttt{verified} and unlocks the dashboard. ``Reject'' shows the reasons to the doctor, who fixes the information and reapplies, which puts the application back to \texttt{pending}. ``Ban'' ends the process.
+\xref{fig:activity_signup} shows how a doctor joins the platform. The doctor fills in the sign-up form with an email and a password. Riaya keeps the sign-up pending and emails a 6-digit code, valid for 10 minutes, with 5 tries and a new code available after 60 seconds. If the code is wrong and a retry is allowed, the doctor types it again; otherwise Riaya sends a new code. The user account is created and signed in only after a correct code. The doctor then fills in the application (CIN photos, speciality, Medical Council number, TIN and the cabinet placed on a map), and Riaya saves it with the status \texttt{pending}. The administrator reviews it and decides. ``Approve'' creates the profile, sets the status to \texttt{verified} and unlocks the dashboard. ``Reject'' shows the reasons to the doctor, who fixes the information and reapplies, which puts the application back to \texttt{pending}. ``Ban'' ends the process.
 
 \begin{figure}[H]
     \centering
@@ -308,7 +308,7 @@ Figure~\ref{fig:activity_signup} shows how a doctor joins the platform. The doct
     \label{fig:activity_signup}
 \end{figure}
 
-Figure~\ref{fig:activity_urgent} shows an urgent booking. The patient describes the symptoms. If the signs are life-threatening, the AI first tells the patient to call the SAMU at 190, then offers urgent requests to the nearest doctors. For an urgent case that is not life-threatening, it offers the urgent requests directly. If the patient agrees, Riaya runs the best-fit search with the preferred time set to now and creates up to three urgent pending requests in one emergency group. The doctors see an urgent badge and a stronger alert, and Riaya waits for the first event. If a doctor accepts, that request is confirmed, the sibling requests are cancelled and the patient receives a WhatsApp confirmation. If a doctor refuses, only that request is cancelled and the others stay open. If the patient cancels one of the requests, or 10 minutes pass with no acceptance, the whole group is cancelled, and Riaya calls the patient back only in the timeout case.
+\xref{fig:activity_urgent} shows an urgent booking. The patient describes the symptoms. If the signs are life-threatening, the AI first tells the patient to call the SAMU at 190, then offers urgent requests to the nearest doctors. For an urgent case that is not life-threatening, it offers the urgent requests directly. If the patient agrees, Riaya runs the best-fit search with the preferred time set to now and creates up to three urgent pending requests in one emergency group. The doctors see an urgent badge and a stronger alert, and Riaya waits for the first event. If a doctor accepts, that request is confirmed, the sibling requests are cancelled and the patient receives a WhatsApp confirmation. If a doctor refuses, only that request is cancelled and the others stay open. If the patient cancels one of the requests, or 10 minutes pass with no acceptance, the whole group is cancelled, and Riaya calls the patient back only in the timeout case.
 
 \begin{figure}[H]
     \centering
@@ -317,7 +317,7 @@ Figure~\ref{fig:activity_urgent} shows an urgent booking. The patient describes 
     \label{fig:activity_urgent}
 \end{figure}
 
-Figure~\ref{fig:activity_refusal} shows a normal booking after the call. Riaya creates a pending request, starts the 10-minute timer, and the request appears live on the doctor's calendar. There are three outcomes. If the doctor accepts, the request is confirmed and linked to the patient file, the patient receives a WhatsApp confirmation, and a review job runs 2 hours after the visit to send the rating link. If the doctor refuses, the request is cancelled and kept for 24 hours in Redis. If the doctor does not answer within 10 minutes, the timeout job cancels it. In the last two cases, Riaya checks whether the number is blocked, and sends nothing if it is. Otherwise it calls the patient back, with three other doctors after a refusal or a request to call again after a timeout. If the patient does not answer, the same message goes out on WhatsApp from the platform account. A note in the Doctor lane recalls that urgent requests get no callback, because the other doctors of the group can still accept.
+\xref{fig:activity_refusal} shows a normal booking after the call. Riaya creates a pending request, starts the 10-minute timer, and the request appears live on the doctor's calendar. There are three outcomes. If the doctor accepts, the request is confirmed and linked to the patient file, the patient receives a WhatsApp confirmation, and a review job runs 2 hours after the visit to send the rating link. If the doctor refuses, the request is cancelled and kept for 24 hours in Redis. If the doctor does not answer within 10 minutes, the timeout job cancels it. In the last two cases, Riaya checks whether the number is blocked, and sends nothing if it is. Otherwise it calls the patient back, with three other doctors after a refusal or a request to call again after a timeout. If the patient does not answer, the same message goes out on WhatsApp from the platform account. A note in the Doctor lane recalls that urgent requests get no callback, because the other doctors of the group can still accept.
 
 \begin{figure}[H]
     \centering
@@ -327,7 +327,7 @@ Figure~\ref{fig:activity_refusal} shows a normal booking after the call. Riaya c
 \end{figure}
 
 \subsection{Deployment Diagram: Docker, Nginx and the Ubuntu VPS}
-Figure~\ref{fig:deployment} shows how the code goes from GitHub to the production server \cite{docker2024}. The modules inside each repository are described in Chapter~3 (Figure~\ref{fig:two_repos}).
+\xref{fig:deployment} shows how the code goes from GitHub to the production server \cite{docker2024}. The modules inside each repository are described in Chapter~3 (\xref{fig:two_repos}).
 
 \begin{figure}[H]
     \centering
@@ -343,7 +343,7 @@ The workflow then connects to the Ubuntu VPS over SSH and runs three numbered st
 On the VPS, all traffic from the internet (browsers and Twilio) arrives on HTTPS port 443 at Nginx, which handles TLS and works as a reverse proxy. It sends pages and API calls to the \texttt{web} container, and WebSocket connections and Twilio's call webhooks to the \texttt{voice} container. Both containers run on the Docker network \texttt{riaya\_network} with PostgreSQL and Redis, whose data lives in Docker volumes. The web application uses PostgreSQL and Redis, and the voice server uses Redis for its job queues. Outbound HTTPS calls leave the VPS for the external services: Twilio, Gemini, OpenRouter, WhatsApp, Google Places, Geoapify, Cloudflare R2 and Konnect.
 
 \subsection{BPMN: The Booking Process}
-Chapter~1 gives the whole booking process in one page (Figure~\ref{fig:bpmn_global}). This section shows its two halves at a readable size and explains them. Both are BPMN~2.0 models \cite{omg2011bpmn} drawn with bpmn-js \cite{bpmnjs2026}, and they are joined by a link event.
+Chapter~1 gives the whole booking process in one page (\xref{fig:bpmn_global}). This section shows its two halves at a readable size and explains them. Both are BPMN~2.0 models \cite{omg2011bpmn} drawn with bpmn-js \cite{bpmnjs2026}, and they are joined by a link event.
 
 \begin{landscape}
 \begin{figure}[p]
@@ -354,7 +354,7 @@ Chapter~1 gives the whole booking process in one page (Figure~\ref{fig:bpmn_glob
 \end{figure}
 \end{landscape}
 
-Figure~\ref{fig:bpmn_booking} is one pool, ``Riaya phone booking'', with four lanes: Patient, AI system, Doctor and Administrator. The process starts when the patient calls. A first exclusive gateway checks whether the number is blocked; if it is, the process ends with the call rejected as busy. Otherwise the AI greets the caller and asks for the reason, the place and the time. This task carries an escalation boundary event labelled ``Abuse''. When it fires, the AI reports the abuse and says goodbye, and the report goes to the Administrator lane. The administrator reviews the report with its recording and transcript and decides: either block the number for 7 days, 30 days or for good, or dismiss the report.
+\xref{fig:bpmn_booking} is one pool, ``Riaya phone booking'', with four lanes: Patient, AI system, Doctor and Administrator. The process starts when the patient calls. A first exclusive gateway checks whether the number is blocked; if it is, the process ends with the call rejected as busy. Otherwise the AI greets the caller and asks for the reason, the place and the time. This task carries an escalation boundary event labelled ``Abuse''. When it fires, the AI reports the abuse and says goodbye, and the report goes to the Administrator lane. The administrator reviews the report with its recording and transcript and decides: either block the number for 7 days, 30 days or for good, or dismiss the report.
 
 In the normal path, a gateway checks for urgent signs. If there are any, the AI advises calling the SAMU at 190 and offers urgent requests before the search. The best-fit search then offers two or three doctors. A second gateway separates the two kinds of booking: one pending request for a normal case, or up to three urgent requests in one group. The paths merge, the doctor sees the request live (with an urgent badge if needed), and a link event passes the process to part~B.
 
@@ -367,9 +367,9 @@ In the normal path, a gateway checks for urgent signs. If there are any, the AI 
 \end{figure}
 \end{landscape}
 
-Figure~\ref{fig:bpmn_callback} has three pools. The patient and the doctor are black-box pools: only the messages they exchange with Riaya are drawn, as dashed message flows. The Riaya pool has two lanes, AI system and Server and jobs. After the link event from part~A, an event-based gateway waits for whichever of three events comes first. The ``Doctor accepts'' message leads to confirming the request, linking the patient file and sending a WhatsApp message to the patient; a timer then waits until 2 hours after the visit, and the server sends the review link. A 10-minute timer with no answer leads to cancelling the request. The ``Doctor refuses'' message leads to cancelling it and keeping the request for 24 hours in Redis.
+\xref{fig:bpmn_callback} has three pools. The patient and the doctor are black-box pools: only the messages they exchange with Riaya are drawn, as dashed message flows. The Riaya pool has two lanes, AI system and Server and jobs. After the link event from part~A, an event-based gateway waits for whichever of three events comes first. The ``Doctor accepts'' message leads to confirming the request, linking the patient file and sending a WhatsApp message to the patient; a timer then waits until 2 hours after the visit, and the server sends the review link. A 10-minute timer with no answer leads to cancelling the request. The ``Doctor refuses'' message leads to cancelling it and keeping the request for 24 hours in Redis.
 
-The timeout and refusal paths merge at a gateway that checks whether the number is blocked. A blocked number gets nothing. For any other number, the AI system calls the patient back, offering three other doctors after a refusal or asking the patient to call again after a timeout. If the patient does not answer, a WhatsApp message goes out from the platform account. Both paths end with the patient informed. Part~B draws the normal request only; the rules of urgent groups, where a refusal leaves the other requests open, are in Figure~\ref{fig:activity_urgent}.
+The timeout and refusal paths merge at a gateway that checks whether the number is blocked. A blocked number gets nothing. For any other number, the AI system calls the patient back, offering three other doctors after a refusal or asking the patient to call again after a timeout. If the patient does not answer, a WhatsApp message goes out from the platform account. Both paths end with the patient informed. Part~B draws the normal request only; the rules of urgent groups, where a refusal leaves the other requests open, are in \xref{fig:activity_urgent}.
 
 \section{Conclusion}
-This chapter presented the Kanban method, compared it with Scrum and Waterfall, and explained why it suited a project with one developer, requests arriving through the company founder and a live service after 2 October. It then modeled Riaya from several angles. The use case diagrams list what each of the five actors does. The three class diagrams explain the data model, in particular the split between person, phone and patient file, and the usage rows behind the plan limits. The sequence, activity and BPMN diagrams follow a call, the urgent flow and the answers to a request step by step, and the deployment diagram shows how the code reaches the VPS. The next chapter covers the technical architecture and the implementation.
+This chapter presented the Kanban method, compared it with Scrum and Waterfall, and explained why it suited a project with one developer, requests arriving through the company founder and a live service after 2 October. It then modeled Riaya from several angles. The use case diagrams list what each of the four actors does. The three class diagrams explain the data model, in particular the split between person, phone and patient file, and the usage rows behind the plan limits. The sequence, activity and BPMN diagrams follow a call, the urgent flow and the answers to a request step by step, and the deployment diagram shows how the code reaches the VPS. The next chapter covers the technical architecture and the implementation.
