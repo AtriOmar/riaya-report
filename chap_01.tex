@@ -40,22 +40,22 @@ This approach answers several problems in the Tunisian healthcare system. It rem
 \subsection{Value Proposition: The ``AI-first'' and ``Voice-first'' Concept}
 Patients need no account and no web portal: they talk to a voice assistant over an ordinary phone call and receive follow-up messages on WhatsApp. Because the assistant speaks English, French, and Tunisian Arabic, a wide audience can use the service.
 
-``AI-first'' means the user experience is built around artificial intelligence. The voice agent uses the OpenAI Realtime API \cite{openai2024realtime}, accessed through Microsoft Azure \cite{azure2024openai}, for low-latency speech-to-speech conversation that sounds natural. It understands what the patient wants, asks follow-up questions when something is unclear, and calls tools in the Riaya system to search for doctors, check availability, and create appointments.
+``AI-first'' means the user experience is built around artificial intelligence. The voice agent uses the Gemini Live API \cite{gemini2026live} for low-latency speech-to-speech conversation that sounds natural. It understands what the patient wants, asks follow-up questions when something is unclear, and calls tools in the Riaya system to search for doctors, check availability, and create appointments.
 
 ``Voice-first'' means the phone call is the main channel. The team chose this on purpose: in Tunisia, phone calls remain a trusted and familiar way to communicate. WhatsApp is the second channel, used after the call for confirmations, documents, invoices, and rating requests.
 
 \subsection{The Three Pillars of the Platform: Patient, Doctor, Administrator}
 The platform is built around three main actors:
 \begin{itemize}
-    \item \textbf{Patient:} No account required. Interacts via phone calls and WhatsApp. The phone number is used as the unique identifier. The patient can book standard or urgent appointments, consult or cancel pending bookings, receive WhatsApp messages from the doctor, and rate the doctor after a visit.
-    \item \textbf{Doctor:} Uses a web dashboard to manage appointments, patients, invoices, and WhatsApp communication. The doctor must register, submit professional documents, and be approved by an administrator before accessing the full dashboard. Once approved, the doctor can set availability, accept or decline AI bookings, create invoices, record and transcribe consultations, use the AI assistant, and link a personal WhatsApp number.
-    \item \textbf{Administrator:} Uses a back-office to verify doctors, monitor live AI calls, and configure the platform. The administrator can approve or reject doctor applications, observe ongoing calls with live transcripts, run best-fit searches, and consult global statistics.
+    \item \textbf{Patient:} No account required. Interacts via phone calls and WhatsApp. The phone number is used as the unique identifier. The patient can book standard or urgent appointments, for themselves or for a family member who shares the same phone, consult or cancel pending bookings, receive WhatsApp messages from the doctor, and rate the doctor after a visit.
+    \item \textbf{Doctor:} Uses a web dashboard to manage appointments, patients, invoices, and WhatsApp communication. The doctor must register, submit professional documents, and be approved by an administrator before accessing the full dashboard. Once approved, the doctor can set availability, accept or decline AI bookings, create invoices, record and transcribe consultations, use the AI assistant, and link a personal WhatsApp number. A doctor on the Pro plan can also invite secretaries, who work inside the practice with limited access.
+    \item \textbf{Administrator:} Uses a back-office to verify doctors, monitor live AI calls, and configure the platform. The administrator can approve or reject doctor applications, observe ongoing calls with live transcripts, review reports of abusive calls and block numbers, run best-fit searches, and consult global statistics.
 \end{itemize}
 
 \subsection{Business Model (Freemium: Free vs Pro)}
-Riaya offers doctors two subscription plans: Free and Pro. The Free plan gives access to the main dashboard features, including patient and appointment management, invoices, and medical files. Advanced features are capped each month: five AI phone bookings, fifty WhatsApp messages, five conversation recordings, and twenty AI messages.
+Riaya offers doctors two subscription plans: Free and Pro. Both give access to the main dashboard features: patients, appointments, availability, invoices, and medical files. Phone booking by the AI assistant is unlimited on both plans, because a patient should never be turned away by the plan a doctor chose. The plans differ on the features that cost Riaya money to run: WhatsApp messages started by the doctor, recording and transcription time, and use of the AI assistant. The Free plan allows 30 WhatsApp sends, 2 hours of recording and transcription, and about 20 AI assistant questions per month. The Pro plan costs 49~TND per month and raises these to unlimited sends, 100 hours, and about 2,000 questions. It also adds recording hour packs, AI consultation notes, secretary accounts, and the doctor's logo and stamp on invoices.
 
-The Pro plan removes these limits. Doctors can upgrade at any time and then pay recurring invoices to keep Pro active. Payments go through the Konnect.network API \cite{konnect2024}. A daily BullMQ job \cite{bullmq2024} finds subscriptions that are about to end and generates their invoices, which doctors see and pay from their dashboard.
+Doctors can upgrade at any time and then pay a recurring invoice to keep Pro active. Payments go through the Konnect.network API \cite{konnect2024}. A daily BullMQ job \cite{bullmq2024} finds subscriptions that end within three days and creates the next invoice with a payment link, which the doctor sees and pays from the dashboard. A Pro plan that is not renewed simply falls back to Free.
 
 With this freemium model, doctors can try the platform without commitment and upgrade when they need more capacity, and the paid plan gives the platform the revenue it needs to keep running and improving.
 
@@ -64,21 +64,25 @@ With this freemium model, doctors can try the platform without commitment and up
     \caption{Comparison of Free and Pro Subscription Plans}
     \label{tab:plans}
     \small
-    \begin{tabular}{p{5cm}p{4cm}p{4cm}}
+    \begin{tabular}{p{5.5cm}p{3.5cm}p{4.5cm}}
         \toprule
         \textbf{Feature} & \textbf{Free} & \textbf{Pro} \\
         \midrule
-        Patient and appointment management & Yes & Yes \\
-        Invoices and medical files & Yes & Yes \\
-        AI phone bookings per month & 5 & Unlimited \\
-        WhatsApp messages per month & 50 & Unlimited \\
-        Conversation recordings per month & 5 & Unlimited \\
-        AI messages per month & 20 & Unlimited \\
+        Price & 0 TND & 49 TND per month \\
+        Patients, appointments, availability, invoices, medical files & Yes & Yes \\
+        AI phone bookings & Unlimited & Unlimited \\
+        WhatsApp sends started by the doctor & 30 per month & Unlimited \\
+        Recording and transcription time & 2 hours per month & 100 hours per month, plus buyable packs \\
+        AI assistant allowance & About 20 questions per month & About 2,000 questions per month \\
+        AI consultation note on each recording & No & Yes \\
+        Secretary accounts & None & Unlimited \\
+        Logo and stamp on invoices & No & Yes \\
+        Support & Standard & Priority \\
         Payment & Free & Recurring via Konnect.network \\
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Author's own work based on Riaya internal documentation (\texttt{DESCRIPTION.md}).
+    \small Source: Author's own work based on the Riaya plan configuration.
 \end{table}
 
 Table~\ref{tab:plans} summarizes the differences between the two subscription plans.
@@ -89,11 +93,12 @@ Table~\ref{tab:plans} summarizes the differences between the two subscription pl
 Patients have no account; the calling phone number identifies them. They use two channels, the phone call and WhatsApp. Their functional requirements are:
 \begin{itemize}
     \item \textbf{Voice Interaction with AI:} Reach the AI in English, French, or Tunisian Arabic. Change preferred language for current and future interactions. The assistant does not give medical advice.
-    \item \textbf{Appointment Booking (Standard and Urgent):} Provide name (if unknown), reason or speciality, location, and preferred time. Choose among best-fit doctors within a 50~km radius. A pending appointment is created. Urgent requests can contact up to 3 nearby doctors simultaneously.
+    \item \textbf{Appointment Booking (Standard and Urgent):} Provide name (if unknown), reason or speciality, location, and preferred time. Choose among best-fit doctors within a 50~km radius. A pending appointment is created. Urgent requests can contact up to 3 nearby doctors simultaneously. For signs of a life-threatening condition, the assistant first tells the patient to call the emergency number (SAMU, 190).
+    \item \textbf{Booking for Family Members:} Book for someone else who uses the same phone (child, parent, spouse, sibling). The assistant asks who the appointment is for and files the visit under that person.
     \item \textbf{Consultation and Cancellation of Pending Appointments:} Ask about upcoming or recent AI appointments. Cancel while status is pending. Confirmed bookings cannot be cancelled via the assistant.
     \item \textbf{Receiving WhatsApp Messages:} Receive appointment confirmations, medical documents, and invoices from the doctor's own WhatsApp number.
-    \item \textbf{Rating System via Magic Link:} Open a magic link received by WhatsApp after a confirmed appointment and submit a rating without creating an account.
-    \item \textbf{Notification on Request Expiry:} Be notified by callback or WhatsApp if a pending request expires without a doctor accepting.
+    \item \textbf{Rating System via Magic Link:} Open a magic link received by WhatsApp two hours after the appointment ends and submit a rating without creating an account.
+    \item \textbf{Notification on Refusal or Expiry:} Be called back, or messaged on WhatsApp, if a doctor refuses the request or if it expires without an answer. After a refusal, the callback offers up to three other doctors.
 \end{itemize}
 
 \subsection{Functional Requirements of the Doctor}
@@ -101,12 +106,13 @@ The doctor uses a web dashboard. The requirements fall into these categories:
 \begin{itemize}
     \item \textbf{Registration and Verification:} Create an account with email OTP. Submit professional and cabinet details (identity documents, Medical Council info, speciality, location on map, etc.). The account must be approved by an administrator. If rejected, the doctor can correct the information and reapply.
     \item \textbf{Profile, Availability, and Calendar Management:} Update cabinet and professional information. Set weekly working hours used when patients book via AI. Create, move, edit, or cancel appointments on the practice calendar.
-    \item \textbf{Patient and Medical Record Management:} Create and update patient records. Attach patients created from AI bookings. Create consultation notes, prescriptions, and other medical files.
+    \item \textbf{Patient and Medical Record Management:} Create and update patient records. Attach patients created from AI bookings. Create consultation notes, prescriptions, and lab reports as medical files.
     \item \textbf{Invoicing and Sending via WhatsApp:} Create invoices, record payments, and cancel invoices as needed. Send invoice PDF to the patient via WhatsApp.
-    \item \textbf{Recording and Transcription of Consultations:} Record a conversation with a patient. Generate a transcript from a recording.
-    \item \textbf{Integrated AI Assistant:} Ask how to use Riaya and what is allowed under the current plan. Ask medical questions. Attach a recording transcript and ask questions about it.
+    \item \textbf{Recording and Transcription of Consultations:} Record a conversation with a patient in the browser. Get a transcript that separates the speakers and, on the Pro plan, a structured consultation note written by AI.
+    \item \textbf{Integrated AI Assistant:} Ask how to use Riaya, ask medical questions, and attach a recording transcript to discuss it. Ask about the practice (schedule, patients, invoices). The assistant can also propose an action, such as an invoice or a booking decision, which only takes effect after the doctor confirms it.
     \item \textbf{WhatsApp Configuration (QR Code):} Link a personal WhatsApp number by scanning a QR code so outbound messages to patients use that number \cite{baileys2024}.
-    \item \textbf{Subscription Management:} View Free vs Pro limits and current usage. Upgrade and pay recurring Riaya invoices (Konnect) to keep Pro active.
+    \item \textbf{Team Management (Pro):} Invite secretaries by email. A secretary can manage appointments, patients, invoices, and availability, but cannot see medical files, recordings, the AI assistant, or billing.
+    \item \textbf{Subscription Management:} View Free vs Pro limits and current usage. Upgrade, pay the recurring Riaya invoices (Konnect) to keep Pro active, and buy extra recording hours.
 \end{itemize}
 
 \subsection{Functional Requirements of the Administrator}
@@ -115,6 +121,7 @@ The administrator manages the platform from a dedicated back-office. The require
     \item \textbf{Doctor Verification and Validation:} Browse and search doctor applications and profiles. Approve or reject a doctor application (rejection may include reasons shown to the doctor).
     \item \textbf{Real-Time Monitoring of AI Calls:} Observe live patient AI calls and conversation transcripts. Inspect best-fit results for operations and debugging.
     \item \textbf{``Best-fit'' Search and Platform Management:} Manage platform-level data exposed in the admin interface (e.g., users, specialities, settings). Link the admin WhatsApp number for platform outbound messages.
+    \item \textbf{Abuse Handling:} Review calls that the AI reported as abusive, with the recording and transcript, then dismiss the report or block the caller's number for 7 days, 30 days, or permanently.
     \item \textbf{Consultation of Global Statistics:} Consult aggregate statistics on doctors, appointments, and calls.
 \end{itemize}
 
@@ -127,11 +134,11 @@ The administrator manages the platform from a dedicated back-office. The require
         \toprule
         \textbf{Actor} & \textbf{Key Functional Requirements} \\
         \midrule
-        Patient & Voice interaction, appointment booking (standard/urgent), consultation/cancellation, WhatsApp messages, rating via magic link, expiry notification. \\
+        Patient & Voice interaction, appointment booking (standard/urgent, for family members), consultation/cancellation, WhatsApp messages, rating via magic link, refusal and expiry notification. \\
         \addlinespace
-        Doctor & Registration and verification, profile/availability/calendar management, patient and medical record management, invoicing via WhatsApp, recording and transcription, AI assistant, WhatsApp configuration, subscription management. \\
+        Doctor & Registration and verification, profile/availability/calendar management, patient and medical record management, invoicing via WhatsApp, recording and transcription, AI assistant, team (secretaries), WhatsApp configuration, subscription management. \\
         \addlinespace
-        Administrator & Doctor verification, real-time call monitoring, best-fit search, platform configuration, global statistics. \\
+        Administrator & Doctor verification, real-time call monitoring, abuse handling and number blocking, best-fit search, platform configuration, global statistics. \\
         \bottomrule
     \end{tabular}
     \\[0.2cm]
@@ -143,22 +150,22 @@ Table~\ref{tab:functional_requirements} groups the functional requirements by ac
 \section{Non-Functional Requirements}
 
 \subsection{Performance and Real-Time}
-The platform uses WebSockets \cite{fette2011websocket} to notify doctors of new appointment requests in real time. A pending AI request is cancelled automatically if no doctor accepts it within 10 minutes. The best-fit search algorithm is optimized to run within a few hundred milliseconds, so the patient is not kept waiting. The voice server must relay audio between Twilio \cite{twilio2024} and the OpenAI Realtime API with minimal delay to keep the conversation natural.
+The platform uses WebSockets \cite{fette2011websocket} to notify doctors of new appointment requests in real time. A pending AI request is cancelled automatically if no doctor accepts it within 10 minutes. The best-fit search is built to answer while the patient waits on the line: it narrows the candidates by distance first and only then refines the best ones. The voice server must relay audio between Twilio \cite{twilio2024} and the Gemini Live API with minimal delay to keep the conversation natural.
 
 \subsection{Security and Confidentiality}
-Doctors authenticate with Better Auth \cite{betterauth2024} using an email OTP, stored in the Drizzle verification table \cite{drizzle2024}. Data is encrypted in transit and at rest. Medical documents are stored in Cloudflare R2 \cite{cloudflare2024r2}, which provides encryption and access control. WhatsApp conversations stay private because they go through the doctor's own number. The platform must comply with Tunisian data protection regulations (INPDP) \cite{inpdp2004} and, where applicable, GDPR principles \cite{gdpr2016}.
+Doctors sign up with an email OTP and then sign in with their email and password through Better Auth \cite{betterauth2024}. The pending sign-up is kept in Better Auth's verification table \cite{drizzle2024}, with the password encrypted, and the account is only created once the OTP is verified. Calls between the web app and the voice server are protected by a shared secret, and Twilio's recording webhook is checked against Twilio's signature. Medical documents are stored in Cloudflare R2 \cite{cloudflare2024r2}, which provides encryption and access control. WhatsApp conversations stay private because they go through the doctor's own number. The platform must comply with Tunisian data protection regulations (INPDP) \cite{inpdp2004} and, where applicable, GDPR principles \cite{gdpr2016}.
 
 \subsection{Scalability and High Availability}
 The architecture is split into two repositories: the web app (Next.js \cite{nextjs2024}) and the real-time voice server (Express.js \cite{express2024}). Each can be scaled and maintained on its own, and each has its own CI/CD pipeline, so the team can deploy one application without redeploying the other. Docker containers and Docker Compose \cite{docker2024} simplify scaling and infrastructure management.
 
 \subsection{Resilience and Fault Tolerance}
-If an outbound call fails, Riaya sends a WhatsApp message from the admin WhatsApp account instead. BullMQ and Redis \cite{redis2024} run the background jobs, so scheduled tasks such as review requests and recurring invoices are processed reliably. The emergency fan-out mechanism makes sure subscription caps never block an urgent patient, and the timeout mechanism cancels unanswered requests and notifies the patient.
+If an outbound call fails, Riaya sends a WhatsApp message from the admin WhatsApp account instead. BullMQ and Redis \cite{redis2024} run the background jobs, so scheduled tasks such as review requests and recurring invoices are processed reliably. A silent caller is asked once whether they are still there and then hung up on, and no call lasts longer than 15 minutes. The check for blocked numbers fails open, so a web outage never turns patients away. The timeout mechanism cancels unanswered requests and notifies the patient, and no plan limit ever blocks a patient.
 
 \subsection{Ergonomics and User Experience (UX/UI)}
 The doctor dashboard uses TailwindCSS \cite{tailwind2024} for a modern, responsive interface. Patients install nothing and create no account. The AI assistant speaks naturally and asks one question at a time, and WhatsApp messages go out in the patient's preferred language.
 
 \subsection{Technical and Regulatory Constraints}
-Location search is restricted to Tunisia, and the platform runs on Tunisian local time (GMT+1). Each doctor's cabinet is stored with the exact latitude and longitude picked on the registration map, so matching compares GPS coordinates instead of city names. The platform must comply with local data protection regulations (INPDP) and, where applicable, with the GDPR principles of data minimization, purpose limitation, and the right to erasure.
+Location search is restricted to Tunisia. Patients speak in Tunisian time (GMT+1), while the system stores and exchanges all times in UTC. Each doctor's cabinet is stored with the exact latitude and longitude picked on the registration map, so matching compares GPS coordinates instead of city names. The platform must comply with local data protection regulations (INPDP) and, where applicable, with the GDPR principles of data minimization, purpose limitation, and the right to erasure.
 
 \section{Existing Solutions}
 Before designing Riaya, the Pengguin team studied the existing medical appointment booking solutions. They fall into three categories: international web and mobile platforms, local Tunisian directories, and classic Interactive Voice Response (IVR) systems \cite{ivr2019}. For each one, the team looked at its strengths, its limitations, and the gaps Riaya could fill. This section presents each solution, its features, and why it does not fully meet the needs of the Tunisian market.
@@ -344,12 +351,12 @@ The analysis shows a gap in the Tunisian market. International platforms such as
 \subsection{Description of Business Flows (Standard, Urgent, Timeout)}
 The BPMN model \cite{omg2011bpmn} covers three main flows:
 \begin{itemize}
-    \item \textbf{Standard Flow:} The patient calls, the AI gathers information (name, reason, location, preferred time), a best-fit search is run, the patient selects a doctor, a pending appointment is created, and the doctor accepts or declines. If accepted, a WhatsApp confirmation is sent to the patient. If declined, the appointment is cancelled.
+    \item \textbf{Standard Flow:} The patient calls, the AI gathers information (name, reason, location, preferred time), a best-fit search is run, the patient selects a doctor, a pending appointment is created, and the doctor accepts or declines. If accepted, a WhatsApp confirmation is sent to the patient. If declined, the appointment is cancelled and the platform calls the patient back with up to three other doctors.
     \item \textbf{Urgent Flow:} The AI detects urgency, confirms with the patient, creates up to 3 urgent pending appointments (emergency group), the first doctor to accept wins, and the others are cancelled automatically. If the patient later cancels one of the urgent requests, the whole group is cancelled.
     \item \textbf{Timeout Flow:} If no doctor accepts within 10 minutes, the pending request is auto-cancelled. The platform calls the patient back or sends a WhatsApp message asking them to call again to book with another doctor.
 \end{itemize}
 
-The BPMN diagram shows these flows with pools for the patient, the AI system, the doctor, and the administrator, connected by message flows and sequence flows.
+The BPMN diagram shows these flows with one swimlane for each of the patient, the AI system, and the doctor.
 
 \subsection{Global BPMN Diagram}
 \begin{figure}[H]
@@ -359,7 +366,7 @@ The BPMN diagram shows these flows with pools for the patient, the AI system, th
     \label{fig:bpmn_global}
 \end{figure}
 
-Figure~\ref{fig:bpmn_global} shows the global BPMN diagram of Riaya, with the standard, urgent, and timeout flows described above.
+Figure~\ref{fig:bpmn_global} shows the global BPMN diagram of Riaya, with the standard, urgent, and refusal or timeout flows described above.
 
 \section{Conclusion}
 This chapter presented the context of the Riaya project, the host company Pengguin, and the product itself. It detailed the functional and non-functional requirements of the three actors, compared Riaya with existing solutions, and gave a global BPMN model. The next chapter covers the project management methodology, Kanban, and the modeling diagrams used.

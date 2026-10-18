@@ -204,99 +204,114 @@ A system as complex as Riaya needs several complementary diagrams, each showing 
 \subsection{Use Case Diagram: Actors and Their Interactions}
 The use case diagram gives a high-level view of how the actors (Patient, Doctor, Administrator) interact with Riaya. It shows the main use cases, such as ``Book an appointment'', ``Manage patients'', ``Verify doctors'', and ``Monitor live calls''. It defines the functional scope of the platform and helps explain it to stakeholders without a technical background.
 
-It has three main actors:
+It has three main actors. A fourth role, the secretary, acts on behalf of a doctor and is covered by the doctor's use cases with fewer permissions.
 
 \begin{itemize}
-    \item \textbf{Patient:} The patient uses phone calls and WhatsApp. The main use cases include ``Call Riaya and speak with the booking assistant'', ``Book an appointment'', ``Request urgent booking'', ``Consult or cancel an existing AI booking'', ``Receive doctor messages on WhatsApp'', ``Rate a doctor after a visit'', and ``Be notified if a request expires''. The patient does not authenticate, because the phone number identifies them.
+    \item \textbf{Patient:} The patient uses phone calls and WhatsApp. The main use cases include ``Call Riaya and speak with the booking assistant'', ``Book an appointment'', ``Request urgent booking'', ``Consult or cancel an existing AI booking'', ``Receive doctor messages on WhatsApp'', ``Rate a doctor after a visit'', and ``Be notified if a request expires''. The patient does not authenticate, because the phone number identifies the line they call from.
     
-    \item \textbf{Doctor:} The doctor uses a web dashboard. The main use cases include ``Register and apply for verification'', ``Manage practice profile and availability'', ``Manage patients'', ``Manage appointments'', ``Manage medical documentation'', ``Manage patient billing'', ``Record and transcribe consultations'', ``Use the practice AI assistant'', ``Connect WhatsApp'', and ``Manage Riaya subscription''. Most of these use cases require the doctor to be authenticated and verified.
+    \item \textbf{Doctor:} The doctor uses a web dashboard. The main use cases include ``Register and apply for verification'', ``Manage practice profile and availability'', ``Manage patients'', ``Manage appointments'', ``Manage medical documentation'', ``Manage patient billing'', ``Record and transcribe consultations'', ``Use the practice AI assistant'', ``Manage the team of secretaries'', ``Connect WhatsApp'', and ``Manage Riaya subscription''. Most of these use cases require the doctor to be authenticated and verified.
     
-    \item \textbf{Administrator:} The administrator uses a dedicated back-office. The main use cases include ``Review and verify doctors'', ``Monitor the AI booking channel'', ``Operate platform configuration'', and ``View platform overview''. The administrator has the highest level of access and can manage every part of the platform.
+    \item \textbf{Administrator:} The administrator uses a dedicated back-office. The main use cases include ``Review and verify doctors'', ``Monitor the AI booking channel'', ``Review abuse reports and block numbers'', ``Operate platform configuration'', and ``View platform overview''. The administrator has the highest level of access and can manage every part of the platform.
 \end{itemize}
 
 The diagram also shows the \texttt{<<include>>} relationships between use cases, which make their dependencies explicit. Every doctor and administrator use case that needs dashboard access includes \textit{Authenticate (sign in)}, and \textit{Register and apply for verification} includes the mandatory \textit{Verify email OTP} step.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{images/use_case_diagramdsdsd.png}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,height=0.62\textheight,keepaspectratio]{images/use_case_patient_admin.png}
+        \caption{Patient and administrator}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,height=0.62\textheight,keepaspectratio]{images/use_case_doctor_secretary.png}
+        \caption{Doctor and secretary}
+    \end{subfigure}
     \caption{Use Case Diagram of Riaya}
     \label{fig:use_case}
 \end{figure}
 
 In Figure~\ref{fig:use_case}, the rectangle labelled ``Riaya'' marks the system boundary and encloses every use case the platform offers. The patient reaches the system only by phone and WhatsApp, without creating an account; the doctor works through a secure web dashboard; and the administrator uses the back-office. The diagram also serves as a reference for checking that the system covers every user need.
 
-\subsection{Class Diagram / ERD: Modeling the PostgreSQL Database}
-The class diagram, drawn here as an Entity-Relationship Diagram (ERD), models the database schema of Riaya. Its entities include \texttt{doctor\_profile}, \texttt{patient}, \texttt{appointment}, \texttt{invoice}, \texttt{consultation}, \texttt{whatsapp\_session}, and \texttt{subscription}. The ERD shows the relationships between them, with cardinalities (one-to-many, many-to-one) and key attributes, and it guided the design of the PostgreSQL database \cite{postgresql2024} accessed through Drizzle ORM \cite{drizzle2024}.
+\subsection{Class Diagram / ERD: Modeling the PostgreSQL Database}\label{subsec:erd-ref}
+The class diagram, drawn here as an Entity-Relationship Diagram (ERD), models the database schema of Riaya. It guided the design of the PostgreSQL database \cite{postgresql2024} accessed through Drizzle ORM \cite{drizzle2024}. The most important modeling decision is that a phone number does not identify a person. One phone can serve a whole family, and one person can use several phones, so Riaya separates the person, the phone, and the doctor's patient file.
 
 The main entities and their relationships are:
 
 \begin{itemize}
-    \item \textbf{Doctor\_Profile:} Stores the professional information of the doctor, including first name, last name, CIN picture, speciality, Medical Council registration number, Medical Council certificate, cabinet name, TIN, cabinet city, and exact cabinet location (latitude and longitude). A doctor has one profile and can have many appointments, consultations, invoices, and WhatsApp sessions.
-    
-    \item \textbf{Patient:} Stores the patient's information, including first name, last name, date of birth, gender, address, preferred language, and phone number. A patient can have many appointments and consultations. The phone number is the unique identifier and is used to match the caller when they dial the Riaya number.
-    
-    \item \textbf{Appointment:} Stores the appointment details, including date and time, status (pending, confirmed, cancelled), reason for the visit, and emergency group ID (for urgent requests). An appointment is linked to one doctor and one patient. The emergency group ID allows multiple urgent appointments to be linked together so that they can be cancelled as a group if needed.
-    
-    \item \textbf{Invoice:} Stores the invoice details, including amount, status (paid, unpaid), and date. An invoice is linked to one doctor and one patient. Invoices can be sent to the patient via WhatsApp.
-    
-    \item \textbf{Consultation:} Stores the consultation notes, prescriptions, and medical documents. A consultation is linked to one doctor and one patient. Medical documents are stored in Cloudflare R2 \cite{cloudflare2024r2}, and the consultation record contains a reference to the stored file.
-    
-    \item \textbf{WhatsApp\_Session:} Stores the WhatsApp session details, including the linked phone number and session status. A WhatsApp session is linked to one doctor. The session is established when the doctor scans a QR code, and it allows the platform to send messages from the doctor's own number.
-    
-    \item \textbf{Subscription:} Stores the subscription details, including plan type (Free or Pro), start date, end date, and usage limits. A subscription is linked to one doctor. Usage limits are tracked to enforce the Free plan restrictions.
+    \item \textbf{Person and Person\_Phone:} A \texttt{person} is one real human, with first and last name, date of birth, gender, address, and preferred language. It has no phone column. The \texttt{person\_phone} table links a person to a phone number (always in E.164 format) and records the relationship to the phone's owner: \texttt{self}, \texttt{child}, \texttt{parent}, \texttt{spouse}, \texttt{sibling}, or \texttt{other}. A unique index allows at most one \texttt{self} per phone.
+
+    \item \textbf{Patient:} The link between a doctor and a person. It stores the details that belong to one doctor's file, such as the CIN and the contact number that doctor uses. Medical files, invoices, consultations, and recordings point to the patient.
+
+    \item \textbf{Doctor\_Profile and Doctor\_Application:} The application holds what the doctor submits: names, CIN pictures, speciality, Medical Council number and certificate, cabinet name, TIN, city, and the exact cabinet location (latitude and longitude). Once an administrator approves it, a doctor profile is created with a status (\texttt{pending}, \texttt{verified}, \texttt{rejected}, or \texttt{banned}) and the weekly availability. Secretaries and their invitations (\texttt{secretary}, \texttt{secretary\_invite}) belong to a doctor's practice.
+
+    \item \textbf{Appointment:} Stores the time slot, the status (\texttt{pending}, \texttt{confirmed}, \texttt{cancelled}), the source (\texttt{ai} or \texttt{dashboard}), an urgent flag, and the emergency group ID that links urgent requests. It references the doctor, the person the visit is for, and the contact phone that made the booking, so messages go to the right line. The doctor's patient file is linked when the doctor accepts the request.
+
+    \item \textbf{Invoice, Invoice\_Item, and Invoice\_Payment:} An invoice has lines and a list of payment events (cash or transfer). Its status (\texttt{unpaid}, \texttt{partially\_paid}, \texttt{paid}, or \texttt{cancelled}) is derived from the payments. Amounts are stored in millimes (1 TND = 1000).
+
+    \item \textbf{Patient\_Medical\_File and Consultation:} Consultation notes, prescriptions, and lab reports, with links to documents stored in Cloudflare R2 \cite{cloudflare2024r2}. A consultation recording and its transcript are stored in \texttt{consultation\_recording}.
+
+    \item \textbf{Call, Call\_Event, Call\_Report, and Blocked\_Phone:} Each phone call is a \texttt{call} with a list of events (transcript sentences, tool calls, system notes, errors). A report records abuse on a call and its review by an administrator, and a blocked phone number is rejected before any AI starts.
+
+    \item \textbf{Subscription, Billing\_Invoice, and usage tables:} A subscription holds the plan, status, and period of a doctor. Riaya's own invoices (\texttt{billing\_invoice}) are either a subscription renewal or a recording hour pack. Usage of WhatsApp sends, recording time, and AI messages is stored as event rows (\texttt{whatsapp\_usage}, \texttt{recording\_usage}, \texttt{ai\_chat\_message}) instead of one counter that gets overwritten, so the history is kept.
+
+    \item \textbf{Review:} A review has a unique token, the rating, the waiting time, and a comment, and it is created two hours after a visit ends.
 \end{itemize}
 
-The ERD also includes join tables and foreign keys that enforce referential integrity. For example, the \texttt{appointment} table has foreign keys to both \texttt{doctor\_profile} and \texttt{patient}, so every appointment belongs to a valid doctor and a valid patient. Drizzle ORM defines these relationships in TypeScript, which adds type safety and reduces runtime errors.
+The ERD also includes foreign keys that enforce referential integrity. For example, the \texttt{appointment} table references both \texttt{doctor\_profile} and \texttt{person}, so every appointment belongs to a valid doctor and a valid person. Drizzle ORM defines these relationships in TypeScript, which adds type safety and reduces runtime errors.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{images/erd_diagram.png}
+    \includegraphics[width=0.9\textwidth,height=0.7\textheight,keepaspectratio]{images/erd_diagram.png}
     \caption{Entity-Relationship Diagram of the Riaya Database}
     \label{fig:erd}
 \end{figure}
 
-Figure~\ref{fig:erd} shows the complete ERD of the Riaya database.
+Figure~\ref{fig:erd} shows the main tables of the Riaya database and their relationships. Tables that only support them, such as the Better Auth tables and the lists of specialities and cities, are left out for clarity.
 
-\subsection{Sequence Diagram: Twilio Call Flow \texorpdfstring{$\rightarrow$}{→} WebSocket \texorpdfstring{$\rightarrow$}{→} OpenAI \texorpdfstring{$\rightarrow$}{→} Database}
-The sequence diagram follows a patient's phone call in real time through Twilio, the Express.js voice server, the OpenAI Realtime API (via Microsoft Azure), and the PostgreSQL database. It shows how the call is received, how the WebSocket media stream opens, how the AI handles speech and calls tools against the database, and how the live transcript reaches the admin dashboard.
+\subsection{Sequence Diagram: Twilio Call Flow \texorpdfstring{$\rightarrow$}{→} WebSocket \texorpdfstring{$\rightarrow$}{→} Gemini Live \texorpdfstring{$\rightarrow$}{→} Database}
+The sequence diagram follows a patient's phone call in real time through Twilio, the Express.js voice server, the web application, the Gemini Live API, and the PostgreSQL database. It shows how the call is received, how the WebSocket media stream opens, how the AI handles speech and calls tools, and how the live transcript reaches the admin dashboard.
 
 The sequence of events is:
 
 \begin{enumerate}
     \item The patient dials the Riaya phone number.
     \item Twilio receives the call and sends an HTTP POST webhook to the Express.js voice server.
-    \item The Express.js server looks up or creates the caller in the PostgreSQL database. If the caller is new, a patient record is created with the phone number as the unique identifier.
-    \item The server responds with TwiML (Twilio Markup Language) that opens a bidirectional WebSocket media stream from Twilio to the server.
-    \item The server establishes a WebSocket connection with the OpenAI Realtime API (via Microsoft Azure).
+    \item The server asks the web application whether the number is blocked. If it is, the call is rejected and no AI starts. The check fails open, so a web outage never turns patients away.
+    \item The server creates the call record and finds or creates the person linked to that phone number.
+    \item The server answers with TwiML (Twilio Markup Language) that opens a bidirectional WebSocket media stream from Twilio to the server, and starts a recording of the call.
+    \item The server establishes a WebSocket connection with the Gemini Live API.
     \item The patient's speech is streamed to the AI, and the AI's voice is streamed back through Twilio onto the phone.
-    \item The AI makes tool calls to the database to search for doctors, check availability, and create appointments. These tool calls are executed by the Express.js server, which queries the database and returns the results to the AI.
-    \item The live transcript is sent to the admin dashboard via WebSocket, so administrators can monitor the call in real time for operations and debugging.
-    \item When the patient hangs up, Twilio closes the media stream and the server marks the session as completed in the database. The server may then notify the doctor of the pending appointment via WebSocket, which starts the next step of the booking workflow.
+    \item The AI calls tools to search for doctors, check availability, and create appointments. The voice server runs these tools by calling the internal API of the web application, which queries the database and returns the result to the AI.
+    \item The live transcript and the events of the call are sent to the admin dashboard via WebSocket, so administrators can monitor the call in real time for operations and debugging.
+    \item When the booking is made, the web application notifies the doctor over WebSocket. When the patient hangs up, Twilio closes the media stream and the server marks the call as completed.
 \end{enumerate}
 
 The diagram captures how several systems interact in real time. Developers use it to follow the data flow and each component's responsibilities, and as a reference for debugging and optimization.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{images/sequence_call_flow.png}
+    \includegraphics[width=0.9\textwidth,height=0.75\textheight,keepaspectratio]{images/sequence_call_flow.png}
     \caption{Sequence Diagram of the AI Call Flow}
     \label{fig:sequence_call}
 \end{figure}
 
-Figure~\ref{fig:sequence_call} shows the six components involved: the Patient, Twilio (the telephony provider), the Express.js Voice Server, the OpenAI Realtime API (accessed via Microsoft Azure), the PostgreSQL database (managed through Drizzle ORM), and the Admin Dashboard.
+Figure~\ref{fig:sequence_call} shows the components involved: the Patient, Twilio (the telephony provider), the Express.js Voice Server, the Web App, the Gemini Live API, the PostgreSQL database, and the Admin Dashboard.
 
 \subsection{Activity Diagram: Urgent Booking Process and OTP Authentication}
 The activity diagrams model two critical processes: urgent booking and OTP authentication. They show the workflow of each process and help catch problems early in the design phase.
 
 \begin{itemize}
-    \item \textbf{Urgent Booking Process:} The AI detects an urgent situation, confirms with the patient, runs an ASAP best-fit search, creates up to three urgent pending appointments linked by an emergency group ID, and waits for the first doctor to accept. If no doctor accepts within 10 minutes, the group is cancelled and the patient is notified. The diagram shows the flow of activities, the decision points, and the parallel processes.
+    \item \textbf{Urgent Booking Process:} The AI detects an urgent situation and, if the signs are life-threatening, first tells the patient to call the emergency number (190). It then confirms with the patient, runs an ASAP best-fit search, creates up to three urgent pending appointments linked by an emergency group ID, and waits for the first doctor to accept. If no doctor accepts within 10 minutes, the group is cancelled and the patient is notified. The diagram shows the flow of activities, the decision points, and the parallel processes.
     
-    \item \textbf{OTP Authentication:} The doctor registers with an email, receives an OTP, enters it, and completes the registration. The OTP is checked against the Drizzle verification table. The diagram shows the flow of activities, the decision points (for example, OTP valid or invalid), and the final state (account created or registration failed). This process ensures that only legitimate doctors can access the platform.
+    \item \textbf{OTP Authentication:} The doctor registers with an email and a password, receives an OTP, enters it, and completes the registration. The pending sign-up is kept in Better Auth's verification table until the OTP is checked. The diagram shows the flow of activities, the decision points (for example, OTP valid or invalid), and the final state (account created or registration failed). This process ensures that only legitimate doctors can access the platform.
 \end{itemize}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{images/activity_urgent_booking.png}
+    \includegraphics[width=0.6\textwidth,height=0.55\textheight,keepaspectratio]{images/activity_urgent_booking.png}
     \caption{Activity Diagram of the Urgent Booking Process}
     \label{fig:activity_urgent}
 \end{figure}
@@ -305,13 +320,13 @@ Figure~\ref{fig:activity_urgent} shows the urgent booking workflow. The patient 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{images/activity_otp_auth.png}
+    \includegraphics[width=0.5\textwidth,height=0.5\textheight,keepaspectratio]{images/activity_otp_auth.png}
     \caption{Activity Diagram of OTP Authentication}
     \label{fig:activity_otp}
     \small Source: Author's own work based on Riaya internal documentation.
 \end{figure}
 
-Figure~\ref{fig:activity_otp} shows how doctors authenticate with an OTP when they register. The doctor submits the registration form with an email address. The server generates a six-digit one-time password (OTP), valid for ten minutes, and emails it to the doctor, who enters it on the verification page. If the OTP is valid and has not expired, it is marked as used, a doctor account is created with the status \textit{pending administrator approval}, and a confirmation email is sent; the doctor can then log in but only reach the profile page. If the OTP is invalid or expired, the server returns an error, and the doctor can enter the OTP again or restart registration. The flow relies on two security measures: the OTP can be used only once, and access stays restricted until an administrator approves the account.
+Figure~\ref{fig:activity_otp} shows how doctors authenticate with an OTP when they register. The doctor submits the registration form with an email address. The server generates a six-digit one-time password (OTP), valid for ten minutes, and emails it to the doctor, who enters it on the verification page. The doctor has five attempts and can ask for a new code after a 60-second cooldown. If the OTP is valid and has not expired, the account is created and the doctor is signed in, but can only reach the profile page. There the doctor submits the professional application, and the other pages stay locked until an administrator approves it. If the OTP is invalid or expired, the server returns an error, and the doctor can enter the code again or restart registration. The flow relies on two security measures: the account does not exist until the OTP is verified, and access stays restricted until an administrator approves the application.
 
 \subsection{Deployment Diagram: Docker, Nginx, Ubuntu VPS Architecture}
 The deployment diagram shows the physical and logical infrastructure of Riaya \cite{docker2024}. It includes:
@@ -321,10 +336,10 @@ The deployment diagram shows the physical and logical infrastructure of Riaya \c
     \item \textbf{GitHub Actions:} CI/CD pipelines that build Docker images, publish them to GHCR, and deploy to a self-hosted Ubuntu VPS.
     \item \textbf{Nginx:} Reverse proxy handling TLS and routing.
     \item \textbf{Docker containers:} PostgreSQL, Redis, web app, and voice server running on a shared Docker network.
-    \item \textbf{External services:} Twilio, OpenAI Realtime API (Azure), Cloudflare R2, Konnect.network, WhatsApp Baileys, Geoapify.
+    \item \textbf{External services:} Twilio, Gemini Live API, OpenRouter, Cloudflare R2, Konnect.network, WhatsApp (through Baileys), Geoapify.
 \end{itemize}
 
-It also shows the network connections between components, including the WebSocket connections between Twilio and the voice server and between the voice server and the OpenAI Realtime API. The team relies on it to understand how the platform is deployed and to plan maintenance and scaling.
+It also shows the network connections between components, including the WebSocket connections between Twilio and the voice server and between the voice server and the Gemini Live API. The team relies on it to understand how the platform is deployed and to plan maintenance and scaling.
 
 \begin{figure}[H]
     \centering
@@ -333,34 +348,31 @@ It also shows the network connections between components, including the WebSocke
     \label{fig:deployment}
 \end{figure}
 
-Figure~\ref{fig:deployment} is a simplified view of the architecture. The whole system runs on an Ubuntu VPS, with Nginx as a reverse proxy that routes HTTP traffic to the Web App (Next.js) and WebSocket connections to the Voice Server (Express.js). Both talk to a PostgreSQL database. The Voice Server also connects to two external services: it receives incoming calls from Twilio, and it opens a WebSocket session with the OpenAI Realtime API, hosted on Microsoft Azure. For clarity, the diagram leaves out secondary services such as Redis, Cloudflare R2, WhatsApp, and the payment gateways.
+Figure~\ref{fig:deployment} is a simplified view of the architecture. The whole system runs on an Ubuntu VPS, with Nginx as a reverse proxy that routes HTTP traffic to the Web App (Next.js) and WebSocket connections to the Voice Server (Express.js). Both talk to a PostgreSQL database. The Voice Server also connects to two external services: it receives incoming calls from Twilio, and it opens a WebSocket session with the Gemini Live API. For clarity, the diagram leaves out secondary services such as Redis, Cloudflare R2, WhatsApp, and the payment gateway.
 
 \subsection{BPMN: Global Business Process}
-The BPMN (Business Process Model and Notation) diagram is a standard graphical model of the whole Riaya business process \cite{omg2011bpmn}. It covers the standard booking flow, the urgent booking flow, and timeout handling, with pools for the patient, the AI system, the doctor, and the administrator, and the message flows and sequence flows between them.
+The BPMN (Business Process Model and Notation) diagram is a standard graphical model of the booking process of Riaya \cite{omg2011bpmn}. It covers the standard booking flow, the urgent booking flow, and the handling of refusals and timeouts, with one swimlane for each of the patient, the AI system, and the doctor. The administrator is not drawn, because the administrator does not take part in a booking.
 
 Its main elements are:
 
 \begin{itemize}
-    \item \textbf{Pools:} Patient, AI System, Doctor, Administrator.
-    \item \textbf{Lanes:} Within the AI System pool, lanes for ``Call Handling'', ``Best-fit Search'', ``Appointment Management'', and ``Notification''.
-    \item \textbf{Start Events:} Patient calls Riaya, Doctor registers, Administrator logs in.
-    \item \textbf{Intermediate Events:} Appointment created, Doctor accepts, Doctor declines, Timeout.
-    \item \textbf{End Events:} Appointment confirmed, Appointment cancelled, Registration approved, Registration rejected.
-    \item \textbf{Sequence Flows:} The order of activities within each pool.
-    \item \textbf{Message Flows:} The communication between pools (e.g., patient calls AI, AI notifies doctor, doctor accepts appointment, AI sends WhatsApp confirmation to patient).
-    \item \textbf{Gateways:} Decision points such as ``Is the situation urgent?'' and ``Did the doctor accept within 10 minutes?''.
+    \item \textbf{Swimlanes:} Patient, AI System, Doctor.
+    \item \textbf{Start Event:} The patient calls Riaya.
+    \item \textbf{Gateways:} Decision points such as ``Is the number blocked?'', ``Is the situation urgent?'', and ``Did the doctor answer within 10 minutes?''.
+    \item \textbf{Activities:} Collecting the information, creating one pending request or up to three urgent ones, notifying the doctor, confirming or cancelling the appointment, and calling the patient back.
+    \item \textbf{End Events:} Appointment confirmed and rating link received, call rejected, or callback received after a refusal or a timeout.
 \end{itemize}
 
 The BPMN diagram helps technical and non-technical stakeholders follow the process end to end, and the team uses it to find improvements and to check that every scenario is handled.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{images/global_bpmn.png}
+    \includegraphics[width=0.95\textwidth,height=0.75\textheight,keepaspectratio]{images/global_bpmn.png}
     \caption{Global BPMN Diagram of the Riaya Project}
     \label{fig:bpmn_global_ch2}
 \end{figure}
 
-Figure~\ref{fig:bpmn_global_ch2} shows the global BPMN diagram of Riaya with all three flows (standard, urgent, and timeout).
+Figure~\ref{fig:bpmn_global_ch2} shows the global BPMN diagram of Riaya with the standard and urgent flows and the handling of refusals and timeouts.
 
 \section{Conclusion}
 This chapter presented the Kanban method, its principles, its advantages and disadvantages, and how it compares with Scrum and Waterfall, and it explained why the team chose Kanban for Riaya. It also described the modeling diagrams used to design the platform: use case, class/ERD, sequence, activity, deployment, and BPMN. The next chapter covers the technical architecture and implementation.
