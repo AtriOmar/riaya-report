@@ -47,7 +47,6 @@ Every card on the Riaya board stores the date it was created, started and finish
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Author's own work, computed from the Riaya board in Notion.
 \end{table}
 
 Throughput rose after the launch, when the client started using the platform and sent many small change requests through John.
@@ -85,7 +84,6 @@ Of the 154 cards created during the internship, John created 123, Ismail 22 and 
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Author's own work.
 \end{table}
 
 The page of each card holds a short description of the request. When a card changes an earlier decision, its description gives the number of the card it replaces.
@@ -111,7 +109,6 @@ Table~\ref{tab:board_statuses} describes the seven statuses. Two rules govern ho
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Author's own work.
 \end{table}
 
 The same cards appear in three views. The default view (Figure~\ref{fig:riaya_board_table}) is a table of every card, newest first. The ``To Do'' view uses the same table but hides the cards that are Done or in the Bin, so it shows only the work still ahead. The ``Kanban'' view (Figure~\ref{fig:riaya_board_kanban}) groups the cards by status, one column per status.
@@ -121,7 +118,6 @@ The same cards appear in three views. The default view (Figure~\ref{fig:riaya_bo
     \includegraphics[width=\textwidth]{images/riaya_board_table_view.png}
     \caption{Default Table View of the Riaya Board in Notion}
     \label{fig:riaya_board_table}
-    \small Source: Riaya board, Notion.
 \end{figure}
 
 \begin{figure}[H]
@@ -129,7 +125,6 @@ The same cards appear in three views. The default view (Figure~\ref{fig:riaya_bo
     \includegraphics[width=\textwidth]{images/riaya_board_kanban_view.png}
     \caption{Kanban View of the Riaya Board in Notion}
     \label{fig:riaya_board_kanban}
-    \small Source: Riaya board, Notion.
 \end{figure}
 
 Figure~\ref{fig:riaya_board_kanban} shows the board two weeks after the launch. Cards 138 and 139 wait for review, cards 116 and 149 are being tested, and the Backlog holds three ideas for later.
@@ -159,11 +154,9 @@ Kanban does not prescribe any quality practice \cite{beck2002tdd}. On Riaya, the
 Finally, the board suits one developer well. A larger team would need clearer rules on who reviews what, and possibly a scaling framework \cite{larman2016scaling}.
 
 \subsection{Comparative Table: Kanban vs Scrum vs Waterfall}
-Table~\ref{tab:comparison_methods} compares Kanban with Scrum and Waterfall, the two other methods considered for the project.
-
 \begin{table}[H]
     \centering
-    \caption{Comparison of Kanban, Scrum, and Waterfall}
+    \caption{Comparison of Kanban, Scrum, and Waterfall \cite{kniberg2010kanban, schwaber2020scrum}}
     \label{tab:comparison_methods}
     \small
     \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.1756\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2748\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2748\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2748\dimexpr\textwidth-8\tabcolsep\relax\relax}}
@@ -182,7 +175,6 @@ Table~\ref{tab:comparison_methods} compares Kanban with Scrum and Waterfall, the
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Adapted from Kniberg and Skarin \cite{kniberg2010kanban} and the Scrum Guide \cite{schwaber2020scrum}.
 \end{table}
 
 \subsection{Justification of the Choice of Kanban}
@@ -209,7 +201,6 @@ Riaya has five actors. The patient, the doctor, the secretary and the administra
     \includegraphics[width=0.92\textwidth,height=0.62\textheight,keepaspectratio]{images/diagrams/use_case_patient_admin.png}
     \caption{Use Cases of the Patient, the Phone AI and the Administrator}
     \label{fig:use_case}
-    \small Source: Author's own work (PlantUML).
 \end{figure}
 
 The patient has no account and no password. The phone number of the line identifies the caller, so every patient use case happens on the phone or on WhatsApp, inside the box ``Phone assistant and WhatsApp''. The main one is ``Book by phone'', where the AI finds the best-fit doctor. ``Book for a family member on the line'' extends it: the same call can book for a child, a parent or a spouse who shares the phone. The patient can also ask for a doctor by name, ask for an urgent doctor, list or cancel pending bookings and change the language of the assistant. Three use cases start on Riaya's side and reach the patient later: answering a callback after a refusal or a timeout, receiving WhatsApp messages, and rating the doctor from a link.
@@ -221,7 +212,6 @@ The Phone AI is linked to ``Report an abusive caller''. The dashed arrow labelle
     \includegraphics[width=0.92\textwidth,height=0.62\textheight,keepaspectratio]{images/diagrams/use_case_doctor_secretary.png}
     \caption{Use Cases of the Doctor and the Secretary}
     \label{fig:use_case_doctor}
-    \small Source: Author's own work (PlantUML).
 \end{figure}
 
 In Figure~\ref{fig:use_case_doctor}, the left box holds the practice tasks that a secretary and the doctor can both do: accept or refuse phone bookings, manage the calendar, manage patients, create invoices and record payments, send an invoice on WhatsApp, set the weekly availability, and view the dashboard. To keep the drawing readable, only the secretary is connected to that box. The secretary exists only in a Pro practice, and sees patients without their medical files.
@@ -238,7 +228,6 @@ The database runs on PostgreSQL \cite{postgresql2024} and its schema is written 
     \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{images/diagrams/class_diagram_people_care.png}
     \caption{Class Diagram, Part 1: People, Appointments and Patient Billing}
     \label{fig:erd}
-    \small Source: Author's own work (Mermaid), from the Drizzle schema.
 \end{figure}
 
 The \texttt{appointment} class carries two references that look alike and mean different things. \texttt{personId} (``is for'') names the person who will see the doctor, and \texttt{contactPhone} is the line that made the booking, where the WhatsApp confirmation and the review link are sent. When a mother books for her son, the appointment is for the son and the messages go to the mother's phone. The link to the doctor's patient file, \texttt{patientId}, is empty while the request is pending and is set when the doctor accepts it (``linked on accept''). The \texttt{status}, \texttt{source}, \texttt{urgent} and \texttt{emergencyGroupId} columns support the pending request flow and the groups of up to three urgent requests.
@@ -252,7 +241,6 @@ Patient billing follows the same idea of keeping facts and deriving the rest. An
     \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{images/diagrams/class_diagram_practice.png}
     \caption{Class Diagram, Part 2: Accounts, Practice and Doctor AI}
     \label{fig:erd_practice}
-    \small Source: Author's own work (Mermaid), from the Drizzle schema.
 \end{figure}
 
 A \texttt{secretary} row links a user to a doctor. A user can be the secretary of at most one doctor, which matches the rule of one practice per user. A \texttt{consultation\_recording} belongs to the doctor and may be linked to a patient. It keeps the audio link, the length, the transcript with speaker roles and the consultation note. The AI assistant stores conversations, each composed of messages. A message is a list of parts in JSON (text, tool results and proposed actions), with a status for replies still being written and its real cost in millionths of a dollar. A conversation can discuss one recording.
@@ -266,7 +254,6 @@ Usage is kept as event rows instead of a single counter that is overwritten. Eac
     \includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{images/diagrams/class_diagram_calls_billing.png}
     \caption{Class Diagram, Part 3: Calls, Abuse Handling and Riaya Billing}
     \label{fig:erd_calls}
-    \small Source: Author's own work (Mermaid), from the Drizzle schema.
 \end{figure}
 
 The abuse classes are drawn in orange. A call has at most one \texttt{call\_report}, with the category and the English summary written by the AI, and a status that an administrator changes when reviewing it. \texttt{blocked\_phone} uses the phone number itself as primary key, so a number has one block at a time, and an administrator changes its expiry or removes it. The table also counts rejected attempts. A block can come from a report or be set directly by an administrator, which is why its link to \texttt{call\_report} is optional.
@@ -281,7 +268,6 @@ The two sequence diagrams follow a call in time between the patient, Twilio, the
     \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{images/diagrams/sequence_call_flow.png}
     \caption{Sequence Diagram of an Inbound Call}
     \label{fig:sequence_call}
-    \small Source: Author's own work (PlantUML).
 \end{figure}
 
 The diagram is divided into four phases: Answer, Conversation, Booking and End. The steps below follow them.
@@ -294,14 +280,11 @@ The diagram is divided into four phases: Answer, Conversation, Booking and End. 
     \item To end the call, the AI calls \texttt{end\_call}, the server hangs up, and it asks the web application to close the call and save its events. Twilio then sends the recording webhook to the web application, which checks Twilio's signature, downloads the audio as MP3 and uploads it to Cloudflare R2 \cite{cloudflare2024r2}.
 \end{enumerate}
 
-Figure~\ref{fig:sequence_callback} shows what happens after a pending request when the doctor refuses it or does not answer.
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{images/diagrams/sequence_callback.png}
     \caption{Sequence Diagram of the Refusal and Timeout Callback}
     \label{fig:sequence_callback}
-    \small Source: Author's own work (PlantUML).
 \end{figure}
 
 \begin{enumerate}
@@ -323,7 +306,6 @@ Figure~\ref{fig:activity_signup} shows how a doctor joins the platform. The doct
     \includegraphics[width=0.95\textwidth,height=0.84\textheight,keepaspectratio]{images/diagrams/activity_signup_verification.png}
     \caption{Activity Diagram of Doctor Sign-up and Verification}
     \label{fig:activity_signup}
-    \small Source: Author's own work.
 \end{figure}
 
 Figure~\ref{fig:activity_urgent} shows an urgent booking. The patient describes the symptoms. If the signs are life-threatening, the AI first tells the patient to call the SAMU at 190, then offers urgent requests to the nearest doctors. For an urgent case that is not life-threatening, it offers the urgent requests directly. If the patient agrees, Riaya runs the best-fit search with the preferred time set to now and creates up to three urgent pending requests in one emergency group. The doctors see an urgent badge and a stronger alert, and Riaya waits for the first event. If a doctor accepts, that request is confirmed, the sibling requests are cancelled and the patient receives a WhatsApp confirmation. If a doctor refuses, only that request is cancelled and the others stay open. If the patient cancels one of the requests, or 10 minutes pass with no acceptance, the whole group is cancelled, and Riaya calls the patient back only in the timeout case.
@@ -333,7 +315,6 @@ Figure~\ref{fig:activity_urgent} shows an urgent booking. The patient describes 
     \includegraphics[width=0.95\textwidth,height=0.84\textheight,keepaspectratio]{images/diagrams/activity_urgent_booking.png}
     \caption{Activity Diagram of the Urgent Booking Process}
     \label{fig:activity_urgent}
-    \small Source: Author's own work.
 \end{figure}
 
 Figure~\ref{fig:activity_refusal} shows a normal booking after the call. Riaya creates a pending request, starts the 10-minute timer, and the request appears live on the doctor's calendar. There are three outcomes. If the doctor accepts, the request is confirmed and linked to the patient file, the patient receives a WhatsApp confirmation, and a review job runs 2 hours after the visit to send the rating link. If the doctor refuses, the request is cancelled and kept for 24 hours in Redis. If the doctor does not answer within 10 minutes, the timeout job cancels it. In the last two cases, Riaya checks whether the number is blocked, and sends nothing if it is. Otherwise it calls the patient back, with three other doctors after a refusal or a request to call again after a timeout. If the patient does not answer, the same message goes out on WhatsApp from the platform account. A note in the Doctor lane recalls that urgent requests get no callback, because the other doctors of the group can still accept.
@@ -343,7 +324,6 @@ Figure~\ref{fig:activity_refusal} shows a normal booking after the call. Riaya c
     \includegraphics[width=0.95\textwidth,height=0.84\textheight,keepaspectratio]{images/diagrams/activity_refusal_timeout.png}
     \caption{Activity Diagram of the Answers to a Normal Request}
     \label{fig:activity_refusal}
-    \small Source: Author's own work.
 \end{figure}
 
 \subsection{Deployment Diagram: Docker, Nginx and the Ubuntu VPS}
@@ -354,7 +334,6 @@ Figure~\ref{fig:deployment} shows how the code goes from GitHub to the productio
     \includegraphics[width=0.95\textwidth,height=0.7\textheight,keepaspectratio]{images/diagrams/deployment.png}
     \caption{Deployment Diagram of the Riaya Platform}
     \label{fig:deployment}
-    \small Source: Author's own work.
 \end{figure}
 
 The left part is GitHub. The web repository holds the Next.js application and the voice repository holds the realtime server. A push to \texttt{main} starts the GitHub Actions workflow of that repository, which builds a Docker image and pushes it to the GitHub Container Registry (GHCR). The environment file and the SSH key are stored as GitHub secrets.
@@ -372,7 +351,6 @@ Chapter~1 gives the whole booking process in one page (Figure~\ref{fig:bpmn_glob
     \includegraphics[width=\linewidth,height=0.8\textwidth,keepaspectratio]{images/diagrams/bpmn_booking.png}
     \caption{BPMN Diagram, Part A: From the Call to the Pending Request}
     \label{fig:bpmn_booking}
-    \small Source: Author's own work (bpmn-js).
 \end{figure}
 \end{landscape}
 
@@ -386,7 +364,6 @@ In the normal path, a gateway checks for urgent signs. If there are any, the AI 
     \includegraphics[width=\linewidth,height=0.8\textwidth,keepaspectratio]{images/diagrams/bpmn_callback_review.png}
     \caption{BPMN Diagram, Part B: Answer, Callbacks and Review}
     \label{fig:bpmn_callback}
-    \small Source: Author's own work (bpmn-js).
 \end{figure}
 \end{landscape}
 

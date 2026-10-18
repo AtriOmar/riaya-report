@@ -31,8 +31,6 @@ The \textbf{voice repository} is a Node.js server built with Express \cite{expre
 
 The voice server has no database connection. Every read and write, from checking whether a caller is blocked to booking an appointment, goes through the web application's API, and the request carries a shared secret in the \texttt{x-internal-secret} header. The calls also go the other way: when a doctor sends an invoice on WhatsApp, the web application asks the voice server to send it, because the WhatsApp sessions live in that process. The two applications also share Redis: the web application adds jobs to the queues, and the workers in the voice server run them.
 
-Figure~\ref{fig:two_repos} shows the main modules of each repository and the calls between them.
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth,height=0.62\textheight,keepaspectratio]{images/diagrams/architecture_two_repos.png}
@@ -99,7 +97,6 @@ This section goes through the stack area by area. For each tool, it says what th
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Author's own work.
 \end{table}
 
 \subsection{Web Application: Next.js, React, TypeScript, Tailwind CSS}

@@ -74,10 +74,7 @@ Doctors can upgrade at any time. Payments go through the Konnect.network API \ci
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Author's own work based on the Riaya plan configuration.
 \end{table}
-
-Table~\ref{tab:plans} summarizes the differences between the two plans.
 
 \subsection{How the Limits Are Counted}\label{subsec:usage-limits}
 
@@ -88,7 +85,6 @@ The Free and Pro plans limit three things that cost us money: WhatsApp sends, re
     \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{images/diagrams/plan_limits_flow.png}
     \caption{How a doctor's action is checked against the Free and Pro limits}
     \label{fig:plan_limits}
-    \small Source: Author's own work.
 \end{figure}
 
 The first step is the effective plan. A doctor is on Pro only if the subscription is Pro, its status is active, and its period end is still ahead; a missing, unpaid or expired subscription behaves as Free. For WhatsApp, only the sends the doctor starts count, with a limit of 30 a month on Free and none on Pro. A medical file with documents counts as one caption plus one per document, a text-only file counts as one, and an invoice PDF counts as one. Automatic messages to patients, such as confirmations, review requests and timeout or refusal messages, are never counted and never blocked. The check and the increment happen in one SQL statement, so two sends at the same moment cannot both pass the limit.
@@ -174,10 +170,7 @@ A public phone number attracts some prank and abusive calls. The assistant gives
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Author's own work based on Riaya documentation.
 \end{table}
-
-Table~\ref{tab:functional_requirements} groups the functional requirements by actor.
 
 \section{Non-Functional Requirements}
 
@@ -230,7 +223,6 @@ Doctolib is designed for European healthcare systems. Patients must create an ac
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Author's own work based on Doctolib public documentation \cite{doctolib2024}.
 \end{table}
 
 \subsection{Solution 2: TunisieDocteur / Mondocteur (Local Directories)}
@@ -261,7 +253,6 @@ The patient needs internet access and, to book, an account. All interaction is t
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Author's own work based on public information about TunisieDocteur and Mondocteur \cite{tunisiedoctor2024}.
 \end{table}
 
 \subsection{Solution 3: Classic IVR Systems (Interactive Voice Response)}
@@ -292,12 +283,9 @@ The caller has to go through a fixed menu, which is slow and often frustrating, 
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Author's own work based on public documentation of IVR systems \cite{voicexml2004}.
 \end{table}
 
 \subsection{Comparative Table and Positioning of Riaya}
-Table~\ref{tab:comparison_solutions} compares the three solutions and Riaya on the same criteria.
-
 \begin{table}[H]
     \centering
     \caption{Comparison of Existing Solutions and Riaya}
@@ -319,7 +307,6 @@ Table~\ref{tab:comparison_solutions} compares the three solutions and Riaya on t
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Author's own work.
 \end{table}
 
 Among the solutions in Table~\ref{tab:comparison_solutions}, Riaya is the only one that lets a patient book by talking in Derja, without an account or internet access, and then follows up on WhatsApp.
@@ -346,7 +333,6 @@ We modeled the booking process in BPMN 2.0 \cite{omg2011bpmn}. The model has two
     \includegraphics[width=\textwidth]{images/diagrams/bpmn_global.png}
     \caption{Global BPMN Diagram of the Riaya Booking Process (A: from the call to the pending request; B: answer, callbacks and review)}
     \label{fig:bpmn_global}
-    \small Source: Author's own work.
 \end{figure}
 
 Figure~\ref{fig:bpmn_global} shows the whole process. Part A, at the top, contains the standard and urgent paths of the call and the abuse review by the administrator. Part B, at the bottom, contains the doctor's answer, the refusal and timeout callbacks with the WhatsApp fallback, and the review request.
