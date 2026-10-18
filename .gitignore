@@ -43,3 +43,5 @@
 *blx.bib
 build/
 *.xdv
+*.M[0-9]*
+*.synctex(busy)

@@ -18,7 +18,7 @@ Pengguin is a language e-learning company founded by John Jang. Its main product
 
 Figure~\ref{fig:pengguin_logo} presents the official logo of Pengguin.
 
-\subsection{Internal Organization and Presentation of the Founder (John Jang)}
+\subsection{Internal Organization and Founder (John Jang)}
 John Jang founded Pengguin and leads it. The company manages its projects with agile methods, mainly Kanban \cite{anderson2010kanban}. The team works in small cross-functional units responsible for the web application, the voice server, and the deployment infrastructure.
 
 John Jang has extensive experience in software engineering, artificial intelligence, and cloud infrastructure. He takes part directly in the technical direction of the company's projects, guiding the architecture and mentoring the development team. He wants Pengguin to build technically sound products that solve real problems, and Riaya follows that aim: it is meant to make healthcare easier to reach for more people in Tunisia.
@@ -83,7 +83,7 @@ With this freemium model, doctors can try the platform without commitment and up
 
 Table~\ref{tab:plans} summarizes the differences between the two subscription plans.
 
-\section{Presentation of Functional Requirements}
+\section{Functional Requirements}
 
 \subsection{Functional Requirements of the Patient (No Account)}
 Patients have no account; the calling phone number identifies them. They use two channels, the phone call and WhatsApp. Their functional requirements are:
@@ -140,7 +140,7 @@ The administrator manages the platform from a dedicated back-office. The require
 
 Table~\ref{tab:functional_requirements} groups the functional requirements by actor.
 
-\section{Presentation of Non-Functional Requirements}
+\section{Non-Functional Requirements}
 
 \subsection{Performance and Real-Time}
 The platform uses WebSockets \cite{fette2011websocket} to notify doctors of new appointment requests in real time. A pending AI request is cancelled automatically if no doctor accepts it within 10 minutes. The best-fit search algorithm is optimized to run within a few hundred milliseconds, so the patient is not kept waiting. The voice server must relay audio between Twilio \cite{twilio2024} and the OpenAI Realtime API with minimal delay to keep the conversation natural.
@@ -160,7 +160,7 @@ The doctor dashboard uses TailwindCSS \cite{tailwind2024} for a modern, responsi
 \subsection{Technical and Regulatory Constraints}
 Location search is restricted to Tunisia, and the platform runs on Tunisian local time (GMT+1). Each doctor's cabinet is stored with the exact latitude and longitude picked on the registration map, so matching compares GPS coordinates instead of city names. The platform must comply with local data protection regulations (INPDP) and, where applicable, with the GDPR principles of data minimization, purpose limitation, and the right to erasure.
 
-\section{Presentation of Existing Solutions}
+\section{Existing Solutions}
 Before designing Riaya, the Pengguin team studied the existing medical appointment booking solutions. They fall into three categories: international web and mobile platforms, local Tunisian directories, and classic Interactive Voice Response (IVR) systems \cite{ivr2019}. For each one, the team looked at its strengths, its limitations, and the gaps Riaya could fill. This section presents each solution, its features, and why it does not fully meet the needs of the Tunisian market.
 
 \subsection{Solution 1: Doctolib (Classic Web/Mobile Platform)}
