@@ -98,77 +98,25 @@
     \addtocounter{page}{-1}%
     \newpage}
 
-%================ document main language ================%
-%\selectlanguage{english}
-%\selectlanguage{french}
-\selectlanguage{italian}
-
-
 %================== required packages ===================%
+% geometry, titlesec, fancyhdr, enumitem, xcolor, caption, graphicx and float
+% are already loaded by isipfe.cls; the main language is set there too.
 
 \usepackage{tcolorbox}
 \usepackage{afterpage}
-\usepackage{array,longtable,multirow}% http://ctan.org/pkg/{array,longtable,multirow}
 \usepackage{pifont}
-
 \usepackage{pdflscape}
 \usepackage{rotating}
 \usepackage{wrapfig}
-\usepackage[shortlabels,inline]{enumitem}
-\usepackage{titlesec}
 \usepackage{tocloft}
 \usepackage{needspace}
-\usepackage{listings}
-\usepackage{textcomp}
+\usepackage{listings}            % code listings
 \usepackage{pmboxdraw}
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{amssymb}
+\usepackage{amsmath, amsfonts, amssymb}
 \usepackage{mathrsfs}
-\usepackage{array}
-\usepackage{booktabs}
-\usepackage{longtable}
-\usepackage{multirow}
-\usepackage{colortbl}
-
-\usepackage{graphicx}
+\usepackage{array, tabularx, longtable, multirow, booktabs, colortbl}
+\usepackage{subcaption}
 \usepackage{parskip}
-
-\usepackage{caption}
-\usepackage{subcaption}
-\usepackage{float}
-\usepackage{wrapfig}
-\usepackage{amsmath, amssymb}    % Mathématiques
-\usepackage{graphicx}            % Gestion des images
-\usepackage{float}               % Positionnement des figures
-\usepackage{caption}             % Légendes
-\usepackage{subcaption}          % Sous-figures
-\usepackage{hyperref}            % Liens hypertextes
-\usepackage{url}                 % URLs
-\usepackage{enumitem}            % Listes personnalisées
-\usepackage{array}               % Tableaux avancés
-\usepackage{booktabs}            % Tableaux professionnels
-\usepackage{longtable}           % Tableaux sur plusieurs pages
-\usepackage{multirow}            % Fusion de cellules
-\usepackage{listings}            % Affichage de code
-\usepackage{xcolor}              % Couleurs
-\usepackage[colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black]{hyperref}
-%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%
-\usepackage[italian]{babel}
-\usepackage{geometry}
-\usepackage{graphicx}
-\usepackage{float}
-\usepackage{caption}
-\usepackage{subcaption}
-\usepackage{array}
-\usepackage{tabularx}
-\usepackage{longtable}
-\usepackage{booktabs}
-\usepackage{multirow}
-\usepackage{xcolor}
+\usepackage{url}
+% hyperref goes last; its options are passed in main.tex
 \usepackage{hyperref}
-\usepackage{titlesec}
-\usepackage{fancyhdr}
-\usepackage{enumitem}

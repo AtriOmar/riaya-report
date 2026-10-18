@@ -214,7 +214,7 @@ The ERD also includes join tables and foreign keys that enforce referential inte
 
 Figure~\ref{fig:erd} presents the complete ERD of the Riaya database, showing all entities and their relationships.
 
-\subsection{Sequence Diagram: Twilio Call Flow $\rightarrow$ WebSocket $\rightarrow$ OpenAI $\rightarrow$ Database}
+\subsection{Sequence Diagram: Twilio Call Flow \texorpdfstring{$\rightarrow$}{→} WebSocket \texorpdfstring{$\rightarrow$}{→} OpenAI \texorpdfstring{$\rightarrow$}{→} Database}
 The sequence diagram illustrates the real-time flow of a patient's phone call. It shows the interactions between Twilio, the Express.js voice server, the OpenAI Realtime API (via Microsoft Azure), and the PostgreSQL database. The diagram details how the call is received, how the WebSocket media stream is established, how the AI processes speech and makes tool calls to the database, and how the live transcript is sent to the admin dashboard.
 
 The sequence of events is as follows:

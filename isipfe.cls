@@ -112,9 +112,11 @@
 % @author: Stoufa
 % Package babel-french Warning: Option `frenchb' for Babel is *deprecated*
 %\usepackage[english,arabic,frenchb]{babel}
-\usepackage[english,french]{babel}
+% the last language listed is the main one; french is kept for the French abstract
+\usepackage[french,english]{babel}
 \babelprovide[import]{arabic}
-\babelfont[arabic]{rm}{Geeza Pro}
+% Amiri ships with TeX Live, so the build works on any machine (not only macOS)
+\babelfont[arabic]{rm}[Extension=.ttf, UprightFont=*-Regular, BoldFont=*-Bold, ItalicFont=*-Italic, BoldItalicFont=*-BoldItalic]{Amiri}
 
 %%%%%%%%%%%
 
@@ -140,10 +142,7 @@
     %hyperref=true,
     %natbib=true % natbib compatibility mode (\citep and \citet still work)
 }{biblatex}
-% @author: Stoufa
-% the option `backend=bibtex` is mandatory to avoid the “no \citation commands” error
-% https://tex.stackexchange.com/questions/18045/problem-with-compiling-bibtex-no-citation-commands-error
-\usepackage[backend=bibtex]{biblatex}
+\usepackage{biblatex}
 %\renewcommand*{\bibfont}{\small\raggedright}
 %\DefineBibliographyExtras{french}{\renewcommand*\mkbibnamelast[1]{#1}}
 \addbibresource{biblio.bib}
@@ -184,8 +183,8 @@
 \definecolor{isiBlue}{RGB}{31, 78, 121}
 
 %================= configuring minitoc ==================%
-\usepackage[french]{minitoc}
-\mtcsettitle{minitoc}{Plan}
+\usepackage[english]{minitoc}
+\mtcsettitle{minitoc}{Contents}
 \setcounter{minitocdepth}{1}
 \mtcsetrules{minitoc}{off}
 \mtcsetoffset{minitoc}{-1.0em}
@@ -239,7 +238,7 @@
 \captionsetup[table]{
   labelfont=bf,
   labelsep = newline,
-  name = Tableau,
+  name = Table,
   justification=justified,
   singlelinecheck=false,%%%%%%% a single line is centered by default
   labelsep=colon,

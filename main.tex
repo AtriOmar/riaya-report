@@ -12,7 +12,6 @@
 %\documentclass[pfe]{./tpl/isipfe}
 \PassOptionsToPackage{shortlabels,inline}{enumitem}
 \PassOptionsToPackage{colorlinks=true,linkcolor=black,urlcolor=blue,citecolor=black}{hyperref}
-\PassOptionsToPackage{italian}{babel}
 \documentclass[]{isipfe}
 \graphicspath{{./images/}}
 \usepackage{pdfpages}
@@ -20,11 +19,6 @@
 %\usepackage{hyperref}
 
 \input{new_commands}
-
-% @author: Stoufa
-% the command `\makeindex` is mandatory to create the index file main.idx
-% https://tex.stackexchange.com/questions/9913/input-index-file-not-found
-\makeindex
 
 \begin{document}
     \input{global_config}
@@ -59,7 +53,9 @@
         \thispagestyle{frontmatter}
     
     \mainmatter
-       \input{introduction}
+        \input{introduction}
+        % the introduction is an unnumbered chapter listed in the TOC; skip its minitoc slot
+        \adjustmtc
         \clearpage
         
         \input{chap_01}
@@ -101,7 +97,7 @@
         % \input{webo}
         \clearpage
         
-        \printbibliography[title={Bibliographie},heading=bibintoc]
+        \printbibliography[title={Bibliography},heading=bibintoc]
         
        
         
