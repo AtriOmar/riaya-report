@@ -38,11 +38,11 @@ function draw(K) {
   E({pts: [K.P('create', 'r'), K.P('see', 'l')], label: 'live', at: [(K.P('create', 'r')[0] + K.P('see', 'l')[0]) / 2, 280]});
   E({pts: [K.P('create', 'b'), K.P('ans', 't')]});
   E({pts: [K.P('ans', 'l'), [RL, 430], K.P('conf', 't')], kind: 'teal'});
-  K.guard(RL, 470, 'accepts', '#0F766E');
+  K.guard(RL, 470, 'accepts', '#111111');
   E({pts: [K.P('ans', 'b'), K.P('ref', 't')], kind: 'amber'});
-  K.guard(R + 14, 500, 'refuses', '#B45309', 'start');
+  K.guard(R + 14, 500, 'refuses', '#111111', 'start');
   E({pts: [K.P('ans', 'r'), [RR, 430], K.P('to', 't')], kind: 'amber'});
-  K.guard(RR, 470, 'no answer\nin 10 min', '#B45309');
+  K.guard(RR, 470, 'no answer\nin 10 min', '#111111');
   E({pts: [K.P('conf', 'b'), K.P('wa', 't')]});
   E({pts: [K.P('wa', 'b'), K.P('rev', 't')]});
   E({pts: [K.P('rev', 'b'), [RL, 900], K.P('rate', 'r')], label: 'WhatsApp link', at: [RL - 50, 900]});
@@ -50,17 +50,17 @@ function draw(K) {
   E({pts: [K.P('ref', 'b'), K.P('blk', 't')]});
   E({pts: [K.P('to', 'b'), [RR, 640], [R, 640]]});
   K.gEdges.lastChild.removeAttribute('marker-end');
-  K.el(K.gEdges, 'circle', {cx: R, cy: 640, r: 4.5, fill: '#94A3B8'});
+  K.el(K.gEdges, 'circle', {cx: R, cy: 640, r: 4.5, fill: '#737373'});
   E({pts: [K.P('blk', 'r'), K.P('e2', 'l')], kind: 'red'});
-  K.guard((K.P('blk', 'r')[0] + K.P('e2', 'l')[0]) / 2, 692, 'yes: nothing sent', '#DC2626');
+  K.guard((K.P('blk', 'r')[0] + K.P('e2', 'l')[0]) / 2, 692, 'yes: nothing sent', '#333333');
   E({pts: [K.P('blk', 'b'), K.P('cb', 't')], kind: 'teal'});
-  K.guard(R + 14, 790, 'no', '#0F766E', 'start');
+  K.guard(R + 14, 790, 'no', '#111111', 'start');
   E({pts: [K.P('cb', 'b'), K.P('pick', 't')]});
   E({pts: [K.P('pick', 'r'), K.P('wam', 'l')], kind: 'amber'});
-  K.guard((K.P('pick', 'r')[0] + K.P('wam', 'l')[0]) / 2, 988, 'no', '#B45309');
+  K.guard((K.P('pick', 'r')[0] + K.P('wam', 'l')[0]) / 2, 988, 'no', '#111111');
   E({pts: [K.P('wam', 'b'), K.P('e3', 't')]});
   E({pts: [K.P('pick', 'b'), [R, 1130], K.P('talk', 'r')], kind: 'teal'});
-  K.guard(R + 14, 1080, 'yes', '#0F766E', 'start');
+  K.guard(R + 14, 1080, 'yes', '#111111', 'start');
   E({pts: [K.P('talk', 'b'), K.P('e4', 't')]});
-  K.text(D, 560, 'Urgent request:\nno callback,\nother doctors of\nthe group can\nstill accept.', {size: 16, color: '#64748B', anchor: 'middle'});
+  K.text(D, 560, 'Urgent request:\nno callback,\nother doctors of\nthe group can\nstill accept.', {size: 16, color: '#404040', anchor: 'middle'});
 }

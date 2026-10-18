@@ -2,23 +2,23 @@
 // Look: white background, rounded cards with icon chips, soft zone tints, thin grey arrows.
 const NS = 'http://www.w3.org/2000/svg';
 const C = {
-  ink: '#1F2937', sub: '#64748B', line: '#94A3B8', teal: '#0F766E', amber: '#D97706',
-  card: '#FFFFFF', cardStroke: '#E2E8F0',
+  ink: '#111111', sub: '#404040', line: '#737373', teal: '#0F766E', amber: '#333333',
+  card: '#FFFFFF', cardStroke: '#E3E3E3',
 };
 const ZONES = {
-  users: {fill: '#F8FAFC', stroke: '#CBD5E1', text: '#475569', chip: '#F1F5F9'},
-  edge: {fill: '#EEF2FF', stroke: '#A5B4FC', text: '#4338CA', chip: '#E0E7FF'},
-  riaya: {fill: '#F0FDFA', stroke: '#5EEAD4', text: '#0F766E', chip: '#CCFBF1'},
-  ext: {fill: '#FFFBEB', stroke: '#FCD34D', text: '#B45309', chip: '#FEF3C7'},
-  host: {fill: '#F8FAFC', stroke: '#94A3B8', text: '#334155', chip: '#F1F5F9'},
-  gh: {fill: '#F8FAFC', stroke: '#CBD5E1', text: '#334155', chip: '#F1F5F9'},
+  users: {fill: '#F6F6F6', stroke: '#C8C8C8', text: '#111111', chip: '#EFEFEF'},
+  edge: {fill: '#F3F3F3', stroke: '#BDBDBD', text: '#111111', chip: '#EAEAEA'},
+  riaya: {fill: '#F0FDFA', stroke: '#5EEAD4', text: '#111111', chip: '#CCFBF1'},
+  ext: {fill: '#F7F7F7', stroke: '#BDBDBD', text: '#111111', chip: '#EDEDED'},
+  host: {fill: '#F6F6F6', stroke: '#737373', text: '#111111', chip: '#EFEFEF'},
+  gh: {fill: '#F6F6F6', stroke: '#C8C8C8', text: '#111111', chip: '#EFEFEF'},
 };
 const CHIPS = {
   teal: {fill: '#F0FDFA', stroke: '#99F6E4'},
-  indigo: {fill: '#EEF2FF', stroke: '#C7D2FE'},
-  amber: {fill: '#FFFBEB', stroke: '#FDE68A'},
-  white: {fill: '#FFFFFF', stroke: '#E2E8F0'},
-  slate: {fill: '#F8FAFC', stroke: '#E2E8F0'},
+  indigo: {fill: '#F3F3F3', stroke: '#D4D4D4'},
+  amber: {fill: '#F7F7F7', stroke: '#D9D9D9'},
+  white: {fill: '#FFFFFF', stroke: '#E3E3E3'},
+  slate: {fill: '#F6F6F6', stroke: '#E3E3E3'},
 };
 const F = {title: 22, sub: 18, label: 18, zone: 20};
 
@@ -32,7 +32,7 @@ const K = {
     svg.style.fontFamily = 'Inter, sans-serif';
     svg.innerHTML = `<defs>
       <filter id="sh" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.07"/></filter>
-      ${['line', 'teal', 'amber', 'indigo', 'red'].map(k => `<marker id="ar-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0.8 L9.5,5 L0,9.2 z" fill="${({line: C.line, teal: C.teal, amber: C.amber, indigo: '#6366F1', red: '#DC2626'})[k]}"/></marker>`).join('')}
+      ${['line', 'teal', 'amber', 'indigo', 'red'].map(k => `<marker id="ar-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0.8 L9.5,5 L0,9.2 z" fill="${({line: C.line, teal: C.teal, amber: C.amber, indigo: '#333333', red: '#333333'})[k]}"/></marker>`).join('')}
     </defs><rect width="${w}" height="${h}" fill="#FFFFFF"/>`;
     this.svg = svg;
     this.gZones = this.g(); this.gEdges = this.g(); this.gNodes = this.g(); this.gLabels = this.g();
@@ -89,7 +89,7 @@ const K = {
   },
   // database cylinder
   store({id, x, y, w, h, title, sub, cx, cy, color = 'indigo'}) {
-    const pal = color === 'red' ? {fill: '#FEF2F2', stroke: '#F87171'} : {fill: '#EEF2FF', stroke: '#818CF8'};
+    const pal = color === 'red' ? {fill: '#F7F7F7', stroke: '#737373'} : {fill: '#F3F3F3', stroke: '#737373'};
     const tw = Math.max(this.textW(title, F.title, 600), sub ? this.textW(sub, F.sub) : 0);
     w = w || Math.ceil(tw + 48); h = h || (sub ? 104 : 88);
     if (cx !== undefined) x = cx - w / 2;
@@ -114,7 +114,7 @@ const K = {
   },
   // orthogonal (or any) polyline with rounded corners; label at {at:[x,y]} or the middle of segment `seg`
   edge({pts, label, at, seg, kind = 'line', dash, both, width = 1.8, labelColor, anchor = 'middle'}) {
-    const col = ({line: C.line, teal: C.teal, amber: C.amber, indigo: '#6366F1', red: '#DC2626'})[kind];
+    const col = ({line: C.line, teal: C.teal, amber: C.amber, indigo: '#333333', red: '#333333'})[kind];
     const r = 10;
     let d = `M${pts[0][0]},${pts[0][1]}`;
     for (let i = 1; i < pts.length; i++) {
@@ -137,10 +137,10 @@ const K = {
         if (s === undefined) { let best = -1; for (let i = 0; i < pts.length - 1; i++) { const L = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]); if (L > best) { best = L; s = i; } } }
         pos = [(pts[s][0] + pts[s + 1][0]) / 2, (pts[s][1] + pts[s + 1][1]) / 2];
       }
-      this.label(pos[0], pos[1], label, labelColor || (kind === 'line' ? '#475569' : col), anchor);
+      this.label(pos[0], pos[1], label, labelColor || (kind === 'line' ? '#111111' : col), anchor);
     }
   },
-  label(x, y, text, color = '#475569', anchor = 'middle', size = F.label, weight = 500) {
+  label(x, y, text, color = '#111111', anchor = 'middle', size = F.label, weight = 500) {
     const lines = text.split('\n');
     const lh = size + 4;
     const w = Math.max(...lines.map(l => this.textW(l, size, weight)));
@@ -158,18 +158,18 @@ const K = {
 const ACT = {
   doctor: {fill: '#F0FDFA', stroke: '#0F766E'},
   patient: {fill: '#F0FDFA', stroke: '#0F766E'},
-  sys: {fill: '#FFFFFF', stroke: '#94A3B8'},
-  admin: {fill: '#EEF2FF', stroke: '#6366F1'},
-  warn: {fill: '#FEF3C7', stroke: '#D97706'},
-  bad: {fill: '#FEF2F2', stroke: '#DC2626'},
-  good: {fill: '#ECFDF5', stroke: '#059669'},
+  sys: {fill: '#FFFFFF', stroke: '#737373'},
+  admin: {fill: '#F0FDFA', stroke: '#0F766E'},
+  warn: {fill: '#F0FDFA', stroke: '#0F766E'},
+  bad: {fill: '#F0FDFA', stroke: '#0F766E'},
+  good: {fill: '#F0FDFA', stroke: '#0F766E'},
 };
 const LANES = {
-  doctor: {fill: '#F7FDFC', head: '#CCFBF1', text: '#0F766E'},
-  patient: {fill: '#F7FDFC', head: '#CCFBF1', text: '#0F766E'},
-  sys: {fill: '#FAFAFB', head: '#E2E8F0', text: '#334155'},
-  admin: {fill: '#F8F8FF', head: '#E0E7FF', text: '#4338CA'},
-  ext: {fill: '#FFFDF5', head: '#FEF3C7', text: '#B45309'},
+  doctor: {fill: '#F7FDFC', head: '#CCFBF1', text: '#111111'},
+  patient: {fill: '#F7FDFC', head: '#CCFBF1', text: '#111111'},
+  sys: {fill: '#F9F9F9', head: '#E3E3E3', text: '#111111'},
+  admin: {fill: '#F6F6F6', head: '#EAEAEA', text: '#111111'},
+  ext: {fill: '#FAFAFA', head: '#EDEDED', text: '#111111'},
 };
 Object.assign(K, {
   AF: 19,
@@ -178,9 +178,9 @@ Object.assign(K, {
     const out = {};
     lanes.forEach((ln, i) => {
       const st = LANES[ln.kind];
-      this.el(this.gZones, 'rect', {x: cx, y, width: ln.w, height: h, fill: st.fill, stroke: '#E2E8F0', 'stroke-width': 1.2,
+      this.el(this.gZones, 'rect', {x: cx, y, width: ln.w, height: h, fill: st.fill, stroke: '#E3E3E3', 'stroke-width': 1.2,
         rx: 0});
-      this.el(this.gZones, 'rect', {x: cx, y, width: ln.w, height: head, fill: st.head, stroke: '#E2E8F0', 'stroke-width': 1.2});
+      this.el(this.gZones, 'rect', {x: cx, y, width: ln.w, height: head, fill: st.head, stroke: '#E3E3E3', 'stroke-width': 1.2});
       if (ln.icon) {
         const tw = this.textW(ln.title, 21, 600);
         this.el(this.gZones, 'image', {href: ln.icon, x: cx + ln.w / 2 - (tw + 34) / 2, y: y + head / 2 - 12, width: 24, height: 24});
@@ -190,7 +190,7 @@ Object.assign(K, {
       cx += ln.w;
     });
     // outer rounded frame
-    this.el(this.gZones, 'rect', {x, y, width: cx - x, height: h, rx: 16, fill: 'none', stroke: '#CBD5E1', 'stroke-width': 1.6});
+    this.el(this.gZones, 'rect', {x, y, width: cx - x, height: h, rx: 16, fill: 'none', stroke: '#C8C8C8', 'stroke-width': 1.6});
     return out;
   },
   act({id, cx, cy, text, kind = 'sys', w, size}) {
@@ -204,7 +204,7 @@ Object.assign(K, {
     const st = ACT[kind];
     const g = this.g(this.gNodes);
     this.el(g, 'rect', {x, y, width: w, height: h, rx: 14, fill: st.fill, stroke: st.stroke, 'stroke-width': 1.8, filter: 'url(#sh)'});
-    lines.forEach((l, i) => this.el(g, 'text', {x: cx, y: y + 13 + (i + 1) * lh - 6, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 500, fill: '#1F2937'}, l));
+    lines.forEach((l, i) => this.el(g, 'text', {x: cx, y: y + 13 + (i + 1) * lh - 6, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 500, fill: '#111111'}, l));
     this.boxes[id] = {x, y, w, h};
     return this.boxes[id];
   },
@@ -216,9 +216,9 @@ Object.assign(K, {
     h = h || Math.ceil(lines.length * (fs + 5) * 1.6 + 46);
     const x = cx - w / 2, y = cy - h / 2;
     const g = this.g(this.gNodes);
-    this.el(g, 'path', {d: `M${cx},${y} L${x + w},${cy} L${cx},${y + h} L${x},${cy} Z`, fill: '#FFFBEB', stroke: '#D97706', 'stroke-width': 1.8, 'stroke-linejoin': 'round', filter: 'url(#sh)'});
+    this.el(g, 'path', {d: `M${cx},${y} L${x + w},${cy} L${cx},${y + h} L${x},${cy} Z`, fill: '#F7F7F7', stroke: '#333333', 'stroke-width': 1.8, 'stroke-linejoin': 'round', filter: 'url(#sh)'});
     const lh = fs + 5;
-    lines.forEach((l, i) => this.el(g, 'text', {x: cx, y: cy - (lines.length * lh) / 2 + (i + 1) * lh - 5, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 600, fill: '#78350F'}, l));
+    lines.forEach((l, i) => this.el(g, 'text', {x: cx, y: cy - (lines.length * lh) / 2 + (i + 1) * lh - 5, 'text-anchor': 'middle', 'font-size': fs, 'font-weight': 600, fill: '#111111'}, l));
     this.boxes[id] = {x, y, w, h};
     return this.boxes[id];
   },
@@ -227,17 +227,17 @@ Object.assign(K, {
     this.boxes[id] = {x: cx - 14, y: cy - 14, w: 28, h: 28};
   },
   end({id, cx, cy, kind = 'end'}) {
-    this.el(this.gNodes, 'circle', {cx, cy, r: 16, fill: '#FFFFFF', stroke: '#1F2937', 'stroke-width': 2});
-    this.el(this.gNodes, 'circle', {cx, cy, r: 10, fill: '#1F2937'});
+    this.el(this.gNodes, 'circle', {cx, cy, r: 16, fill: '#FFFFFF', stroke: '#111111', 'stroke-width': 2});
+    this.el(this.gNodes, 'circle', {cx, cy, r: 10, fill: '#111111'});
     this.boxes[id] = {x: cx - 16, y: cy - 16, w: 32, h: 32};
   },
   // small guard label (yes / no) near a point
   guard(x, y, text, color, anchor = 'middle') {
-    this.label(x, y, text, color || '#B45309', anchor, 17, 600);
+    this.label(x, y, text, color || '#111111', anchor, 17, 600);
   },
   fork({id, cx, cy, w = 300, vertical = false}) {
     const r = vertical ? {x: cx - 4, y: cy - w / 2, width: 8, height: w} : {x: cx - w / 2, y: cy - 4, width: w, height: 8};
-    this.el(this.gNodes, 'rect', {...r, rx: 3, fill: '#1F2937'});
+    this.el(this.gNodes, 'rect', {...r, rx: 3, fill: '#111111'});
     this.boxes[id] = {x: r.x, y: r.y, w: r.width, h: r.height};
   },
 });

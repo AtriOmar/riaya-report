@@ -1,59 +1,54 @@
 classDiagram
 direction TB
 
-class appointment {
-  int id
-}
+class appointment
 class callrow["call"] {
-  string callSid
-  string from, to
-  string direction
-  string status
-  int duration
-  string recordingUrl
+  varchar call_sid
+  varchar from, to
+  varchar direction
+  varchar status
+  integer duration
+  varchar recording_url
 }
 class call_event {
-  string type
+  varchar type
   text content
-  string functionName
-  jsonb functionArgs
-  jsonb functionResult
+  varchar function_name
+  jsonb function_args
+  jsonb function_result
 }
 class call_report {
-  string phoneNumber
-  string category
+  varchar phone_number
+  varchar category
   text summary
-  string status
+  varchar status
 }
 class blocked_phone {
-  string phoneNumber PK
-  datetime expiresAt
-  int rejectedCallCount
+  varchar phone_number PK
+  timestamp expires_at
+  integer rejected_call_count
 }
 class user {
   <<Better Auth>>
-  text id
 }
-class doctor_profile {
-  int id
-}
+class doctor_profile
 class subscription {
-  string planId
-  string status
-  datetime currentPeriodEnd
-  bool cancelAtPeriodEnd
+  varchar plan_id
+  varchar status
+  timestamp current_period_end
+  boolean cancel_at_period_end
 }
 class billing_invoice {
-  string kind
-  string number
-  string status
-  int amountMillimes
-  int creditSeconds
-  string konnectPaymentRef
+  varchar kind
+  varchar number
+  varchar status
+  integer amount_millimes
+  integer credit_seconds
+  varchar konnect_payment_ref
 }
 class whatsapp_usage {
-  string periodYyyyMm
-  int sendCount
+  varchar period_yyyy_mm
+  integer send_count
 }
 
 appointment "0..1" -- "0..*" callrow : booked during
@@ -66,7 +61,6 @@ doctor_profile "1" -- "0..1" subscription
 doctor_profile "1" -- "0..*" billing_invoice
 subscription "0..1" -- "0..*" billing_invoice
 doctor_profile "1" -- "0..*" whatsapp_usage
-
 style appointment fill:#FFFFFF,stroke:#94A3B8,stroke-dasharray:4 3
 style doctor_profile fill:#FFFFFF,stroke:#94A3B8,stroke-dasharray:4 3
 style user fill:#EEF2FF,stroke:#6366F1

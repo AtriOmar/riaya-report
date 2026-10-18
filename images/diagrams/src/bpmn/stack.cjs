@@ -6,7 +6,7 @@ const puppeteer = require(process.env.PUPPETEER_DIR || '/private/tmp/claude-502/
   const font = path.join(__dirname, '..', 'fonts', 'Inter-SemiBold.ttf');
   const html = `<!doctype html><html><head><style>@font-face{font-family:Inter;font-weight:600;src:url("file://${font}")}
   body{margin:0;background:#fff;font-family:Inter} #root{display:inline-block;padding:10px 0;background:#fff}
-  h2{font-size:24px;color:#0F766E;margin:14px 34px 0;font-weight:600} img{display:block;width:1478px}</style></head><body><div id="root">
+  h2{font-size:24px;color:#111111;margin:14px 34px 0;font-weight:600} img{display:block;width:1478px}</style></head><body><div id="root">
   <h2>A. From the call to the pending request</h2><img src="file://${d}/bpmn_booking.png">
   <h2>B. The doctor's answer, callbacks and the review request</h2><img src="file://${d}/bpmn_callback_review.png"></div></body></html>`;
   const hp = path.join(__dirname, '_stack.html'); fs.writeFileSync(hp, html);

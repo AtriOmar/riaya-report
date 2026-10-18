@@ -34,15 +34,15 @@ function draw(K) {
   E({pts: [K.P('s', 'b'), K.P('sym', 't')]});
   E({pts: [K.P('sym', 'r'), [R, K.P('sym', 'r')[1]], K.P('life', 't')]});
   E({pts: [K.P('life', 'b'), K.P('samu', 't')], kind: 'amber'});
-  K.guard(R + 14, 392, 'yes', '#B45309', 'start');
+  K.guard(R + 14, 392, 'yes', '#111111', 'start');
   E({pts: [K.P('life', 'r'), [R + 230, 310], [R + 230, 540], K.P('offer', 'r')]});
-  K.guard(R + 230, 420, 'no,\nurgent only', '#475569');
+  K.guard(R + 230, 420, 'no,\nurgent only', '#111111');
   E({pts: [K.P('samu', 'b'), K.P('offer', 't')]});
   E({pts: [K.P('offer', 'b'), [R, 605], [P, 605], K.P('agree', 't')]});
   E({pts: [K.P('agree', 'r'), K.P('fit', 'l')], kind: 'teal'});
-  K.guard((K.P('agree', 'r')[0] + K.P('fit', 'l')[0]) / 2 - 20, 658, 'yes', '#0F766E');
+  K.guard((K.P('agree', 'r')[0] + K.P('fit', 'l')[0]) / 2 - 20, 658, 'yes', '#111111');
   E({pts: [K.P('agree', 'b'), K.P('e0', 't')], kind: 'amber'});
-  K.guard(P + 14, 750, 'no', '#B45309', 'start');
+  K.guard(P + 14, 750, 'no', '#111111', 'start');
   E({pts: [K.P('fit', 'b'), K.P('create', 't')]});
   E({pts: [K.P('create', 'r'), K.P('badge', 'l')]});
   E({pts: [K.P('create', 'b'), K.P('wait', 't')]});
@@ -51,19 +51,19 @@ function draw(K) {
   E({pts: [K.P('ev', 'r'), K.P('refuse', 'l')], kind: 'amber'});
   K.guard((K.P('ev', 'r')[0] + K.P('refuse', 'l')[0]) / 2, 1012, 'a doctor refuses');
   E({pts: [K.P('refuse', 't'), [D, 915], K.P('wait', 'r')]});
-  K.guard(D - 6, 952, 'others stay open', '#475569');
+  K.guard(D - 6, 952, 'others stay open', '#111111');
   // patient cancel or timeout
   E({pts: [K.P('ev', 'l'), [RL, 1035], K.P('cancel', 't')], kind: 'red'});
-  K.guard(RL - 4, 1074, 'patient cancels one\nor 10 min pass', '#DC2626');
+  K.guard(RL - 4, 1074, 'patient cancels one\nor 10 min pass', '#333333');
   E({pts: [K.P('cancel', 'b'), K.P('to', 't')]});
   E({pts: [K.P('to', 'b'), K.P('cb', 't')], kind: 'amber'});
-  K.guard(RL + 14, 1360, 'yes', '#B45309', 'start');
+  K.guard(RL + 14, 1360, 'yes', '#111111', 'start');
   E({pts: [K.P('cb', 'b'), K.P('e2', 't')]});
   E({pts: [K.P('to', 'l'), [RL - 145, 1300], [RL - 145, 1480], K.P('e2', 'l')]});
   K.guard(RL - 145, 1390, 'no');
   // accept
   E({pts: [K.P('ev', 'b'), [R, 1128], [RR, 1128], K.P('acc', 't')], kind: 'teal'});
-  K.guard(RR + 12, 1128, 'a doctor accepts', '#0F766E', 'start');
+  K.guard(RR + 12, 1128, 'a doctor accepts', '#111111', 'start');
   E({pts: [K.P('acc', 'b'), K.P('wa', 't')]});
   E({pts: [K.P('wa', 'b'), K.P('e1', 't')]});
 }

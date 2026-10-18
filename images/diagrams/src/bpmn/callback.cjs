@@ -8,7 +8,7 @@ module.exports = {
   pool: {name: 'Riaya', x: 0, y: 100, w: W},
   blackPools: [
     {id: 'Pool_Patient', name: 'Patient (phone and WhatsApp)', x: 0, y: 0, w: W, h: 70, fill: '#F0FDFA'},
-    {id: 'Pool_Doctor', name: 'Doctor (dashboard)', x: 0, y: 720, w: W, h: 70, fill: '#EEF2FF'},
+    {id: 'Pool_Doctor', name: 'Doctor (dashboard)', x: 0, y: 720, w: W, h: 70, fill: '#F3F3F3'},
   ],
   lanes: [
     {id: L.A, name: 'AI system', h: 200, fill: '#F7FDFC'},

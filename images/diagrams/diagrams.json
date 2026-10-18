@@ -32,8 +32,8 @@
   {
     "file": "use_case_patient_admin.png",
     "title": "Use cases: patient and administrator",
-    "caption": "What patients do by phone and WhatsApp, and what administrators do.",
-    "shows": "Patient: book by phone, family booking (extend), doctor by name, urgent doctor, list or cancel pending, change language, callbacks, WhatsApp messages, rating link. Phone AI reports abusive callers, which feeds the admin review queue. Admin: verify doctors, live calls and recordings, reported calls, block numbers, Best Fit Finder, users and specialities, platform WhatsApp, statistics. Source: src/use_case_patient_admin.puml."
+    "caption": "What patients do by phone, and what administrators do.",
+    "shows": "Patient: book an appointment, list or cancel pending appointments, rate a doctor. Admin: manage doctor applications, monitor live AI calls and bookings, manage reports and blocked numbers, manage users, manage specialities, all including Authentication. Source: src/use_case_patient_admin.puml."
   },
   {
     "file": "use_case_doctor_secretary.png",

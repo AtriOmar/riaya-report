@@ -1,59 +1,38 @@
 @startuml use_case_patient_admin
-!pragma layout smetana
-!include riaya_style.iuml
 left to right direction
-skinparam ArrowColor #94A3B8
-skinparam ArrowFontColor #64748B
-skinparam ArrowFontSize 13
+skinparam dpi 192
 
 actor "Patient\n(phone, WhatsApp)" as P
-actor "Phone AI" as AI
 actor "Administrator" as A
 
 rectangle "Phone assistant and WhatsApp" {
-  usecase "Book by phone\n(best-fit doctor)" as P1
-  usecase "Book for a family\nmember on the line" as P2
-  usecase "Ask for a doctor\nby name" as P3
-  usecase "Ask for an urgent\ndoctor" as P4
-  usecase "List or cancel\npending bookings" as P5
-  usecase "Change language" as P6
-  usecase "Answer a callback\n(refusal, timeout)" as P7
-  usecase "Receive WhatsApp\nmessages" as P8
-  usecase "Rate the doctor\nfrom a link" as P9
-  usecase "Report an\nabusive caller" as R1
+  usecase "Book an appointment" as P1
+  usecase "List or cancel\npending appointments" as P4
+  usecase "Rate a doctor\n(from a link)" as P5
 }
 rectangle "Admin area" {
+  usecase "Authentication" as AUTH
 
-  usecase "Verify doctor\napplications" as A1
-  usecase "Watch live calls,\nplay recordings" as A2
-  usecase "Review reported\ncalls" as A3
-  usecase "Block or unblock\na number" as A4
-  usecase "Run Best Fit\nFinder" as A5
-  usecase "Manage users and\nspecialities" as A6
-  usecase "Link the platform\nWhatsApp" as A7
-  usecase "View platform\nstatistics" as A8
+  usecase "Manage doctor\napplications" as A1
+  usecase "Monitor live AI calls\nand bookings" as A2
+  usecase "Manage reports and\nblocked numbers" as A3
+  usecase "Manage users" as A4
+  usecase "Manage specialities" as A5
 }
 
-P -- P1
-P -- P3
-P -- P4
-P -- P5
-P -- P6
-P -- P7
-P -- P8
-P -- P9
-P2 .> P1 : <<extend>>
-AI -- R1
+P --> P1
+P --> P4
+P --> P5
 
-A1 -- A
-A2 -- A
-A3 -- A
-A4 -- A
-A5 -- A
-A6 -- A
-A7 -- A
-A8 -- A
-R1 .> A3 : feeds
-P1 -[hidden]- A1
-P9 -[hidden]- A8
+A --> A1
+A --> A2
+A --> A3
+A --> A4
+A --> A5
+
+A1 ..> AUTH : <<include>>
+A2 ..> AUTH : <<include>>
+A3 ..> AUTH : <<include>>
+A4 ..> AUTH : <<include>>
+A5 ..> AUTH : <<include>>
 @enduml

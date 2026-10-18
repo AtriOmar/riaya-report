@@ -6,16 +6,16 @@ const BPMNJS = process.env.BPMNJS_DIR || '/private/tmp/claude-502/-Users-mac-Dev
 
 const COL = {
   task: {fill: '#F0FDFA', stroke: '#0F766E'},
-  ai: {fill: '#FFFFFF', stroke: '#64748B'},
-  admin: {fill: '#EEF2FF', stroke: '#4F46E5'},
-  warn: {fill: '#FEF3C7', stroke: '#B45309'},
-  bad: {fill: '#FEF2F2', stroke: '#B91C1C'},
-  good: {fill: '#ECFDF5', stroke: '#047857'},
-  gw: {fill: '#FFFBEB', stroke: '#B45309'},
+  ai: {fill: '#F0FDFA', stroke: '#0F766E'},
+  admin: {fill: '#F0FDFA', stroke: '#0F766E'},
+  warn: {fill: '#F0FDFA', stroke: '#0F766E'},
+  bad: {fill: '#F0FDFA', stroke: '#0F766E'},
+  good: {fill: '#F0FDFA', stroke: '#0F766E'},
+  gw: {fill: '#FFFFFF', stroke: '#111111'},
   start: {fill: '#F0FDFA', stroke: '#0F766E'},
-  end: {fill: '#F8FAFC', stroke: '#1F2937'},
-  inter: {fill: '#FFFBEB', stroke: '#B45309'},
-  flow: {stroke: '#64748B'},
+  end: {fill: '#FFFFFF', stroke: '#111111'},
+  inter: {fill: '#FFFFFF', stroke: '#111111'},
+  flow: {stroke: '#404040'},
 };
 const SIZE = {task: [180, 92], startEvent: [44, 44], endEvent: [44, 44], intermediateCatchEvent: [44, 44], intermediateThrowEvent: [44, 44], boundaryEvent: [40, 40], exclusiveGateway: [56, 56], eventBasedGateway: [56, 56], parallelGateway: [56, 56]};
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
@@ -69,7 +69,7 @@ function build(spec) {
   const P = spec.pool;
   let laneDi = '', ly = P.y;
   for (const l of spec.lanes) {
-    laneDi += `<bpmndi:BPMNShape id="${l.id}_di" bpmnElement="${l.id}" isHorizontal="true" bioc:fill="${l.fill}" bioc:stroke="#94A3B8" color:background-color="${l.fill}" color:border-color="#94A3B8"><dc:Bounds x="${P.x + 36}" y="${ly}" width="${P.w - 36}" height="${l.h}"/></bpmndi:BPMNShape>`;
+    laneDi += `<bpmndi:BPMNShape id="${l.id}_di" bpmnElement="${l.id}" isHorizontal="true" bioc:fill="${l.fill}" bioc:stroke="#737373" color:background-color="${l.fill}" color:border-color="#737373"><dc:Bounds x="${P.x + 36}" y="${ly}" width="${P.w - 36}" height="${l.h}"/></bpmndi:BPMNShape>`;
     ly += l.h;
   }
   const H = ly - P.y;
@@ -78,9 +78,9 @@ function build(spec) {
 <bpmn:collaboration id="Collab_1"><bpmn:participant id="Pool_1" name="${esc(P.name)}" processRef="Process_1"/>${(spec.blackPools || []).map(b => `<bpmn:participant id="${b.id}" name="${esc(b.name)}"/>`).join('')}${(spec.messageFlows || []).map(m => `<bpmn:messageFlow id="${m.id}" name="${esc(m.name || '')}" sourceRef="${m.from}" targetRef="${m.to}"/>`).join('')}</bpmn:collaboration>
 <bpmn:process id="Process_1" isExecutable="false">${proc}</bpmn:process>
 <bpmndi:BPMNDiagram id="Diagram_1"><bpmndi:BPMNPlane id="Plane_1" bpmnElement="Collab_1">
-<bpmndi:BPMNShape id="Pool_1_di" bpmnElement="Pool_1" isHorizontal="true" bioc:fill="#FFFFFF" bioc:stroke="#64748B" color:background-color="#FFFFFF" color:border-color="#64748B"><dc:Bounds x="${P.x}" y="${P.y}" width="${P.w}" height="${H}"/></bpmndi:BPMNShape>
-${(spec.blackPools || []).map(b => `<bpmndi:BPMNShape id="${b.id}_di" bpmnElement="${b.id}" isHorizontal="true" bioc:fill="${b.fill || '#F8FAFC'}" bioc:stroke="#64748B" color:background-color="${b.fill || '#F8FAFC'}" color:border-color="#64748B"><dc:Bounds x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}"/></bpmndi:BPMNShape>`).join('')}
-${laneDi}${di}${(spec.messageFlows || []).map(m => { const pts = m.pts.map(p => typeof p[0] === 'string' ? side(p[0], p[1], p[2]) : p); const lab = m.name ? `<bpmndi:BPMNLabel><dc:Bounds x="${m.at[0] - (m.lw || 100) / 2}" y="${m.at[1] - 10}" width="${m.lw || 100}" height="20"/></bpmndi:BPMNLabel>` : ''; return `<bpmndi:BPMNEdge id="${m.id}_di" bpmnElement="${m.id}" bioc:stroke="#64748B" color:border-color="#64748B">${pts.map(p => `<di:waypoint x="${p[0]}" y="${p[1]}"/>`).join('')}${lab}</bpmndi:BPMNEdge>`; }).join('')}
+<bpmndi:BPMNShape id="Pool_1_di" bpmnElement="Pool_1" isHorizontal="true" bioc:fill="#FFFFFF" bioc:stroke="#404040" color:background-color="#FFFFFF" color:border-color="#404040"><dc:Bounds x="${P.x}" y="${P.y}" width="${P.w}" height="${H}"/></bpmndi:BPMNShape>
+${(spec.blackPools || []).map(b => `<bpmndi:BPMNShape id="${b.id}_di" bpmnElement="${b.id}" isHorizontal="true" bioc:fill="${b.fill || '#F6F6F6'}" bioc:stroke="#404040" color:background-color="${b.fill || '#F6F6F6'}" color:border-color="#404040"><dc:Bounds x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}"/></bpmndi:BPMNShape>`).join('')}
+${laneDi}${di}${(spec.messageFlows || []).map(m => { const pts = m.pts.map(p => typeof p[0] === 'string' ? side(p[0], p[1], p[2]) : p); const lab = m.name ? `<bpmndi:BPMNLabel><dc:Bounds x="${m.at[0] - (m.lw || 100) / 2}" y="${m.at[1] - 10}" width="${m.lw || 100}" height="20"/></bpmndi:BPMNLabel>` : ''; return `<bpmndi:BPMNEdge id="${m.id}_di" bpmnElement="${m.id}" bioc:stroke="#404040" color:border-color="#404040">${pts.map(p => `<di:waypoint x="${p[0]}" y="${p[1]}"/>`).join('')}${lab}</bpmndi:BPMNEdge>`; }).join('')}
 </bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>`;
 }
 
@@ -119,7 +119,7 @@ html,body{margin:0;background:#fff}#c{width:3000px;height:2000px}</style></head>
   // style the exported svg: Inter font, white background, padding
   let svg = res.svg.replace(/font-family:\s*[^;"]+/g, 'font-family: Inter, sans-serif');
   fs.writeFileSync(path.join(here, `${out}.svg`), svg);
-  const page2 = `<!doctype html><html><head><meta charset="utf-8"><style>@font-face{font-family:Inter;font-weight:400;src:url("file://${fontDir}/Inter-Regular.ttf")}@font-face{font-family:Inter;font-weight:600;src:url("file://${fontDir}/Inter-SemiBold.ttf")}body{margin:0;background:#fff}#root{display:inline-block;padding:24px;background:#fff}</style></head><body><div id="root">${svg}</div></body></html>`;
+  const page2 = `<!doctype html><html><head><meta charset="utf-8"><style>@font-face{font-family:Inter;font-weight:400;src:url("file://${fontDir}/Inter-Regular.ttf")}@font-face{font-family:Inter;font-weight:600;src:url("file://${fontDir}/Inter-SemiBold.ttf")}body{margin:0;background:#fff}text,tspan{fill:#111 !important}#root{display:inline-block;padding:24px;background:#fff}</style></head><body><div id="root">${svg}</div></body></html>`;
   fs.writeFileSync(hp, page2);
   await p.setViewport({width: 2600, height: 1600, deviceScaleFactor: 2});
   await p.goto('file://' + hp, {waitUntil: 'networkidle0'});

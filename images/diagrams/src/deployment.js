@@ -25,7 +25,7 @@ function draw(K) {
   K.zone({x: 424, y: 300, w: 732, h: 536, title: 'Docker network riaya_network', kind: 'riaya', icon: LG + 'docker.png'});
 
   const c1 = 548, c2 = 790, c3 = 1030;
-  K.card({id: 'mig', cx: c1, cy: 465, w: 220, title: 'Migrations', sub: 'drizzle-kit', icon: LG + 'drizzle.png', chip: 'white', accent: '#D97706'});
+  K.card({id: 'mig', cx: c1, cy: 465, w: 220, title: 'Migrations', sub: 'drizzle-kit', icon: LG + 'drizzle.png', chip: 'white', accent: '#333333'});
   K.card({id: 'web', cx: c2, cy: 465, w: 210, title: 'web', sub: 'Next.js', icon: LG + 'nextjs.png', chip: 'white', accent: '#0F766E'});
   K.card({id: 'voice', cx: c3, cy: 465, w: 210, title: 'voice', sub: 'Express', icon: LG + 'nodejs.png', chip: 'white', accent: '#0F766E'});
   K.card({id: 'pg', cx: c1, cy: 640, w: 220, title: 'PostgreSQL', sub: 'volume', icon: LG + 'postgresql.png', chip: 'white'});
@@ -57,8 +57,8 @@ function draw(K) {
   E({pts: [K.P('compose', 't'), K.P('web', 'b')], dash: true, kind: 'teal', label: '3. up -d', at: [c2, 712]});
   ex.forEach((s, i) => {
     const x = 188 + i * 112;
-    K.el(K.gNodes, 'rect', {x: x - 4, y: 958, width: 56, height: 56, rx: 12, fill: '#FFFFFF', stroke: '#FDE68A'});
+    K.el(K.gNodes, 'rect', {x: x - 4, y: 958, width: 56, height: 56, rx: 12, fill: '#FFFFFF', stroke: '#D9D9D9'});
     K.el(K.gNodes, 'image', {href: LG + s + '.png', x: x + 6, y: 968, width: 36, height: 36});
-    K.text(x + 24, 1032, exNames[i], {size: 16, color: '#78350F', anchor: 'middle', weight: 500});
+    K.text(x + 24, 1032, exNames[i], {size: 16, color: '#111111', anchor: 'middle', weight: 500});
   });
 }

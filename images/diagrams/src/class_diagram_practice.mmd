@@ -3,62 +3,58 @@ direction TB
 
 class user {
   <<Better Auth>>
-  text id
-  string email
-  int accessId
+  varchar email
+  integer access_id
 }
 class doctor_application {
-  string status
-  string cinRecto, cinVerso
-  string tin
-  string medicalCouncilNumber
-  text[] rejectionReasons
+  varchar status
+  varchar cin_recto, cin_verso
+  varchar tin
+  varchar medical_council_number
+  text[] rejection_reasons
 }
 class doctor_profile {
-  int id
-  string status
-  string cabinetName
-  float cabinetLat, cabinetLng
+  varchar status
+  varchar cabinet_name
+  double precision cabinet_latitude, cabinet_longitude
   jsonb availability
-  string logoUrl, stampUrl
+  varchar logo_url, stamp_url
 }
 class speciality {
-  string enName
-  string frName
-  string arName
+  varchar en_name
+  varchar fr_name
+  varchar ar_name
 }
 class cities {
-  float latitude, longitude
-  string enName, frName
+  double precision latitude, longitude
+  varchar en_name, fr_name
 }
 class secretary {
-  int doctorId
-  text userId
+  integer doctor_id
+  text user_id
 }
-class patient {
-  int id
-}
+class patient
 class consultation_recording {
-  string audioUrl
-  int durationSeconds
+  varchar audio_url
+  integer duration_seconds
   jsonb transcript
-  string transcriptStatus
-  jsonb speakerRoles
+  varchar transcript_status
+  jsonb speaker_roles
   jsonb summary
 }
 class recording_usage {
-  int seconds
-  int creditSeconds
+  integer seconds
+  integer credit_seconds
 }
 class ai_chat_conversation {
-  string title
-  int recordingId
+  varchar title
+  integer recording_id
 }
 class ai_chat_message {
-  string role
+  varchar role
   jsonb parts
-  string status
-  int costMicroUsd
+  varchar status
+  integer cost_micro_usd
 }
 
 user "1" -- "0..*" doctor_application
@@ -73,6 +69,5 @@ consultation_recording "0..1" -- "0..1" recording_usage
 doctor_profile "1" -- "0..*" ai_chat_conversation
 ai_chat_conversation "0..*" -- "0..1" consultation_recording : discusses
 ai_chat_conversation "1" *-- "0..*" ai_chat_message
-
 style user fill:#EEF2FF,stroke:#6366F1
 style patient fill:#FFFFFF,stroke:#94A3B8,stroke-dasharray:4 3

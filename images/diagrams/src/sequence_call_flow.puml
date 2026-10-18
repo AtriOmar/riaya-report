@@ -1,5 +1,5 @@
 @startuml sequence_call_flow
-!include riaya_style.iuml
+skinparam dpi 192
 hide footbox
 skinparam maxMessageSize 200
 

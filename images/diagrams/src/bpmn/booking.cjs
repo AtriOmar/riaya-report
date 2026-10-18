@@ -7,8 +7,8 @@ module.exports = {
   lanes: [
     {id: L.P, name: 'Patient', h: 110, fill: '#F7FDFC'},
     {id: L.A, name: 'AI system', h: 330, fill: '#FFFFFF'},
-    {id: L.D, name: 'Doctor', h: 160, fill: '#F8FAFF'},
-    {id: L.M, name: 'Administrator', h: 200, fill: '#F8F8FF'},
+    {id: L.D, name: 'Doctor', h: 160, fill: '#F6F6F6'},
+    {id: L.M, name: 'Administrator', h: 200, fill: '#F6F6F6'},
   ],
   nodes: [
     {id: 'start', type: 'startEvent', lane: L.P, cx: 180, cy: 55, name: 'Patient calls', lpos: 'r', lw: 130, lh: 24},

@@ -32,19 +32,19 @@ function draw(K) {
   // flow
   E({pts: [K.P('s', 'b'), K.P('form', 't')]});
   E({pts: [K.P('form', 'r'), [S, K.P('form', 'r')[1]], K.P('otp', 't')]});
-  K.text(S + 120, 238, 'code valid 10 min, 5 tries\nnew code after 60 s', {size: 16, color: '#64748B'});
+  K.text(S + 120, 238, 'code valid 10 min, 5 tries\nnew code after 60 s', {size: 16, color: '#404040'});
   E({pts: [K.P('otp', 'b'), [S, 410], K.P('enter', 'r')].slice(0, 1).concat([[S, 360], [D, 360], K.P('enter', 't')])});
   E({pts: [K.P('enter', 'b'), [D, 520], K.P('ok', 'l')]});
   E({pts: [K.P('ok', 'r'), K.P('left', 'l')], kind: 'amber'});
   K.guard((K.P('ok', 'r')[0] + K.P('left', 'l')[0]) / 2, 498, 'no');
   // tries left -> type again
   E({pts: [K.P('left', 't'), [S2, 410], K.P('enter', 'r')], kind: 'amber'});
-  K.guard(S2 + 12, 440, 'yes', '#B45309', 'start');
+  K.guard(S2 + 12, 440, 'yes', '#111111', 'start');
   // no tries left -> new code
   E({pts: [K.P('left', 'r'), [ln.S + 218, 520], [ln.S + 218, 300], K.P('otp', 'r')], kind: 'amber'});
   K.guard(ln.S + 218, 420, 'no:\nnew code');
   E({pts: [K.P('ok', 'b'), K.P('create', 't')], kind: 'teal'});
-  K.guard(S + 26, 600, 'yes', '#0F766E', 'start');
+  K.guard(S + 26, 600, 'yes', '#111111', 'start');
   E({pts: [K.P('create', 'l'), [D, K.P('create', 'l')[1]], K.P('app', 't')]});
   E({pts: [K.P('app', 'b'), [D, 900], K.P('pend', 'l')]});
   E({pts: [K.P('pend', 'r'), [A, 900], K.P('review', 't')]});
@@ -53,11 +53,11 @@ function draw(K) {
   K.guard((K.P('dec', 'l')[0] + K.P('rej', 'r')[0]) / 2, 1118, 'reject');
   E({pts: [K.P('rej', 'l'), K.P('fix', 'r')]});
   E({pts: [K.P('fix', 't'), [D, 1010], [S - 40, 1010], [S - 40, K.P('pend', 'b')[1]]]});
-  K.guard(D + 120, 1010, 'back to pending', '#475569');
+  K.guard(D + 120, 1010, 'back to pending', '#111111');
   E({pts: [K.P('dec', 'b'), [A, 1290], K.P('ver', 'r')], kind: 'teal'});
-  K.guard(A + 14, 1230, 'approve', '#0F766E', 'start');
+  K.guard(A + 14, 1230, 'approve', '#111111', 'start');
   E({pts: [K.P('dec', 'r'), [A + 130, 1140], [A + 130, 1430], K.P('ban', 'r')], kind: 'red'});
-  K.guard(A + 130, 1360, 'ban', '#DC2626');
+  K.guard(A + 130, 1360, 'ban', '#333333');
   E({pts: [K.P('ver', 'l'), K.P('use', 'r')]});
   E({pts: [K.P('use', 'b'), K.P('e1', 't')]});
   E({pts: [K.P('ban', 'l'), K.P('e1', 'r')]});

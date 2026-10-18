@@ -16,14 +16,14 @@ function draw(K) {
   E({pts: [K.P('plan', 'l'), K.P('free', 'r')], kind: 'amber'});
   K.guard((K.P('plan', 'l')[0] + K.P('free', 'r')[0]) / 2, 223, 'no');
   E({pts: [K.P('plan', 'r'), K.P('pro', 'l')], kind: 'teal'});
-  K.guard((K.P('plan', 'r')[0] + K.P('pro', 'l')[0]) / 2, 223, 'yes', '#0F766E');
-  K.text(M, 335, 'A missing, free, past_due or expired subscription counts as Free.', {size: 17, color: '#64748B', anchor: 'middle'});
+  K.guard((K.P('plan', 'r')[0] + K.P('pro', 'l')[0]) / 2, 223, 'yes', '#111111');
+  K.text(M, 335, 'A missing, free, past_due or expired subscription counts as Free.', {size: 17, color: '#404040', anchor: 'middle'});
 
   // bus to the four action types
   const cols = [175, 475, 775, 1075], busY = 380;
   E({pts: [K.P('free', 'b'), [M - 300, busY]]}); K.gEdges.lastChild.removeAttribute('marker-end');
   E({pts: [K.P('pro', 'b'), [M + 300, busY]]}); K.gEdges.lastChild.removeAttribute('marker-end');
-  K.el(K.gEdges, 'path', {d: `M${cols[0]},${busY} L${cols[3]},${busY}`, stroke: '#94A3B8', 'stroke-width': 1.8, fill: 'none'});
+  K.el(K.gEdges, 'path', {d: `M${cols[0]},${busY} L${cols[3]},${busY}`, stroke: '#737373', 'stroke-width': 1.8, fill: 'none'});
   const hy = 450;
   const heads = [
     ['wa', 'WhatsApp send', 'started by the doctor', LG + 'whatsapp.png'],
@@ -46,10 +46,10 @@ function draw(K) {
     E({pts: [K.P(heads[i][0], 'b'), K.P(id + 'r', 't')]});
     E({pts: [K.P(id + 'r', 'b'), K.P(id + 'd', 't')]});
     E({pts: [K.P(id + 'd', 'b'), [c, K.P(id + 'ok', 't')[1]]], kind: 'teal'});
-    K.guard(c + 12, (K.P(id + 'd', 'b')[1] + K.P(id + 'ok', 't')[1]) / 2, 'yes', '#0F766E', 'start');
+    K.guard(c + 12, (K.P(id + 'd', 'b')[1] + K.P(id + 'ok', 't')[1]) / 2, 'yes', '#111111', 'start');
     E({pts: [K.P(id + 'd', 'r'), [c + 132, dy], [c + 132, py2], K.P(id + 'no', 'r')], kind: badKind === 'bad' ? 'red' : 'amber'});
-    K.guard(c + 132, dy + 50, 'no', badKind === 'bad' ? '#DC2626' : '#B45309');
-    K.text(c, ny, note, {size: 16, color: '#64748B', anchor: 'middle'});
+    K.guard(c + 132, dy + 50, 'no', badKind === 'bad' ? '#333333' : '#111111');
+    K.text(c, ny, note, {size: 16, color: '#404040', anchor: 'middle'});
   };
   col(0, 'w', 'counts 1 caption + 1 per file\ninvoice PDF = 1', 'within the\nmonth limit?', 'send, add to the count', 'refused (limit code)', 'bad',
     'Free 30, Pro unlimited. Atomic SQL check.\nAutomatic patient messages never count.');
@@ -60,6 +60,6 @@ function draw(K) {
   // phone booking: never limited
   K.act({id: 'cr', cx: cols[3], cy: ry + 60, text: 'never limited\non any plan', kind: 'good', w: 262});
   E({pts: [K.P('call', 'b'), K.P('cr', 't')]});
-  K.text(cols[3], ry + 150, 'Urgent requests too.\nThe plan never changes\nwhich doctor is chosen.', {size: 16, color: '#64748B', anchor: 'middle'});
+  K.text(cols[3], ry + 150, 'Urgent requests too.\nThe plan never changes\nwhich doctor is chosen.', {size: 16, color: '#404040', anchor: 'middle'});
   K.resize(1240, 1060);
 }
