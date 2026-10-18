@@ -1,149 +1,202 @@
 \chapter{Project Management Methodology and Modeling}
 
 \section{Introduction}
-This chapter presents the project management methodology the Pengguin team used to develop Riaya. It covers the Kanban method: its definition, its principles, its advantages and disadvantages, and how it compares with Scrum and Waterfall \cite{schwaber2020scrum, pmi2021pmbok}. It then explains why the team chose Kanban for this project. The second part presents the modeling diagrams used to design the platform (the use case diagram, the class/ERD diagram, the sequence diagram, the activity diagram, the deployment diagram, and the global BPMN model), each with its purpose, its components, and its role in the Riaya project. Together they show how an agile methodology \cite{beck2001agile} and careful modeling let the Pengguin team deliver a complex, AI-driven platform while keeping quality, transparency, and adaptability.
+This chapter covers how the Riaya project was organized and how the platform was modeled. The first part presents the Kanban method: where it comes from, its principles and metrics, and how it compares with Scrum and Waterfall \cite{schwaber2020scrum, pmi2021pmbok}. It then describes the Notion board used during the internship and explains why Kanban suited this project better than Scrum. The second part presents the diagrams used to design the platform (the use case diagram, the class/ERD diagram, the sequence diagram, the activity diagram, the deployment diagram, and the global BPMN model), each with its purpose, its components, and its role in the Riaya project.
 
 \section{The Kanban Method}
 
 \subsection{Historical Context and Origins}
-Kanban is an agile project management method. It began in manufacturing, at Toyota in Japan in the late 1940s, and was adapted to software development and IT operations in the early 2000s \cite{anderson2010kanban}. ``Kanban'' means ``visual signal'' or ``card'' in Japanese. At Toyota, Kanban cards signalled when parts on the production line needed replenishing, which made just-in-time (JIT) manufacturing possible. David J. Anderson formalized the method for knowledge work in 2007 and introduced limits on Work in Progress (WIP) to improve flow in software teams \cite{anderson2010kanban}.
+Kanban comes from manufacturing. Toyota used it in Japan from the late 1940s, and it was adapted to software development and IT operations in the 2000s \cite{anderson2010kanban}. The word means ``visual signal'' or ``card'' in Japanese. On Toyota's production lines, a card signalled that a part had to be replenished, which made just-in-time (JIT) production possible. David J. Anderson adapted the method to knowledge work in 2007 and added limits on work in progress (WIP) to improve the flow of work in software teams \cite{anderson2010kanban}. It is usually counted among the agile methods \cite{beck2001agile}.
 
 \subsection{Definition and Fundamental Principles}
-The method rests on three principles that guide the team's daily work: visualization, WIP limits, and flow management. A set of practices builds on them to help teams deliver value continuously.
+Kanban starts from the way a team already works and improves it step by step, without imposing roles, meetings or fixed iterations. Three principles guide the daily work:
 
 \begin{itemize}
-    \item \textbf{Visualization:} The workflow is shown on a board (physical or digital) divided into columns such as ``To Do'', ``In Progress'', ``Review'', and ``Done''. Each task is a card that moves from left to right as work progresses. Everyone on the team can see the state of the project at a glance, spot bottlenecks, and understand priorities without long meetings. Visualization mattered in the Riaya project because the work spanned many areas: frontend development, backend development, voice server integration, database design, DevOps, and quality assurance. Without a shared board, coordinating them would have been very difficult.
+    \item \textbf{Visualization:} The work is shown on a board divided into columns, one per stage. Each task is a card that moves from left to right as it progresses. Anyone who opens the board can see what is waiting, what is being worked on and what is finished. On Riaya this mattered because three people with different roles followed the same work: the developer, the company founder who spoke with the client, and the academic supervisor.
 
-    \item \textbf{Work in Progress (WIP) Limits:} Each column has a maximum number of tasks in progress at once. The limit exposes bottlenecks and pushes the team to finish tasks before starting new ones. For example, with a WIP limit of three on ``In Progress'', the team cannot start a fourth task until one of the three is completed or moved on. This reduces context switching, improves focus, and raises the team's throughput \cite{anderson2010kanban}. In the Riaya project, WIP limits mattered most during the integration of the OpenAI Realtime API, a complex task that needed sustained concentration and could not be interrupted by other work.
+    \item \textbf{Limits on work in progress:} Each active column has a maximum number of cards. When the limit is reached, a new card can only start once another one has moved on. The limit reduces switching between tasks and makes bottlenecks visible \cite{anderson2010kanban}. On Riaya, the ``In Progress'' column was limited to three cards. With a single developer, a higher limit would only have meant more half-finished work.
 
-    \item \textbf{Flow Management:} The goal is a smooth, continuous flow of work. Limiting WIP reduces context switching and shortens cycle time. Flow management also means measuring lead time (from task creation to completion) and cycle time (from task start to completion), which show the team where its workflow can improve. The Riaya team reviewed these metrics weekly and used them to adjust priorities and resource allocation.
+    \item \textbf{Managing the flow:} The aim is a steady stream of finished work. The team measures how long cards take to cross the board and uses those numbers to find where work waits.
 \end{itemize}
 
 \subsection{Kanban Practices and Metrics}
-Beyond the three principles, Kanban relies on practices such as making policies explicit, implementing feedback loops, and improving collaboratively. The most common Kanban metrics are:
+Kanban also asks teams to make their rules explicit (for example, what must be true before a card can move to the next column), to set up feedback loops and to improve in small steps. The usual metrics are:
 
 \begin{itemize}
-    \item \textbf{Lead Time:} The total time between the creation of a task and its completion.
-    \item \textbf{Cycle Time:} The time between the start of work on a task and its completion.
-    \item \textbf{Throughput:} The number of tasks completed per unit of time.
-    \item \textbf{WIP:} The number of tasks currently in progress.
-    \item \textbf{Flow Efficiency:} The ratio between value-adding time and total lead time.
+    \item \textbf{Lead time:} the time from the creation of a card to its completion.
+    \item \textbf{Cycle time:} the time from the start of work on a card to its completion.
+    \item \textbf{Throughput:} the number of cards finished per week.
+    \item \textbf{WIP:} the number of cards being worked on at a given moment.
 \end{itemize}
 
-The Riaya team tracked these metrics on a digital board integrated with GitHub. Table~\ref{tab:kanban_metrics} gives each metric and what it showed in the project.
+Every card on the Riaya board stores the date it was created, started and finished, so these metrics come straight from the board. Table~\ref{tab:kanban_metrics} gives them for the 143 cards finished between 27 April and 18 October.
 
 \begin{table}[H]
     \centering
-    \caption{Kanban Metrics Tracked in the Riaya Project}
+    \caption{Kanban Metrics of the Riaya Board}
     \label{tab:kanban_metrics}
     \small
-    \begin{tabular}{p{3.5cm}p{5cm}p{4.5cm}}
+    \begin{tabular}{p{2.8cm}p{4.2cm}p{6.5cm}}
         \toprule
-        \textbf{Metric} & \textbf{Definition} & \textbf{Observation in Riaya} \\
+        \textbf{Metric} & \textbf{Definition} & \textbf{Value on the Riaya board} \\
         \midrule
-        Lead time & Creation to completion & Average 5 days for a feature \\
-        Cycle time & Start to completion & Average 2 days \\
-        Throughput & Tasks completed per week & 8--12 tasks per week \\
-        WIP & Tasks in progress & Limited to 3 per column \\
-        Flow efficiency & Value-adding time ratio & Approximately 40\% \\
+        Lead time & Creation to completion & 4.2 days on average (median 3.9 days) \\
+        Cycle time & Start to completion & 3.2 days on average (median 3.0 days) \\
+        Throughput & Cards finished per week & 4.2 per week until the launch on 2 October, 5.8 per week over the whole internship \\
+        WIP & Cards in ``In Progress'' & At most 3 \\
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Author's own work based on Pengguin internal tracking.
+    \small Source: Author's own work, computed from the Riaya board in Notion.
 \end{table}
 
-\subsection{Kanban Board Used by the Pengguin Team}
-For Riaya, the team used a digital board (Trello, Jira, or a custom solution) that every team member could access. It had the columns ``Backlog'', ``To Do'', ``In Progress'', ``Code Review'', ``Testing'', and ``Done''. Each card held a description, an assignee, a priority level, and an estimated effort. The team held short daily stand-ups to discuss progress, blockers, and priorities. Because the board was integrated with GitHub, pull requests and commits were linked automatically to their cards, which gave full traceability from requirements to code.
+Throughput rose after the launch, when the client started using the platform and sent many small change requests through John.
+
+\subsection{The Riaya Board in Notion}
+The board was a Notion database \cite{notion2026} shared by the three people involved in the project:
+
+\begin{itemize}
+    \item \textbf{Omar Atri}, the intern and only developer. He worked on every card and kept the board up to date.
+    \item \textbf{John Jang}, the founder of Pengguin. He was the only person in contact with the client, so he turned the client's requests into cards, set their priority and decided what came next.
+    \item \textbf{Ismail}, the academic supervisor. He followed the progress on the board and added cards of his own, mostly documentation needed for the report and improvements to the interface.
+\end{itemize}
+
+Of the 154 cards created during the internship, John created 123, Ismail 22 and Omar 9. Omar's own cards were technical chores, such as moving the repositories to pnpm or cleaning the migration history, and bugs he found himself. Omar is the assignee of every card. John is added on the few cards that needed his accounts, such as buying the production server and opening the Konnect merchant account. Table~\ref{tab:board_fields} lists the fields of a card.
+
+\begin{table}[H]
+    \centering
+    \caption{Fields of a Card on the Riaya Board}
+    \label{tab:board_fields}
+    \small
+    \begin{tabular}{p{3.2cm}p{10.3cm}}
+        \toprule
+        \textbf{Field} & \textbf{Content} \\
+        \midrule
+        Ticket & Number and title, for example ``034 - Let each doctor link their own WhatsApp number''. Cards are numbered in the order they were created. \\
+        Status & The column of the board (Table~\ref{tab:board_statuses}). \\
+        Requested by & Who created the card: John, Ismail or Omar. \\
+        Assignee & Who does the work. \\
+        Type & Feature, Enhancement, Bug, Spike (a study that ends with a written conclusion), Chore (maintenance) or Docs. \\
+        Epic & The part of the product: Voice, Doctor, Patients, Appointments, WhatsApp, Billing, Recordings, AI assistant, Admin, Geo, Infra, Docs, Project or Web. \\
+        Priority & High, Medium or Low. \\
+        Size & Estimated effort: S (a day or less), M (two or three days) or L (about a week). \\
+        Phase & The stage of the project, from ``1 Kickoff'' to ``5 Post-launch''. \\
+        Created on, Started on, Done on & The dates used to compute the metrics. \\
+        \bottomrule
+    \end{tabular}
+    \\[0.2cm]
+    \small Source: Author's own work.
+\end{table}
+
+The page of each card holds a short description of the request. When a card changes an earlier decision, its description gives the number of the card it replaces.
+
+Table~\ref{tab:board_statuses} describes the seven statuses. Two rules govern how cards move: a card leaves ``To Do'' only when ``In Progress'' has room, and a card is ``Done'' only once it has been merged and deployed.
+
+\begin{table}[H]
+    \centering
+    \caption{Statuses of the Riaya Board}
+    \label{tab:board_statuses}
+    \small
+    \begin{tabular}{p{2.6cm}p{10.9cm}}
+        \toprule
+        \textbf{Status} & \textbf{Meaning} \\
+        \midrule
+        Backlog & Accepted ideas and requests that are not planned yet, such as doctors' days off (card 140). \\
+        To Do & Planned for the coming days, in priority order. Omar takes the next card from the top. \\
+        In Progress & Omar is working on the card. The column holds at most three cards. \\
+        Code Review & The change is on a branch with an open pull request on GitHub. Omar re-reads the diff, and John reviews the larger changes before they are merged. \\
+        Testing & Omar checks the change in the running application, using the test-call page for phone features. When a change is visible to the client, John shows it to them. \\
+        Done & Merged and deployed to production. \\
+        Bin & Dropped after a decision. The card stays on the board so that the decision and its reason are not lost. \\
+        \bottomrule
+    \end{tabular}
+    \\[0.2cm]
+    \small Source: Author's own work.
+\end{table}
+
+The same cards appear in three views. The default view (Figure~\ref{fig:riaya_board_table}) is a table of every card, newest first. The ``To Do'' view uses the same table but hides the cards that are Done or in the Bin, so it shows only the work still ahead. The ``Kanban'' view (Figure~\ref{fig:riaya_board_kanban}) groups the cards by status, one column per status.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{images/kanban_board_example.png}
-    \caption{Example of a Kanban Board Used by the Pengguin Team}
-    \label{fig:kanban_board}
+    \includegraphics[width=\textwidth]{images/riaya_board_table_view.png}
+    \caption{Default Table View of the Riaya Board in Notion}
+    \label{fig:riaya_board_table}
+    \small Source: Riaya board, Notion.
 \end{figure}
 
-Figure~\ref{fig:kanban_board} shows an example of the Kanban board used by the Pengguin team.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/riaya_board_kanban_view.png}
+    \caption{Kanban View of the Riaya Board in Notion}
+    \label{fig:riaya_board_kanban}
+    \small Source: Riaya board, Notion.
+\end{figure}
+
+Figure~\ref{fig:riaya_board_kanban} shows the board two weeks after the launch. Cards 138 and 139 wait for review, cards 116 and 149 are being tested, and the Backlog holds three ideas for later.
+
+Because the client's needs changed during the project, some cards replace earlier ones. Card 017 made the AI ask which phone number the doctor should use. Card 021 removed that question and took the number from the caller ID instead, so card 017 went to the Bin. The plan limits went through three versions: card 028 defined the first Free and Pro plans, card 089 added limits on recordings and AI messages, and card 121 reworked them after a discussion with the client.
 
 \subsection{Advantages of Kanban for the Riaya Project}
-Kanban brought the Riaya project several advantages:
+New work could start as soon as it mattered more than what was planned. After the launch, the client found the voice's Tunisian pronunciation weak. John added cards to try other speech providers (cards 098 to 106), and they went to the top of ``To Do'' the same week, without waiting for the end of an iteration.
 
-\begin{itemize}
-    \item \textbf{Flexibility:} Requirements can change at any time, which matters when integrating AI and real-time communication. The OpenAI Realtime API and Twilio integrations needed constant adjustments after testing and client feedback \cite{twilio2024, openai2024realtime}, and Kanban let the team adapt quickly without fixed sprint deadlines. For example, when the AI agent's language model needed fine-tuning to understand Tunisian Arabic better, the team reprioritized tasks immediately instead of waiting for the next sprint.
+Each card was deployed as soon as it was finished. The deployment pipeline set up in August (card 031) builds and deploys the application on every merge, so the client could see a change a few days after asking for it.
 
-    \item \textbf{Continuous Delivery:} Features ship as soon as they are ready, so the client can give feedback quickly. The Riaya client wanted to see incremental progress and test features early. For example, the WhatsApp integration was delivered and tested before the AI voice agent was fully working, so the client could validate the messaging workflow and comment on the message templates.
+Production problems could take a slot at once. When live calls stopped working in production because an environment variable was missing from the build (card 088), the card was created, fixed and deployed on the same day.
 
-    \item \textbf{Transparency:} The board shows everyone the project status and priorities, which reduces the need for status meetings. In the Riaya project, both the development team and the project manager used the board, so everyone shared the same view of progress. The client had read-only access to a simplified version, which improved trust and communication.
+John and Ismail could check the progress whenever they wanted, without asking for a status report. Ismail's cards for the report, such as the diagrams, the API documentation and the notes on every AI model tested, followed the same flow as product work, so their progress was visible too.
 
-    \item \textbf{Reduced Bottlenecks:} WIP limits expose bottlenecks early, such as the Twilio or OpenAI Realtime API integration, and with fewer tasks in progress the team can resolve blockers before they grow. When the Twilio integration ran into problems with WebSocket media streams, the team focused on that problem without distraction from other tasks, and the issue did not delay the rest of the project.
-
-    \item \textbf{Improved Collaboration:} The board makes it visible who is working on what, so team members can offer help when needed. In the Riaya project, it helped frontend and backend developers work together, as well as the web and voice server teams. A frontend developer who needed a new API endpoint could see which backend developer had the corresponding card and coordinate directly.
-
-    \item \textbf{Metrics and Continuous Improvement:} Kanban encourages teams to collect and analyze metrics such as lead time, cycle time, and throughput, and to base decisions on them. The Riaya team used them to deliver features faster. For example, after analyzing the cycle time of database migration tasks, the team automated more of the migration process and cut the average cycle time from three days to one.
-\end{itemize}
+The board also keeps a record of decisions. Card 026 studied whether Riaya could show doctors' prices to patients and concluded that it should not, because the real price depends on a diagnosis that a phone call cannot make. The card stays in the Bin with that conclusion.
 
 \subsection{Disadvantages and Limitations of the Method}
-Kanban also has limitations that the Pengguin team had to manage:
+Kanban has no sprints, so nothing forces a regular deadline. John set the go-live date of 2 October and split the internship into phases, and the Phase field of each card shows which stage it belonged to.
 
-\begin{itemize}
-    \item \textbf{Lack of Timeboxing:} Unlike Scrum, Kanban has no fixed iterations (sprints), so a team can lose its rhythm and miss deadlines if it is not careful. The Riaya team set internal deadlines, tracked progress with time-based metrics, and held a weekly review meeting to check that the project was moving at a satisfactory pace.
+With a single developer, the board is only accurate if that developer updates it. Moving the card was treated as part of finishing a task: a card was not done until it was in the ``Done'' column.
 
-    \item \textbf{Role Ambiguity:} Kanban defines no roles such as Product Owner or Scrum Master, which can cause confusion in larger teams. The Riaya team was small and cross-functional, so this mattered less. The project manager took charge of prioritizing tasks and keeping the board up to date, and regular stand-ups prevented misunderstandings.
+The WIP limit applied to ``In Progress'' only. In September and October, many cards waited in ``Code Review'' and ``Testing'' for John's review or for the client's answer, so the number of open cards grew while work in progress stayed at three.
 
-    \item \textbf{Difficulty in Scaling:} On very large projects, Kanban becomes hard to coordinate without an additional framework. The Riaya team was small enough to manage the board, but if the project grows in later phases, it may need a scaling framework such as Scrum of Scrums or LeSS \cite{larman2016scaling}.
+Kanban does not prescribe any quality practice \cite{beck2002tdd}. On Riaya, the ``Code Review'' and ``Testing'' columns acted as checks, but testing was manual. Automated tests for the booking flow are still a ``To Do'' card (card 154), requested by the academic supervisor.
 
-    \item \textbf{Requires Discipline:} The team has to respect WIP limits and keep the board updated, or the board drifts from reality and loses its value. The Riaya team used its daily stand-ups to check both, and the project manager audited the board regularly.
+Finally, the board suits one developer well. A larger team would need clearer rules on who reviews what, and possibly a scaling framework \cite{larman2016scaling}.
 
-    \item \textbf{Lack of Emphasis on Quality:} Kanban prescribes no quality practices such as test-driven development (TDD) or code reviews \cite{beck2002tdd}, so the Riaya team adopted them on its own. The ``Code Review'' and ``Testing'' columns enforced them: automated tests ran on every pull request, and code review was mandatory before merging.
-\end{itemize}
-
-\subsection{Comparative Table: Kanban vs Scrum vs Waterfall (V-Model)}
-Table~\ref{tab:comparison_methods} compares the three main project management methodologies considered by the Pengguin team.
+\subsection{Comparative Table: Kanban vs Scrum vs Waterfall}
+Table~\ref{tab:comparison_methods} compares Kanban with Scrum and Waterfall, the two other methods considered for the project.
 
 \begin{table}[H]
     \centering
     \caption{Comparison of Kanban, Scrum, and Waterfall}
     \label{tab:comparison_methods}
     \small
-    \begin{tabular}{p{2.5cm}p{3.5cm}p{3.5cm}p{3.5cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{3.6cm}}
         \toprule
-        \textbf{Criteria} & \textbf{Kanban} & \textbf{Scrum} & \textbf{Waterfall (V-Model)} \\
+        \textbf{Criteria} & \textbf{Kanban} & \textbf{Scrum} & \textbf{Waterfall} \\
         \midrule
-        Approach & Continuous flow & Iterative (sprints) & Sequential \\
-        Roles & Not defined & Product Owner, Scrum Master, Team & Project Manager \\
-        Changes & At any time & Between sprints & Difficult after validation \\
-        Delivery & Continuous & At the end of each sprint & At the end of the project \\
-        WIP Limits & Yes & Implicit (sprint backlog) & No \\
-        Meetings & Daily stand-up (optional) & Sprint planning, daily stand-up, review, retrospective & Milestone reviews \\
-        Metrics & Lead time, cycle time, throughput & Velocity, burndown chart & Earned value management \\
-        Best suited for & Support, DevOps, evolving projects & Complex products with changing requirements & Projects with fixed requirements \\
+        Approach & Continuous flow & Sprints of one month or less & Sequential phases \\
+        Roles & None required & Product Owner, Scrum Master, Developers & Project manager and specialists for each phase \\
+        Team size & Any & 10 people or fewer & Any \\
+        Changes & At any time & Between sprints; the sprint goal stays fixed & Costly once a phase is validated \\
+        Delivery & When a card is done & A usable increment in every sprint & At the end of the project \\
+        WIP limits & Explicit, per column & Indirect, through the sprint scope & None \\
+        Meetings & None required; the team chooses its own cadence & Sprint planning, daily scrum, sprint review, retrospective & Phase and milestone reviews \\
+        Metrics & Lead time, cycle time, throughput & Velocity, burndown chart & Milestones, earned value \\
+        Best suited for & Changing priorities, support work, small teams & Complex products built by a team in regular iterations & Stable, well-known requirements \\
         \bottomrule
     \end{tabular}
     \\[0.2cm]
-    \small Source: Adapted from Kniberg, H., \& Skarin, M. (2010). \textit{Kanban and Scrum: Making the Most of Both}. InfoQ \cite{kniberg2010kanban}.
+    \small Source: Adapted from Kniberg and Skarin \cite{kniberg2010kanban} and the Scrum Guide \cite{schwaber2020scrum}.
 \end{table}
 
-\subsection{Justification of the Choice of Kanban by the Pengguin Team}
-The Pengguin team chose Kanban for Riaya for five reasons.
+\subsection{Justification of the Choice of Kanban}
+Kanban fit Riaya better than Scrum for five reasons.
 
-First, the project carries a lot of uncertainty, especially in the AI voice agent and the real-time WebSocket communication. Kanban lets the team adapt quickly to technical problems and client feedback. When the OpenAI Realtime API was first integrated, it behaved differently than expected, and the team had to rework its prompts and its tool calling strategy. Kanban absorbed this without disrupting the overall schedule.
+First, there was one developer. Scrum is built around a team: a Product Owner, a Scrum Master and several developers, who meet in four fixed events every sprint \cite{schwaber2020scrum}. On Riaya, John would have been the Product Owner, and the Scrum Master and the whole development team would have been the same person. Sprint planning, daily scrums and retrospectives would have taken time without telling anyone more than the board already showed.
 
-Second, the project is built by a small cross-functional team, which benefits from the transparency and self-organization Kanban encourages. Each developer covered several areas (frontend, backend, DevOps), and the board let them coordinate without formal ceremonies.
+Second, requests arrived at irregular times. The client spoke only with John, who passed requests on as they came. A request could change a feature built a few weeks earlier, as happened three times with the plan limits (cards 028, 089 and 121). In Scrum, work outside the current sprint goal usually waits for the next sprint. In Kanban, the card goes into ``To Do'' at the right priority.
 
-Third, continuous delivery matches the client's wish to see incremental progress and test features early. The client tested the WhatsApp integration, the AI voice agent, and the doctor dashboard at different stages, and that feedback shaped the following iterations.
+Third, much of the work was research of unknown length. Comparing speech models for Tunisian Arabic (card 023) took almost three weeks, and comparing geocoding services (card 024) took about as long. Such tasks are hard to estimate for a sprint. On the board they were Spike cards that stayed open until they had a written conclusion.
 
-Fourth, a digital Kanban board supports remote collaboration and connects to the CI/CD pipeline. The board was accessible from any device, and the GitHub integration linked each pull request to its card, giving traceability from requirements to code.
+Fourth, after the launch on 2 October Riaya was a live service. Bugs and client feedback had to be handled as they came, next to the planned work, and Kanban lets an urgent card go straight to the top of ``To Do''.
 
-Finally, the team had to handle urgent production issues alongside planned work. Riaya is a live platform that handles real patient calls, so unplanned work has to fit in without disrupting the schedule. With Kanban, the team could add an urgent task to the board and prioritize it at once instead of waiting for the next sprint. This mattered most in the first weeks of production, when unexpected issues needed immediate attention.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{images/kanban_board_riaya.png}
-    \caption{Kanban Board Used in the Riaya Project}
-    \label{fig:kanban_riaya}
-    \small Source: Pengguin Internal Documentation.
-\end{figure}
-
-Figure~\ref{fig:kanban_riaya} shows the Kanban board used during the Riaya project.
+Finally, the board doubled as a report for the people outside development. John used it to see what the client could expect and when, and Ismail used it to follow the internship and add the documentation he needed, without separate status meetings.
 
 \section{Modeling Diagrams}
 A system as complex as Riaya needs several complementary diagrams, each showing a different view of it \cite{omg2017uml, fowler2003uml}. The Pengguin team used six: the use case diagram, the class/ERD diagram, the sequence diagram, the activity diagram, the deployment diagram, and the BPMN diagram.
