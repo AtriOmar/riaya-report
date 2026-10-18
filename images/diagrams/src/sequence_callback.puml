@@ -1,0 +1,46 @@
+@startuml sequence_callback
+!include riaya_style.iuml
+hide footbox
+skinparam maxMessageSize 210
+
+actor "Doctor" as Dr
+participant "Web app" as W
+queue "Redis\n(BullMQ)" as Q
+participant "Voice server\n+ Gemini Live" as V
+participant "Twilio" as T
+actor "Patient" as P
+
+== Pending request ==
+note over W : AI booking saved\nas pending
+W -> Q : delayed job, 10 min
+
+alt doctor refuses (normal request)
+  Dr -> W : Refuse
+  W -> W : status = cancelled
+  W -> Q : save refusal context (24 h)
+  W -> Q : refused job, run now
+else no answer for 10 minutes
+  Q -> Q : delayed job is due
+end
+
+Q -> V : run job (refused or timeout)
+V -> W : process pending timeout
+W -> W : on timeout, cancel request\n(or the urgent group)
+W --> V : phone, message
+
+== Call the patient back ==
+V -> T : outbound call\n(mode = callback)
+T -> P : rings
+
+alt patient answers
+  T -> V : media WebSocket
+  V -> W : refusal context
+  W -> Q : read context
+  W --> V : up to 3 other doctors\nwith free slots
+  V -> P : AI speaks first:\nother doctors (refusal)\nor "call again" (timeout)
+  P -> V : picks one, AI books it
+else no-answer, busy, failed
+  T -> V : status callback
+  V -> P : WhatsApp from the\nplatform account
+end
+@enduml

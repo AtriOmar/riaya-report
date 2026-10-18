@@ -1,0 +1,23 @@
+{
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Helvetica Neue, Inter, Arial, sans-serif",
+    "fontSize": "16px",
+    "primaryColor": "#F0FDFA",
+    "primaryBorderColor": "#0F766E",
+    "primaryTextColor": "#1F2937",
+    "lineColor": "#94A3B8",
+    "textColor": "#1F2937",
+    "mainBkg": "#F0FDFA",
+    "nodeBorder": "#0F766E",
+    "classText": "#1F2937",
+    "background": "#FFFFFF"
+  },
+  "class": {
+    "hideEmptyMembersBox": true,
+    "padding": 6,
+    "nodeSpacing": 28,
+    "rankSpacing": 42,
+    "diagramPadding": 12
+  }
+}

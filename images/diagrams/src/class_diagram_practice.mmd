@@ -1,0 +1,78 @@
+classDiagram
+direction TB
+
+class user {
+  <<Better Auth>>
+  text id
+  string email
+  int accessId
+}
+class doctor_application {
+  string status
+  string cinRecto, cinVerso
+  string tin
+  string medicalCouncilNumber
+  text[] rejectionReasons
+}
+class doctor_profile {
+  int id
+  string status
+  string cabinetName
+  float cabinetLat, cabinetLng
+  jsonb availability
+  string logoUrl, stampUrl
+}
+class speciality {
+  string enName
+  string frName
+  string arName
+}
+class cities {
+  float latitude, longitude
+  string enName, frName
+}
+class secretary {
+  int doctorId
+  text userId
+}
+class patient {
+  int id
+}
+class consultation_recording {
+  string audioUrl
+  int durationSeconds
+  jsonb transcript
+  string transcriptStatus
+  jsonb speakerRoles
+  jsonb summary
+}
+class recording_usage {
+  int seconds
+  int creditSeconds
+}
+class ai_chat_conversation {
+  string title
+  int recordingId
+}
+class ai_chat_message {
+  string role
+  jsonb parts
+  string status
+  int costMicroUsd
+}
+
+user "1" -- "0..*" doctor_application
+user "1" -- "0..1" doctor_profile
+speciality "1" -- "0..*" doctor_profile
+cities "1" -- "0..*" doctor_profile
+doctor_profile "1" -- "0..*" secretary
+user "1" -- "0..1" secretary
+doctor_profile "1" -- "0..*" consultation_recording
+patient "0..1" -- "0..*" consultation_recording
+consultation_recording "0..1" -- "0..1" recording_usage
+doctor_profile "1" -- "0..*" ai_chat_conversation
+ai_chat_conversation "0..*" -- "0..1" consultation_recording : discusses
+ai_chat_conversation "1" *-- "0..*" ai_chat_message
+
+style user fill:#EEF2FF,stroke:#6366F1
+style patient fill:#FFFFFF,stroke:#94A3B8,stroke-dasharray:4 3

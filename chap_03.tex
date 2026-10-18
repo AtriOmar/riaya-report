@@ -1,636 +1,493 @@
 \chapter{Technical Architecture, Implementation, and Deployment}
 
-\section{Introduction}
-This chapter covers the technical architecture of Riaya, the implementation choices of the Pengguin team, and the deployment strategy that put the product into production. It starts with an overview of the system architecture and the decision to split the project into two repositories, the web application and the voice server. It then goes through the technology stack component by component: frontend, backend, database, voice server, third-party integrations, background jobs, and CI/CD infrastructure. A section of screenshots shows the main features of the platform. The chapter ends with security, confidentiality, and access management, and with the technical challenges the team met and how it solved them.
+% One logo in a logo grid: file name in images/logos/ and caption.
+\providecommand{\stacklogo}[2]{%
+    \begin{subfigure}[t]{0.19\textwidth}
+        \centering
+        \parbox[c][1.7cm][c]{\linewidth}{\centering\includegraphics[height=1.5cm,width=\linewidth,keepaspectratio]{images/logos/#1}}
+        \caption{#2}
+    \end{subfigure}}
 
-\section{Global System Architecture}
+\section{Introduction}
+This chapter explains how Riaya is built and how it runs. It starts with the architecture: the principles we followed, the split of the code into a web repository and a voice repository, and the path that a phone call takes through the system. It then goes through the technology stack area by area, with what each tool does in Riaya and why we chose it. A set of screenshots follows, covering the public pages, the doctor dashboard, the secretary view and the administrator back-office. The chapter then covers security and access management, and ends with the technical problems we met and how we solved them, including the tests we ran to choose the voice model.
+
+\section{Global System Architecture}\label{sec:architecture}
 
 \subsection{Architectural Principles}
-Three architectural principles guided the technical decisions behind Riaya: \textit{separation of concerns}, \textit{event-driven communication}, and \textit{containerized deployment} \cite{fowler2002patterns}. They follow common cloud-native practice and keep the platform maintainable, scalable, and resilient as it grows.
+The design follows three common principles: separation of concerns, event-driven communication, and running every part in a container \cite{fowler2002patterns}.
 
-Separation of concerns led to splitting Riaya into two independent repositories. Event-driven communication shows in the heavy use of WebSockets for real-time notifications between the web application and the voice server \cite{fette2011websocket}. Containerized deployment means every component runs in an isolated, reproducible environment managed by Docker \cite{docker2024}.
+Separation of concerns decided where each piece of logic lives. The web application owns the database and every business rule: booking checks, the best-fit search, plan limits and billing. The voice server owns the long-lived connections: the phone audio, the session with the AI model, the live WebSocket feeds, the WhatsApp sessions and the job workers. A rule is written once, in the web application, and the voice server asks for it over HTTP.
+
+Event-driven communication is used wherever a person waits for something to happen. The voice server pushes each new transcript line and each booking over a WebSocket \cite{fette2011websocket}, so the administrator and the doctor see them without reloading the page. Delayed work, such as cancelling a request that no doctor answered after 10 minutes, is a job in a queue instead of a timer inside a process.
+
+Containerized deployment means that each part runs in its own Docker container \cite{docker2024}, built by the CI pipeline and started the same way on the server every time.
 
 \subsection{Separation into Two Repositories (Web App and Voice Server)}
-One of the team's first architectural decisions was to split Riaya into two repositories:
+The code is split into two repositories.
 
-\begin{itemize}
-    \item \textbf{Web App Repository:} Built with Next.js \cite{nextjs2024}, this repository contains the frontend and backend of the doctor and administrator dashboards. It manages authentication, patient records, appointments, invoices, medical documentation, subscriptions, and the WhatsApp configuration page. It communicates with the PostgreSQL database \cite{postgresql2024} through Drizzle ORM \cite{drizzle2024}.
-    
-    \item \textbf{Voice Server Repository:} Built with Express.js \cite{express2024}, this repository is dedicated to real-time communication. It handles incoming Twilio \cite{twilio2024} calls, WebSocket media streams, the integration with the Gemini Live API \cite{gemini2026live}, WhatsApp integration using WhatsApp Baileys \cite{baileys2024}, and background jobs managed by BullMQ \cite{bullmq2024} and Redis \cite{redis2024}. It also contains a separate LiveKit agent used to test other combinations of models.
-\end{itemize}
+The \textbf{web repository} is a Next.js application \cite{nextjs2024}. It holds the public pages, the doctor, secretary and administrator dashboards, the review page for patients and the test-call page. Its API routes describe their input and output with Zod schemas, from which an OpenAPI specification and a typed client are generated. It also holds the internal API used only by the voice server, authentication with Better Auth, the best-fit search and the place lookup, plan limits and payments, the doctor AI assistant, the producers of background jobs and the Drizzle schema of the PostgreSQL database \cite{postgresql2024, drizzle2024}.
 
-The split has four advantages. The two applications scale independently, which matters because the voice server streams real-time audio and needs very different resources from the web application. Failures stay isolated: a problem in the voice server does not take down the doctor dashboard, and the reverse is also true. The team can deploy one repository without redeploying the other, which speeds up delivery. And each application has a smaller attack surface and access to fewer sensitive credentials.
+The \textbf{voice repository} is a Node.js server built with Express \cite{express2024}. It receives the Twilio calls \cite{twilio2024}, bridges the phone audio to Gemini Live \cite{gemini2026live}, runs the caller transcriber and the silence watchdog, and exposes the call tools that the AI uses to search and book. It keeps one WhatsApp session per doctor with Baileys \cite{baileys2024} and runs the BullMQ workers \cite{bullmq2024}. It also contains a separate LiveKit agent process, used on the test-call page to try other chains of models.
+
+The voice server has no database connection. Every read and write, from checking whether a caller is blocked to booking an appointment, goes through the web application's API, and the request carries a shared secret in the \texttt{x-internal-secret} header. The calls also go the other way: when a doctor sends an invoice on WhatsApp, the web application asks the voice server to send it, because the WhatsApp sessions live in that process. The two applications also share Redis: the web application adds jobs to the queues, and the workers in the voice server run them.
+
+Figure~\ref{fig:two_repos} shows the main modules of each repository and the calls between them.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.4\textheight,keepaspectratio]{images/two_repositories_architecture.png}
-    \caption{Separation of the Riaya Platform into Two Repositories}
+    \includegraphics[width=0.9\textwidth,height=0.62\textheight,keepaspectratio]{images/diagrams/architecture_two_repos.png}
+    \caption{Main modules of the voice and web repositories}
     \label{fig:two_repos}
 \end{figure}
 
-Figure~\ref{fig:two_repos} shows the two repositories, each with its own responsibilities and CI/CD pipeline.
+This split has a cost: each tool call during a phone conversation makes one extra HTTP request to the web application. In return, the business rules exist in a single place, only the web application holds the database credentials, and the voice server can be restarted or redeployed without touching the database or its migrations. A crash in the voice server stops calls but leaves the doctor dashboard working, and the reverse is also true.
 
 \subsection{Technical Architecture Schema (Microservices, Event-Driven)}
-Riaya is not a full microservices architecture \cite{newman2015microservices}, but it is service-oriented and event-driven. It is made of loosely coupled components that communicate through well-defined interfaces:
-
-\begin{itemize}
-    \item \textbf{Web Application:} Handles HTTP requests, renders the dashboard, and exposes REST endpoints for the doctor and administrator interfaces. It communicates with the database through Drizzle ORM.
-    
-    \item \textbf{Voice Server:} Handles Twilio webhooks, establishes WebSocket connections, and bridges the audio stream between Twilio and the Gemini Live API.
-    
-    \item \textbf{Database:} A PostgreSQL instance shared by both applications. It stores all persistent data, including doctor profiles, patients, appointments, invoices, consultations, subscriptions, and call logs.
-    
-    \item \textbf{Redis and BullMQ:} Used for background jobs and scheduled tasks, such as sending review requests two hours after an appointment, generating recurring invoices, and handling timeouts.
-    
-    \item \textbf{External Services:} Twilio (telephony), the Gemini Live API (AI voice agent), OpenRouter (AI assistant for doctors and transcription), Cloudflare R2 \cite{cloudflare2024r2} (file storage), Konnect.network \cite{konnect2024} (payments), WhatsApp Baileys (messaging), and Geoapify \cite{geoapify2024} (geocoding).
-\end{itemize}
-
-WebSockets carry the real-time notifications. When the voice server creates a new AI booking, it notifies the web application, which pushes the notification to the doctor's dashboard over a WebSocket. When a doctor accepts or declines an appointment, the web application asks the voice server to send the patient a WhatsApp confirmation, or to call the patient back with other doctors. Calls from the voice server to the web application carry a shared secret in a request header.
+Riaya is not a full microservices system \cite{newman2015microservices}. It has two services with clear interfaces, one database owned by the web application, and a Redis instance shared for jobs. Figure~\ref{fig:global_arch} shows the users, the edge, the two servers, the data stores and the external services.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.45\textheight,keepaspectratio]{images/global_architecture_schema.png}
-    \caption{Global Technical Architecture of the Riaya Platform}
+    \includegraphics[width=0.95\textwidth,height=0.6\textheight,keepaspectratio]{images/diagrams/architecture_global.png}
+    \caption{Global technical architecture of Riaya}
     \label{fig:global_arch}
 \end{figure}
 
-Figure~\ref{fig:global_arch} shows the global technical architecture of Riaya, with all components and their interactions.
+\paragraph{An inbound call.} The main flow is a patient calling the Riaya number:
+\begin{enumerate}
+    \item Twilio receives the call and sends a webhook to the voice server.
+    \item The voice server asks the web application whether the number is blocked. A blocked caller is rejected with a busy signal before any AI starts. If the web application does not answer within about 1.5 seconds, the call goes on, so an outage never turns patients away.
+    \item In parallel, the voice server creates the call record and finds or creates the person behind the phone number, both through the web API. It answers Twilio with TwiML that opens a media stream WebSocket \cite{twiliomedia2026}, and it starts a two-channel recording of the call.
+    \item A session object bridges the phone audio (8~kHz $\mu$-law) and the Gemini Live session. A copy of the caller's audio goes to the caller transcriber, which cuts it into sentences and sends each one to a transcription model through OpenRouter.
+    \item When Gemini Live calls a tool, the tool sends a request to the internal API: look up a place with Google Places, search for doctors and free slots (the best-fit search, which asks the Geoapify Route Matrix for road distances), or book. A booking creates a pending appointment, and the web application adds a job that will cancel it if no doctor answers within 10 minutes.
+    \item During the call, the voice server pushes every transcript line and every tool call over its \texttt{/dashboard} WebSocket. Each booking also sends an \texttt{appointment\_booked} event on the same feed. The administrator's Live Calls page listens to it, and so does the doctor's calendar, where the new request appears with a sound.
+    \item When the call ends, the call record is closed and its events are saved through the web API. Twilio then sends the finished recording to a webhook of the web application, which checks Twilio's signature and copies the audio to Cloudflare R2.
+\end{enumerate}
 
-\section{Technology Stack and Component Description}
-This section goes through the technology stack of Riaya component by component and explains each choice in terms of performance, maintainability, and fit with the project requirements.
+\paragraph{Background jobs.} Three BullMQ queues run on Redis: the 10-minute timeout of a pending request, the review request two hours after a visit, and the daily subscription renewal. The web application produces the jobs and the workers in the voice server consume them. A worker does not hold the business logic: it calls an internal route of the web application to process the job and, for a timeout or a refusal, places the callback through Twilio or sends the WhatsApp fallback.
 
-Table~\ref{tab:stack} gives the whole stack at a glance.
+\paragraph{Web-side services.} Browsers reach the web application through Nginx, which handles TLS and routes requests. The web application is the only service that talks to PostgreSQL. It calls OpenRouter for the doctor AI assistant and the transcription of consultation recordings, creates presigned upload URLs for Cloudflare R2, starts Konnect payments and receives their webhook, and calls Google Places and Geoapify for the best-fit search.
+
+\paragraph{WhatsApp.} Each doctor links a WhatsApp account by scanning a QR code that the voice server streams to the WhatsApp page over a WebSocket. After that, the web application asks the voice server to send each message, and the message leaves from the doctor's own number. The platform account, linked by the administrator, sends the system messages that do not come from a doctor.
+
+\section{Technology Stack and Component Description}\label{sec:stack}
+This section goes through the stack area by area. For each tool, it says what the tool does in Riaya and why we chose it. Table~\ref{tab:stack} gives the whole stack at a glance.
 
 \begin{table}[H]
     \centering
-    \caption{Technology Stack of Riaya}
+    \caption{Technology stack of Riaya}
     \label{tab:stack}
     \small
-    \begin{tabular}{p{4cm}p{9.5cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{4.6cm}>{\raggedright\arraybackslash}p{6.2cm}}
         \toprule
-        \textbf{Area} & \textbf{Technology} \\
+        \textbf{Area} & \textbf{Technology} & \textbf{Role in Riaya} \\
         \midrule
-        Web application & Next.js (App Router), React, TypeScript, TailwindCSS, shadcn/Radix components \\
-        Data and forms & SWR, React Hook Form, Zod; typed API client generated by Orval from an OpenAPI specification \\
-        Authentication & Better Auth (email and password, email OTP at sign-up), Nodemailer \\
-        Database & PostgreSQL with Drizzle ORM \\
-        Voice server & Node.js, Express, WebSocket (\texttt{ws}), Twilio \\
-        Phone AI & Gemini Live (final choice); OpenAI Realtime, GPT-Live, Inworld, and a LiveKit chain kept for comparison \\
-        Doctor AI & Chat model and transcription through OpenRouter \\
-        Messaging & WhatsApp through Baileys, one linked session per doctor \\
-        Background jobs & BullMQ with Redis \\
-        Files and payments & Cloudflare R2 with presigned upload URLs; Konnect.network \\
-        Maps and places & Geoapify (default) or Google Places, switched by a setting \\
-        Infrastructure & Docker, Docker Compose, GitHub Actions, GHCR, Nginx, Ubuntu VPS \\
+        Web application & Next.js (App Router), React, TypeScript, Tailwind CSS & Public pages, dashboards, API routes \\
+        Typed API & Zod, OpenAPI, Orval, SWR & Schemas on every route, generated client and data hooks \\
+        Authentication & Better Auth, Nodemailer & Email and password, email code at sign-up, invitations \\
+        Database & PostgreSQL, Drizzle ORM & All persistent data, migrations at deployment \\
+        Voice server & Node.js, Express, \texttt{ws}, Twilio & Phone calls, media streams, live WebSocket feeds \\
+        Phone AI & Gemini Live & The model that speaks with patients \\
+        AI gateway & OpenRouter & Caller transcript, doctor assistant, recording transcription \\
+        Model testing & LiveKit & Agent with a chosen model per step, used on the test-call page \\
+        Background jobs & BullMQ, Redis & Timeouts, review requests, subscription renewals \\
+        Messaging & WhatsApp through Baileys & One linked session per doctor \\
+        Files & Cloudflare R2 & Documents and recordings, uploaded with presigned URLs \\
+        Payments & Konnect & Pro plan and recording hour packs \\
+        Maps & Google Places, Geoapify & Patient location, road distance to doctors \\
+        Infrastructure & Docker, Docker Compose, GitHub Actions, GHCR, Nginx, Ubuntu & Build, delivery and hosting \\
+        Tooling & pnpm, GitHub, Notion & Packages, code hosting, task board \\
         \bottomrule
     \end{tabular}
     \\[0.2cm]
     \small Source: Author's own work.
 \end{table}
 
-\subsection{Frontend and Backend Web: Next.js, TailwindCSS, Better Auth}
-The web application is built with \textbf{Next.js} \cite{nextjs2024}, a React framework that supports server-side rendering (SSR), static site generation (SSG), and API routes. The team chose it for its performance, its built-in routing, and because a single codebase can hold both the frontend and the backend. The App Router was preferred over the Pages Router: nested layouts, streaming, and server actions made the complex dashboard pages simpler to build.
+\subsection{Web Application: Next.js, React, TypeScript, Tailwind CSS}
+The web application uses Next.js 16 with the App Router \cite{nextjs2024}, React 19 \cite{react2026} and TypeScript \cite{typescript2026}. Next.js keeps the pages and the API routes in one project, so a single developer could work on a screen and the route behind it in the same change, with shared types. The App Router's nested layouts fit the dashboards well: the doctor, secretary and administrator areas share a layout with a sidebar, and each page only renders its own content. TypeScript catches a large class of mistakes before the code runs, which matters when one developer writes all of it.
 
-Styling uses \textbf{TailwindCSS} \cite{tailwind2024}, a utility-first CSS framework for building responsive interfaces quickly. The team chose it for its flexibility, its small bundle size after tree-shaking, and the consistent design system it enforces across the application.
+The interface is styled with Tailwind CSS v4 \cite{tailwind2024} and built from shadcn components on top of Radix and Base UI. These components handle keyboard access and focus, and since their code is copied into the project we can change them freely. A few libraries cover specific screens: react-big-calendar for the appointment calendar, Leaflet for the maps, and pdfkit for the invoice PDF.
 
-\textbf{Better Auth} \cite{betterauth2024} handles authentication, with support for email and password, OTP, and session management. When a doctor registers, Riaya emails a one-time password (OTP) using \textbf{Nodemailer}. The pending sign-up is kept in Better Auth's verification table, with the OTP hashed and the password encrypted, and the account is only created once the doctor enters the OTP. This mechanism follows the NIST SP 800-63B recommendations on out-of-band authenticators \cite{nist2017sp80063b}.
+\subsection{Typed API and Data Fetching: Zod, OpenAPI, Orval, SWR}
+Every API route registers a Zod schema \cite{zod2026} for its input and output. A script turns these schemas into an OpenAPI specification \cite{openapi2024}, and Orval \cite{orval2026} generates from it a typed client with one SWR hook \cite{swr2026} per route. The pages use these hooks and never write a request by hand. When a route changes, the generated client changes too, and every page that uses it in the old way fails to compile instead of failing in front of a doctor. Forms use React Hook Form with the same Zod schemas, so a field is checked the same way in the browser and on the server. Errors are returned as stable codes, which the interface maps to readable messages.
 
-The web application and its API are typed from end to end. Every API route registers its Zod schema, a script produces an OpenAPI specification from these schemas, and Orval generates the client used by the pages with SWR. A change to a route therefore shows up as a type error in the interface instead of a bug in production.
+\subsection{Authentication and Email: Better Auth, Nodemailer}
+Better Auth \cite{betterauth2024} handles accounts and sessions with email and password. We added a step at sign-up: Riaya emails a 6-digit code with Nodemailer \cite{nodemailer2026}, valid for 10 minutes, with 5 attempts and a new code allowed after 60 seconds. The pending sign-up, with the hashed code and the encrypted password, waits in Better Auth's verification table, and the user account is only created once the code is correct. Nodemailer also sends the invitations that a Pro doctor sends to secretaries. We chose Better Auth because it runs inside our own Next.js application and stores its tables in our own PostgreSQL database, so user data does not go to an outside identity service.
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}[b]{0.22\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.2cm,keepaspectratio]{images/nextjs.png}
-        \caption{Next.js}
-        \label{fig:logo_nextjs}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.22\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.2cm,keepaspectratio]{images/tailwindcss.png}
-        \caption{TailwindCSS}
-        \label{fig:logo_tailwind}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.22\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.2cm,keepaspectratio]{images/better-auth.png}
-        \caption{Better Auth}
-        \label{fig:logo_betterauth}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.22\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.2cm,keepaspectratio]{images/nodemailer.png}
-        \caption{Nodemailer}
-        \label{fig:logo_nodemailer}
-    \end{subfigure}
-    \caption{Logos of the frontend and backend web technologies}
-    \label{fig:logos_frontend}
+    \stacklogo{nextjs.png}{Next.js}\hfill
+    \stacklogo{react.png}{React}\hfill
+    \stacklogo{typescript.png}{TypeScript}\hfill
+    \stacklogo{tailwindcss.png}{Tailwind CSS}
+    \\[0.4cm]
+    \stacklogo{zod.png}{Zod}\hfill
+    \stacklogo{swr.png}{SWR}\hfill
+    \stacklogo{better-auth.png}{Better Auth}\hfill
+    \stacklogo{nodemailer.png}{Nodemailer}
+    \caption{Web application, typed API and authentication}
+    \label{fig:logos_web}
 \end{figure}
-
-Figure~\ref{fig:logos_frontend} shows the logos of the web stack technologies.
 
 \subsection{Database: PostgreSQL and Drizzle ORM}
-The main database is \textbf{PostgreSQL} \cite{postgresql2024}, an open-source relational database known for its reliability, scalability, and support for advanced data types. The team chose it for complex queries, ACID transactions, and its compatibility with Drizzle ORM. A relational database fits better than a NoSQL store here because the data (appointments, invoices, consultations) is highly structured and needs strong referential integrity.
+All persistent data lives in PostgreSQL \cite{postgresql2024}: people and phones, patient files, appointments, invoices, calls and their events, subscriptions and usage. The data is relational and many rules depend on transactions. For example, the WhatsApp limit of a Free doctor is checked and counted in one SQL statement, and recording time is charged under a per-doctor advisory lock so that two transcriptions cannot charge the same hours twice. The data model is described in Section~\ref{subsec:erd-ref}.
 
-\textbf{Drizzle ORM} \cite{drizzle2024} is a TypeScript-first ORM. Developers define schemas in TypeScript and Drizzle generates the SQL queries, with type checking that catches errors early and speeds up development. The team preferred it to Prisma because it generates lighter SQL and maps more directly to SQL semantics. Drizzle handles all database operations, including migrations, which run automatically during deployment before the new container starts. The data model separates the person, the phone, and the doctor's patient file, because one phone can serve a whole family (Section~\ref{subsec:erd-ref}).
+Drizzle ORM \cite{drizzle2024} defines the schema in TypeScript and gives typed queries that stay close to SQL. Its tool \texttt{drizzle-kit} generates a migration file for each schema change, and the deployment runs the migrations in a one-off container before the new web container starts. Only the web application imports this schema; the voice server never connects to the database.
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.5cm,keepaspectratio]{images/postgresql.png}
-        \caption{PostgreSQL}
-        \label{fig:logo_postgres}
-    \end{subfigure}
-    \caption{Logo of the PostgreSQL database}
-    \label{fig:logo_postgres_main}
+    \stacklogo{postgresql.png}{PostgreSQL}\hspace{1cm}
+    \stacklogo{drizzle.png}{Drizzle ORM}
+    \caption{Database}
+    \label{fig:logos_database}
 \end{figure}
 
-\subsection{Voice Server and Real-Time: Express.js, Twilio, Gemini Live}
-The voice server is built with \textbf{Express.js} \cite{express2024}, a minimalist Node.js framework for web applications and APIs, chosen for its simplicity, its performance, and its compatibility with WebSocket libraries such as \texttt{ws}.
+\subsection{Voice Server: Node.js, Express, ws, Twilio}
+The voice server runs on Node.js \cite{nodejs2026} with Express 5 \cite{express2024} for the HTTP routes and the \texttt{ws} library \cite{ws2026} for WebSockets, with Pino for logs. One HTTP server accepts several WebSocket paths: the Twilio media streams, the \texttt{/dashboard} feed for the Live Calls page and the doctor calendar, and the \texttt{/whatsapp} feed that carries the QR code and the connection status. We kept the same language as the web application, and the SDKs we needed (Twilio, the Gemini API, Baileys, BullMQ) are all available for Node.js.
 
-\textbf{Twilio} \cite{twilio2024} receives the patients' phone calls. When a patient dials the Riaya number, Twilio sends a webhook to the Express.js server, which answers with TwiML (Twilio Markup Language) that opens a WebSocket media stream from Twilio to the server. Through this stream, the server receives live audio from the patient's phone and sends audio back.
-
-The AI voice agent runs on \textbf{Gemini Live} \cite{gemini2026live}, the speech-to-speech API of Google, with the \texttt{gemini-3.1-flash-live-preview} model. In this mode a single model listens to the patient and answers with its own voice in real time. The agent speaks English, French, and Tunisian Arabic, and it calls tools in the Riaya system to search for doctors, check availability, and create appointments. The tools call an internal API of the web application, so the voice server holds no business rules of its own. Before any AI session starts, the server asks the web application whether the caller's number is blocked.
-
-The transcript that Gemini Live produces of the caller turned out to be very inaccurate on Tunisian Arabic, even though the model itself understands the caller well. A separate \textbf{caller transcriber} therefore cuts the caller's audio into sentences and sends each one to a transcription model, and the result is what administrators see on the live call page. The server also starts a two-channel recording of every answered call through Twilio, and the finished recording is saved to Cloudflare R2.
-
-The voice server keeps several backends in the code on purpose: Gemini Live, which runs in production, OpenAI Realtime, GPT-Live, Inworld, and a LiveKit agent that chains speech-to-text, a language model, and text-to-speech. A configuration setting chooses one, which made the model comparison in Section~\ref{subsec:voice-model-evaluation} possible.
+Twilio \cite{twilio2024} provides the phone number. It sends the incoming call webhook, streams the audio both ways over the media stream \cite{twiliomedia2026}, places the outbound callbacks after a refusal or a timeout, and records each answered call on two channels. The server also cleans the 8~kHz audio with a noise gate and runs a watchdog that asks a silent caller whether they are still there after 12 seconds, hangs up 10 seconds later, and ends any call after 15 minutes.
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.2cm,keepaspectratio]{images/expressjs.png}
-        \caption{Express.js}
-        \label{fig:logo_express}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.2cm,keepaspectratio]{images/twilio.png}
-        \caption{Twilio}
-        \label{fig:logo_twilio}
-    \end{subfigure}
-    \caption{Logos of the voice server and real-time communication technologies}
+    \stacklogo{nodejs.png}{Node.js}\hspace{1cm}
+    \stacklogo{express.png}{Express}\hspace{1cm}
+    \stacklogo{twilio.png}{Twilio}
+    \caption{Voice server and telephony}
     \label{fig:logos_voice}
 \end{figure}
 
-Figure~\ref{fig:logos_voice} presents the voice server stack.
+\subsection{AI Services: Gemini Live, OpenRouter, LiveKit}
+The patient speaks with Gemini Live \cite{gemini2026live}, using the \texttt{gemini-3.1-flash-live-preview} model and the Puck voice. It is a speech-to-speech model: the same model listens to the caller, decides what to do, calls the booking tools and answers with its own voice. We chose it after testing several realtime models and chains of models on Tunisian Arabic; the tests are described at the end of this chapter. Its one weak point is its transcript of the caller, which was very inaccurate in our tests even when the model understood the caller well. The voice server therefore has its own caller transcriber: it cuts the caller's audio into sentences with an energy check and sends each sentence to \texttt{google/gemini-3.1-flash-lite} through OpenRouter. This text is what administrators read on the Live Calls page. The other realtime backends we tested (OpenAI Realtime, GPT-Live and Inworld) stay in the code behind a setting, so they can be compared again later.
 
-\subsection{AI for Doctors: OpenRouter}
-The AI assistant of the doctor dashboard and the transcription of consultation recordings use \textbf{OpenRouter}, a gateway that gives access to many models through one API. The chat model and the transcription model are settings, so they can change without touching the code. The assistant also writes the title of a recording, finds out who speaks in it (doctor, patient, or companion), and, for Pro doctors, drafts the consultation note in French.
+OpenRouter \cite{openrouter2026} gives access to many models through one API and one bill. The web application uses it for the doctor AI assistant (\texttt{deepseek/deepseek-v4-flash-0731} by default), for the transcription of consultation recordings, with speakers separated (the model is \texttt{microsoft/\allowbreak mai-transcribe-2}), and for the small calls that title a recording, give each speaker a role and write the French consultation note on the Pro plan. The chat model is a setting, so changing it does not need a code change. These chat requests can contain patient data, so each one is sent with \texttt{zdr: true} and \texttt{data\_collection: deny}, which limits routing to providers that neither keep nor train on the request \cite{openrouterzdr2026}. OpenRouter also returns the real cost of each reply, and Riaya uses this figure to enforce the monthly AI budget of each plan.
 
-Because these requests can contain patient data, every call asks OpenRouter to use only providers that neither keep nor train on the request. The assistant is limited by its real cost, as reported by OpenRouter for each reply, and not by the number of messages (Section~\ref{subsec:usage-limits}).
-
-\subsection{Third-Party Integrations: WhatsApp Baileys, Cloudflare R2, Konnect.network}
-\textbf{WhatsApp Baileys} \cite{baileys2024} is a library that connects to WhatsApp Web and sends messages from code. Doctors link their own WhatsApp number by scanning a QR code, so every message goes out from the doctor's own number and the conversation between doctor and patient stays private.
-
-\textbf{Cloudflare R2} \cite{cloudflare2024r2} stores uploaded medical documents and files. It is S3-compatible object storage with low latency, high durability, and no egress fees.
-
-\textbf{Konnect.network} \cite{konnect2024} processes the Pro plan payments and the recording hour packs. Konnect has no native subscriptions, so Riaya manages the billing cycle itself: a daily BullMQ job creates the next invoice with a payment link, and a webhook marks it as paid and extends Pro.
-
-\textbf{Geoapify} \cite{geoapify2024} resolves the places that patients say on the phone and measures road distances between a patient and the best candidate doctors.
+LiveKit \cite{livekit2026} runs a separate agent in the voice repository. In this agent each step is a separate model: speech to text, a language model, then text to speech, and each can be chosen per test call. Real phone calls do not use it. We use it on the test-call page to compare combinations of models with the same instructions and tools as production.
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.5cm,keepaspectratio]{images/whatsapp.png}
-        \caption{WhatsApp Baileys}
-        \label{fig:logo_whatsapp}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.5cm,keepaspectratio]{images/cloudflare.png}
-        \caption{Cloudflare R2}
-        \label{fig:logo_cloudflare}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.5cm,keepaspectratio]{images/konnect.png}
-        \caption{Konnect.network}
-        \label{fig:logo_konnect}
-    \end{subfigure}
-    \caption{Logos of the third-party integrations}
+    \stacklogo{gemini.png}{Gemini Live}\hspace{1cm}
+    \stacklogo{openrouter.png}{OpenRouter}\hspace{1cm}
+    \stacklogo{livekit.png}{LiveKit}
+    \caption{AI services}
+    \label{fig:logos_ai}
+\end{figure}
+
+\subsection{Background Jobs and Cache: BullMQ, Redis}
+BullMQ \cite{bullmq2024} stores its jobs in Redis \cite{redis2024}. Riaya has three queues:
+\begin{itemize}
+    \item \texttt{pending-timeout-queue}: a delayed job, added with each phone booking, cancels the request if no doctor answered after 10 minutes, calls the patient back, and falls back to WhatsApp if the patient does not pick up. The same queue sends the callback after a doctor refuses.
+    \item \texttt{review-queue}: a delayed job sends the WhatsApp rating link two hours after the appointment ends.
+    \item \texttt{subscription-queue}: a job that runs daily at 08:00 UTC, and once at startup, creates the renewal invoice of each Pro subscription that ends within three days.
+\end{itemize}
+Redis also keeps the context of a refused request for 24 hours, so that the callback can offer up to three other doctors, and the model settings chosen for a simulated call on the test-call page.
+
+A timer inside the Node.js process would be lost at every restart or deployment, and a 10-minute timeout would then never fire. BullMQ jobs are stored in Redis, survive restarts, can be retried, and are taken by one worker only.
+
+\begin{figure}[H]
+    \centering
+    \stacklogo{bullmq.png}{BullMQ}\hspace{1cm}
+    \stacklogo{redis.png}{Redis}
+    \caption{Background jobs}
+    \label{fig:logos_jobs}
+\end{figure}
+
+\subsection{Third-Party Services: WhatsApp, Cloudflare R2, Konnect, Google Places, Geoapify}
+WhatsApp messages go through Baileys \cite{baileys2024}, a library that connects to WhatsApp as a linked device. Each doctor links their own account by scanning a QR code, and the voice server keeps one session per doctor. Patients receive confirmations, files and invoices from their doctor's own number, which they recognize, and the conversation stays between the doctor and the patient.
+
+Cloudflare R2 \cite{cloudflare2024r2} stores the files: identity card and Medical Council pictures, medical documents, invoice logos and stamps, consultation recordings and call recordings. The web application creates a presigned URL, the browser uploads the file straight to R2, and the record only keeps the public link. Large audio files never pass through our server. R2 uses the S3 API and charges no egress fees, which keeps the cost of playing recordings low.
+
+Konnect \cite{konnect2024} is a Tunisian payment gateway, used for the Pro plan at 49~TND per month and for recording hour packs. It has no subscriptions, so Riaya runs its own billing cycle. The first payment activates Pro for one month. Konnect then calls a webhook on every status change, and the webhook ignores payments it has already handled. Three days before the end of a period, the daily job creates an open invoice with a payment link that the doctor pays to keep Pro.
+
+Google Places \cite{googleplaces2026} turns what the caller says (a city with a street, a district or a landmark) into coordinates, restricted to Tunisia. We tested several providers on Tunisian hospitals, universities, train stations and doctors' cabinet addresses written in French, and compared each returned position with the real one. Google Places was clearly the best: it knew many more places and placed them more accurately. A setting still allows switching to Geoapify, which we only used for testing places.
+
+Geoapify \cite{geoapify2024} provides road distances through its Route Matrix \cite{geoapifymatrix2026}. After the best-fit search ranks the doctors by straight-line distance and waiting time, the eight best are re-ranked by driving distance in a single request with a 3-second timeout. If the request fails or is slow, the straight-line order is kept.
+
+\begin{figure}[H]
+    \centering
+    \stacklogo{baileys.png}{WhatsApp (Baileys)}\hfill
+    \stacklogo{cloudflare-r2.png}{Cloudflare R2}\hfill
+    \stacklogo{konnect.png}{Konnect}\hfill
+    \stacklogo{google-places.png}{Google Places}\hfill
+    \stacklogo{geoapify.png}{Geoapify}
+    \caption{Third-party services}
     \label{fig:logos_thirdparty}
 \end{figure}
 
-Figure~\ref{fig:logos_thirdparty} shows the logos of the third-party integrations.
-
-\subsection{Background Jobs and Cache: BullMQ, Redis}
-\textbf{BullMQ} \cite{bullmq2024} is a Node.js library for background jobs and scheduled tasks. It runs on \textbf{Redis} \cite{redis2024}, an in-memory data store used for caching and message brokering. In Riaya, three queues handle the critical tasks:
-\begin{itemize}
-    \item \textbf{Pending timeout:} a delayed job, created with each AI request, cancels the request after 10 minutes if no doctor answered, calls the patient back, and falls back to WhatsApp if the call fails. The same queue sends the notification after a refusal.
-    \item \textbf{Review request:} a delayed job sends the WhatsApp rating link two hours after an appointment ends.
-    \item \textbf{Subscription renewal:} a daily job at 08:00 UTC, also run once at startup, creates the renewal invoice of every subscription that ends within three days.
-\end{itemize}
-
-Redis also keeps the 24-hour context of a refused request, so that the callback can offer other doctors.
-
-The team chose BullMQ over simpler options such as node-cron for its reliability, delayed jobs, and retry policies.
+\subsection{Infrastructure: Docker, GitHub Actions, Nginx, Ubuntu}
+Each repository has its own GitHub Actions workflow \cite{githubactions2026}. On every push to the \texttt{main} branch, a GitHub-hosted runner builds the Docker image \cite{docker2024}, pushes it to the GitHub Container Registry \cite{ghcr2026}, and deploys it over SSH to a self-hosted Ubuntu server \cite{ubuntu2026}. The environment files come from a GitHub secret. On the server, Docker Compose runs the web and voice containers next to PostgreSQL and Redis on a shared Docker network, and Nginx \cite{nginx2026} sits in front as the reverse proxy that handles TLS and routes requests and WebSockets. A web deployment runs the Drizzle migrations before starting the new container. The deployment diagram in Figure~\ref{fig:deployment} shows these steps. We followed the continuous delivery idea of making every change on \texttt{main} deployable by a script \cite{humble2010continuous}.
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.5cm,keepaspectratio]{images/bullmq.png}
-        \caption{BullMQ}
-        \label{fig:logo_bullmq}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.3\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.5cm,keepaspectratio]{images/redis.png}
-        \caption{Redis}
-        \label{fig:logo_redis}
-    \end{subfigure}
-    \caption{Logos of the background jobs and cache technologies}
-    \label{fig:logos_background}
-\end{figure}
-
-Figure~\ref{fig:logos_background} presents the background jobs and cache stack.
-
-\subsection{Infrastructure and CI/CD: Docker, GitHub Actions, Ubuntu VPS, Nginx}
-Riaya runs in \textbf{Docker} \cite{docker2024} containers managed by \textbf{Docker Compose} on a self-hosted \textbf{Ubuntu VPS}. Each repository has its own \textbf{GitHub Actions} CI/CD workflow: on every push to the \texttt{main} branch, GitHub-hosted runners build the Docker images, publish them to the \textbf{GitHub Container Registry (GHCR)}, and deploy the updated containers to the VPS.
-
-On the VPS, \textbf{Nginx} acts as a reverse proxy in front of the application containers and handles TLS termination and routing. PostgreSQL and Redis run as containers on a shared Docker network, which the web and voice containers join. Web deployments run the Drizzle migrations before the new container starts. This setup follows the continuous delivery principles of Humble and Farley \cite{humble2010continuous}.
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.22\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.2cm,keepaspectratio]{images/docker.png}
-        \caption{Docker}
-        \label{fig:logo_docker}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.22\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.2cm,keepaspectratio]{images/github-actions.png}
-        \caption{GitHub Actions}
-        \label{fig:logo_ghactions}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.22\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.2cm,keepaspectratio]{images/ubuntu.png}
-        \caption{Ubuntu}
-        \label{fig:logo_ubuntu}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.22\textwidth}
-        \centering
-        \includegraphics[width=\textwidth,height=2.2cm,keepaspectratio]{images/nginx.png}
-        \caption{Nginx}
-        \label{fig:logo_nginx}
-    \end{subfigure}
-    \caption{Logos of the infrastructure and CI/CD technologies}
+    \stacklogo{docker.png}{Docker}\hfill
+    \stacklogo{github-actions.png}{GitHub Actions}\hfill
+    \stacklogo{nginx.png}{Nginx}\hfill
+    \stacklogo{ubuntu.png}{Ubuntu}
+    \caption{Infrastructure and CI/CD}
     \label{fig:logos_infra}
 \end{figure}
 
-Figure~\ref{fig:logos_infra} presents the logos of the infrastructure and CI/CD technologies.
-
-\section{Screenshots and Detailed Descriptions}
-This section shows the main screens of Riaya, grouped by interface, with a description of what each one does. Together they show how the functional requirements of Chapter~1 were implemented.
-
-\subsection{Admin Interface: Dashboard and Statistics}
-The admin home page gives an overview of the whole platform. It shows key statistics, such as the number of registered doctors, appointments, and AI calls, along with charts of platform trends, doctor activity, and usage.
-
-\IfFileExists{images/admin_dashboard_home.png}{%
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/admin_dashboard_home.png}
-    \caption{Admin Dashboard Home Page}
-    \label{fig:admin_home}
-\end{figure}
-}{}
-
-\subsection{Doctor Interface: Appointment Calendar and Urgent Badges}
-Doctors see and manage their schedule in a calendar view. New AI requests appear in real time over WebSockets. Urgent requests carry a badge and trigger a stronger live notification for the doctor, which the urgent booking flow described in Section~\ref{subsec:urgencies} depends on.
+\subsection{Development Tools: pnpm, GitHub, Notion}
+Both repositories use pnpm \cite{pnpm2026} as package manager, which installs dependencies quickly and keeps one lockfile per repository, and Biome to lint and format the code. The code is hosted on GitHub, and the work was planned on the Notion board described in Chapter~2 \cite{notion2026}.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/doctor_calendar.png}
-    \caption{Doctor Appointment Calendar with Urgent Badges}
-    \label{fig:doctor_calendar}
+    \stacklogo{pnpm.png}{pnpm}\hspace{1cm}
+    \stacklogo{github.png}{GitHub}\hspace{1cm}
+    \stacklogo{notion.png}{Notion}
+    \caption{Development tools}
+    \label{fig:logos_tools}
 \end{figure}
 
-Figure~\ref{fig:doctor_calendar} shows the doctor's appointment calendar with urgent badges.
+\section{Screenshots and Detailed Descriptions}\label{sec:screens}
+This section shows the main screens of Riaya, grouped by interface. All names, phone numbers, documents, amounts and conversations in these screenshots are demo data created for this report.
 
-\subsection{Doctor Interface: WhatsApp Configuration and QR Code Generation}
-On this page, doctors link their personal WhatsApp number by scanning a QR code. Once connected, every message goes out from the doctor's own number, which keeps conversations private. The page also shows the connection status and lets the doctor disconnect the session.
+\subsection{Public Pages}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/doctor_whatsapp_config.png}
-    \caption{WhatsApp Configuration Page with QR Code}
-    \label{fig:doctor_whatsapp}
+    \includegraphics[width=0.95\textwidth]{images/screens/01_landing_hero.png}
+    \caption{Landing page}
+    \label{fig:scr_landing}
 \end{figure}
-
-Figure~\ref{fig:doctor_whatsapp} shows the WhatsApp configuration page with QR code generation.
-
-\subsection{Doctor Interface: Invoice Management and WhatsApp Sending}
-Doctors create invoices on this page, record payments (cash or transfer), cancel invoices, and send an invoice PDF to the patient on WhatsApp with one click. The status of an invoice (unpaid, partially paid, paid, or cancelled) follows from the payments recorded against it. On the Pro plan the PDF carries the doctor's logo and stamp.
+The public home page presents Riaya to doctors and leads to the sign-up form. Patients never need this website: they book by phone.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/doctor_invoice.png}
-    \caption{Invoice Management Page}
-    \label{fig:doctor_invoice}
+    \includegraphics[width=0.95\textwidth]{images/screens/02_landing_pricing.png}
+    \caption{Pricing section with the Free and Pro plans}
+    \label{fig:scr_pricing}
 \end{figure}
-
-Figure~\ref{fig:doctor_invoice} shows the invoice management page.
-
-\subsection{Admin Interface: Live Call Monitoring and Transcriptions}
-On this page, administrators follow ongoing calls between the AI agent and patients in real time. It shows the live transcript, the tool calls made by the AI, the booking status, and the recording of past calls, which the team relies on for operations and debugging.
+The two plans side by side. Free costs nothing and Pro costs 49~TND per month; both include unlimited AI phone booking, and the limits on WhatsApp sends, recording hours and assistant questions differ, and only Pro has invoice branding and secretary accounts.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/admin_live_call.png}
-    \caption{Admin Live Call Monitoring Interface}
-    \label{fig:admin_live_call}
+    \includegraphics[width=0.95\textwidth]{images/screens/03_signup.png}
+    \caption{Doctor sign-up form}
+    \label{fig:scr_signup}
 \end{figure}
-
-Figure~\ref{fig:admin_live_call} shows the admin live call monitoring interface.
-
-\subsection{Admin Interface: Doctor Verification and Best-Fit Search}
-On the doctor verification page, administrators browse and search doctor applications and approve or reject them, optionally with reasons shown to the doctor. The best-fit search page runs the same search algorithm the AI uses, so administrators can check on a map and a calendar which doctors match a speciality, location, and date range.
+A new doctor enters an email address and a password. After \textit{Continue}, Riaya sends a 6-digit code to that address, and the account is created only once the code is entered.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/admin_doctor_verification.png}
-    \caption{Admin Doctor Verification Interface}
-    \label{fig:admin_verification}
+    \includegraphics[width=0.95\textwidth]{images/screens/04_doctor_application.png}
+    \caption{Doctor application waiting for review}
+    \label{fig:scr_application_pending}
 \end{figure}
+After sign-up, the doctor fills in the application on the Profile page: name, identity card pictures, speciality, Medical Council number and certificate, and the cabinet details with its position on a map. Until an administrator approves it, the other dashboard pages send the doctor back here.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/admin_bestfit_search.png}
-    \caption{Admin Best-Fit Search Interface}
-    \label{fig:admin_bestfit}
+    \includegraphics[width=0.95\textwidth]{images/screens/05_patient_review.png}
+    \caption{Patient review page}
+    \label{fig:scr_review}
 \end{figure}
+Two hours after a visit, the patient receives a WhatsApp link to this page. It asks for a star rating, the waiting time and an optional comment, and it needs no account.
 
-Figures~\ref{fig:admin_verification} and~\ref{fig:admin_bestfit} show the doctor verification and best-fit search interfaces.
-
-\subsection{Database: ERD Diagram and Drizzle Migrations}
-The ERD shows the main tables of the database schema, and the terminal output shows the Drizzle migrations running during deployment.
+\subsection{Doctor Dashboard}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/erd_diagram_ch3.png}
-    \caption{Entity-Relationship Diagram of the Riaya Database}
-    \label{fig:erd_ch3}
+    \includegraphics[width=0.95\textwidth]{images/screens/06_doctor_dashboard.png}
+    \caption{Doctor dashboard}
+    \label{fig:scr_doctor_dashboard}
 \end{figure}
+The doctor's home page shows the number of patients, today's and upcoming appointments, pending requests, the money collected and still owed, and unpaid invoices. The chart splits the last 14 days of appointments by source (dashboard or AI phone), and the plan card shows this month's WhatsApp sends, recording time and AI assistant use.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/drizzle_migrations.png}
-    \caption{Drizzle Migrations Execution}
-    \label{fig:drizzle_migrations}
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/screens/07_appointments_calendar.png}
+        \caption{Weekly calendar}
+        \label{fig:scr_calendar}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/screens/08_pending_booking_dialog.png}
+        \caption{Urgent request opened}
+        \label{fig:scr_pending_dialog}
+    \end{subfigure}
+    \caption{Appointments calendar and a phone booking waiting for a decision}
+    \label{fig:scr_appointments}
 \end{figure}
-
-Figures~\ref{fig:erd_ch3} and~\ref{fig:drizzle_migrations} show the ERD and the Drizzle migrations.
-
-\subsection{Twilio Console: Call Logs and Webhooks}
-The Twilio console lists incoming calls and the webhooks that point to the Express.js voice server.
+In the calendar, confirmed appointments are green, pending phone requests are amber and urgent requests are red; the doctor can drag on the grid to create or move an appointment. Opening a request shows what the caller said on the phone. \textit{Accept} confirms it and creates the patient file if needed, and accepting an urgent request also cancels the copies sent to other doctors.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/twilio_console.png}
-    \caption{Twilio Console with Call Logs and Webhooks}
-    \label{fig:twilio_console}
+    \includegraphics[width=0.95\textwidth]{images/screens/09_availability.png}
+    \caption{Weekly availability}
+    \label{fig:scr_availability}
 \end{figure}
-
-Figure~\ref{fig:twilio_console} shows the Twilio console with call logs and webhooks.
-
-\subsection{BullMQ Dashboard (Redis Insight): Scheduled Jobs Monitoring}
-The BullMQ dashboard, opened through Redis Insight, lists the scheduled jobs and their status (waiting, active, completed, failed). The team uses it to monitor background tasks such as review requests and recurring invoices.
+The doctor sets the working hours of each day, or marks the day as closed. The calendar and the AI's slot search only use times inside these hours.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/bullmq_dashboard.png}
-    \caption{BullMQ Dashboard for Scheduled Jobs}
-    \label{fig:bullmq_dashboard}
+    \includegraphics[width=0.95\textwidth]{images/screens/10_patients_list.png}
+    \caption{Patients list}
+    \label{fig:scr_patients}
 \end{figure}
-
-Figure~\ref{fig:bullmq_dashboard} shows the BullMQ dashboard for scheduled jobs.
-
-\subsection{WhatsApp Baileys Logs: Connection and Message Sending}
-The WhatsApp Baileys logs show the connection status of the doctor's WhatsApp session and each message as it is sent.
+The doctor's patients with their CIN, name and date of birth. From here the doctor opens a patient file or adds a patient by hand.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/whatsapp_baileys_logs.png}
-    \caption{WhatsApp Baileys Connection and Message Logs}
-    \label{fig:whatsapp_logs}
+    \includegraphics[width=0.95\textwidth,height=0.78\textheight,keepaspectratio]{images/screens/11_patient_detail.png}
+    \caption{Patient file}
+    \label{fig:scr_patient_detail}
 \end{figure}
-
-Figure~\ref{fig:whatsapp_logs} shows the WhatsApp Baileys connection and message logs.
-
-\subsection{GitHub Actions: CI/CD Workflow}
-The GitHub Actions workflow shows each step of the automated CI/CD pipeline: building the Docker image, publishing it to GHCR, and deploying it to the VPS.
+One patient's file: identity details, then a history of prescriptions, consultations, lab reports and recorded consultations with their notes, and finally the patient's invoices. The form on the right adds a medical file with up to 10 documents, and each file can be sent to the patient on WhatsApp.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/github_actions_workflow.png}
-    \caption{GitHub Actions CI/CD Workflow}
-    \label{fig:github_actions}
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/screens/12_invoices_list.png}
+        \caption{Invoices list}
+        \label{fig:scr_invoices}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/screens/13_invoice_edit.png}
+        \caption{Editing an invoice}
+        \label{fig:scr_invoice_edit}
+    \end{subfigure}
+    \caption{Patient invoices}
+    \label{fig:scr_invoicing}
 \end{figure}
-
-Figure~\ref{fig:github_actions} shows the GitHub Actions CI/CD workflow.
-
-\subsection{Docker Compose: Running Containers on the VPS}
-The Docker Compose output lists the containers running on the VPS (the web app, the voice server, PostgreSQL, and Redis) and their health. Nginx runs in front of them as the reverse proxy.
+Each invoice shows its total, the amount paid and a status that follows from the recorded payments. The doctor records a payment or sends the invoice PDF on WhatsApp from the list, and edits the lines and prices in a dialog.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth,height=0.5\textheight,keepaspectratio]{images/docker_compose_vps.png}
-    \caption{Docker Compose Running Containers on the VPS}
-    \label{fig:docker_compose}
+    \includegraphics[width=0.95\textwidth]{images/screens/14_recordings_list.png}
+    \caption{Consultation recordings}
+    \label{fig:scr_recordings}
 \end{figure}
+The recordings list shows the state of each transcription: in progress, done, or not transcribed. The panel on the right starts a new recording in the browser and shows how many recording hours are left this month.
 
-Figure~\ref{fig:docker_compose} shows the Docker Compose output with running containers on the VPS.
-
-\section{Security, Confidentiality, and Access Management}
-
-\subsection{Authentication and Authorization (OTP, Better Auth, Roles)}
-Better Auth handles authentication, with email and password sign-in, OTP verification, and session management. At sign-up, the doctor must verify the email with an OTP sent by Nodemailer. The code is valid for 10 minutes, allows five attempts, and a new one can be requested after a 60-second cooldown. Until an administrator approves the application, the doctor can only reach the profile page. Authorization is role-based: doctors, secretaries, administrators, and patients (who have no account) each have a different level of access, and every API route checks the role before it runs. Secretaries get an invitation link that expires after seven days, and only a hash of its token is stored. This follows the principle of least privilege recommended by OWASP \cite{owasp2024}.
-
-\begin{table}[H]
+\begin{figure}[H]
     \centering
-    \caption{Authentication and Authorization Matrix}
-    \label{tab:auth_matrix}
-    \small
-    \begin{tabular}{p{2.3cm}p{3.5cm}p{3.7cm}p{3.7cm}}
-        \toprule
-        \textbf{Role} & \textbf{Authentication} & \textbf{Access Level} & \textbf{Restrictions} \\
-        \midrule
-        Patient & None (phone number) & Phone call + WhatsApp & No web access \\
-        Doctor & Email and password, OTP at sign-up (Better Auth) & Full dashboard after approval & Profile only until approved \\
-        Secretary & Email and password, by invitation & Appointments, patients, invoices, and availability of one doctor & No medical files, recordings, AI assistant, or billing; paused if the doctor leaves Pro \\
-        Administrator & Email and password & Full back-office access & None \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/screens/15_recording_detail.png}
+        \caption{Consultation note}
+        \label{fig:scr_recording_note}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/screens/15b_recording_transcript.png}
+        \caption{Transcript by speaker}
+        \label{fig:scr_recording_transcript}
+    \end{subfigure}
+    \caption{A transcribed consultation}
+    \label{fig:scr_recording}
+\end{figure}
+A transcribed consultation has an audio player, a structured note in French (reason, history, examination, assessment, plan) that the doctor can edit or regenerate, and the transcript split by speaker and time. The doctor can correct who is the doctor and who is the patient in the \textit{Speakers} row.
 
-Table~\ref{tab:auth_matrix} summarizes how each role authenticates and what it can access.
-
-\subsection{Protection of Medical Data (Cloudflare R2, Compliance)}
-Medical documents are stored in Cloudflare R2, which encrypts them at rest and in transit. The browser uploads each file straight to R2 through a presigned URL, so the file never passes through the web server, and only the link is stored with the record. The API checks on the server that a record belongs to the doctor asking for it, and a secretary never sees medical files. The platform must comply with Tunisian data protection regulations (INPDP) \cite{inpdp2004} and, where applicable, with the GDPR principles \cite{gdpr2016} of data minimization, purpose limitation, and the right to erasure. The team chose Cloudflare R2 for its S3-compatible API, its strong encryption, and its zero egress fees, which keep down the cost of storing large medical files.
-
-\subsection{Confidentiality of WhatsApp Conversations}
-WhatsApp messages go out through the doctor's own phone number (via WhatsApp Baileys), so the patient sees the message as coming from the doctor and the conversation stays between the two of them. The database has no table for message content: Riaya only keeps a flag that a medical file was sent, so it holds no copy of what was said. The team chose this design to protect patient privacy and meet medical confidentiality requirements. It also spares the platform the data retention obligations it would have if it stored the messages itself.
-
-\subsection{Server-to-Server Security and Privacy of the AI Assistant}
-The voice server and the web application talk to each other through internal routes. These routes require a shared secret in a request header, so only the voice server can book or cancel on behalf of a caller. The Twilio recording webhook is public, but it checks Twilio's signature before it accepts a file. The caller's phone number always comes from Twilio and never from the AI, so the AI cannot book or cancel for someone else's line.
-
-The AI assistant for doctors can see patient data, so each request asks the model provider not to keep or train on it. The assistant also cannot change anything alone: every action it proposes appears as a card, and nothing happens until the doctor confirms it. The confirmation runs the same API route as the normal screens, so all the usual checks apply.
-
-\subsection{Abuse Prevention: Reports and Blocked Numbers}
-A public phone number invites abuse. The prompt tells the AI to give one calm warning for mockery or insults, and to report a call immediately for threats or sexual talk. It never reports confusion, frustration, elderly callers, bad lines, or children, and it never tells the caller that the call is reported. A report holds a category, a summary written by the AI, and the call recording. An administrator reviews it in a queue and can dismiss it or block the number for 7 days, 30 days, or permanently. Before any AI starts, the voice server asks the web application whether the caller is blocked and rejects blocked calls with a busy signal.
-
-\section{Technical Challenges Encountered and Solutions Adopted}
-
-\subsection{Real-Time Latency Management (WebSockets, Gemini Live)}
-Latency was one of the main technical challenges. The voice server must relay audio between Twilio and the Gemini Live API with minimal delay, or the conversation stops feeling natural. The team used WebSockets for low-latency communication, tuned the audio buffering, and applied a noise gate to the 8~kHz telephone audio. Response time was also the first thing measured when comparing models (Section~\ref{subsec:voice-model-evaluation}): some models understood Tunisian Arabic better but waited several seconds before answering, which made the call feel strange.
-
-Silence needed handling as well. A shared watchdog waits 12 seconds once the assistant has finished speaking, asks the caller once whether they are still there, hangs up after 10 more seconds of silence, and ends any call politely after 15 minutes. This keeps a forgotten call from running on and costing money.
-
-\subsection{Best-Fit Algorithm (Haversine, Geoapify, Scoring)}\label{subsec:bestfit}
-The best-fit algorithm was another hard problem. It has to resolve the patient's location, rank doctors by distance and availability, and return the top two or three options while the patient waits on the line. It works in six steps:
-
-\begin{enumerate}
-    \item \textbf{Location.} The place that the patient says is geocoded with Geoapify \cite{geoapify2024}, restricted to Tunisia. If no precise place is found, the AI falls back to a stored list of 24 Tunisian cities with GPS coordinates. Doctors store the exact coordinates of their cabinet, picked on a map at registration, so matching compares coordinates and not city names.
-    \item \textbf{Candidates.} Only verified doctors with the requested speciality and a mapped cabinet are considered. Doctors farther than 50~km, measured with the Haversine formula \cite{haversine1971}, are excluded, so a doctor in Sfax is never offered to a patient in Tunis. If no doctor within 50~km has a free slot, the three nearest doctors beyond that limit are returned and flagged as far away, and the AI tells the patient so.
-    \item \textbf{Slots.} For each doctor, the search finds the free 30-minute slot nearest to the preferred time within the next week, before and after it, while respecting the existing appointments and the weekly availability. Up to three more slots are kept, so the AI can offer alternatives without a new search.
-    \item \textbf{Score.} Each candidate gets the score below. Ten minutes of waiting count as much as one kilometre, and the time difference is measured against what the patient asked for, not against the current time.
-    \item \textbf{Road distance.} The eight best candidates by straight line are re-ranked using the real driving distance from the Geoapify Route Matrix. One call serves the whole search and has a three-second timeout. If the service is slow or fails, the straight-line order is kept.
-    \item \textbf{Answer.} The AI presents the top two or three options with the doctor, the address, the distance in kilometres, and the time. It speaks distance in kilometres only, never drive time.
-\end{enumerate}
-
-The scoring function is:
-\[
-\text{Score} = \text{distance (km)} + \frac{|\text{slot} - \text{preferred time}| \text{ (minutes)}}{10}
-\]
-
-\paragraph{Road Distance Experiment.}
-The team measured whether the road-distance step was worth its cost. It compared 78 searches (the four specialities with the most doctors, from the centre of each of the 24 cities) with and without the step. Table~\ref{tab:road-distance} shows the results. The straight line is a good first filter, and the road distance is a light improvement whose main benefit is that the AI can quote a real road distance to the patient. The test covered distance only, not appointment times, used patients at city centres, and checked only the eight nearest doctors.
-
-\begin{table}[H]
+\begin{figure}[H]
     \centering
-    \caption{Effect of Road Distance on the Best Doctor (78 Searches)}
-    \label{tab:road-distance}
-    \small
-    \begin{tabular}{p{7cm}p{6cm}}
-        \toprule
-        \textbf{Measure} & \textbf{Result} \\
-        \midrule
-        Best doctor changes (road kilometres) & 24 of 78 (31\%) \\
-        Best doctor changes (drive time) & 19 of 78 (24\%) \\
-        Time saved when the doctor changes & Median 0.8 min, maximum 4.1 min \\
-        Searches saving 5 minutes or more & 0 \\
-        Road divided by straight distance & Typically 1.01; 1.9 or more for the worst 10\%; 3.27 at worst \\
-        \bottomrule
-    \end{tabular}
-    \\[0.2cm]
-    \small Source: Author's own measurements.
-\end{table}
+    \includegraphics[width=0.95\textwidth]{images/screens/16_ai_assistant.png}
+    \caption{AI assistant proposing an action}
+    \label{fig:scr_ai_assistant}
+\end{figure}
+The doctor asks the assistant, in French, to accept a pending request. The assistant answers with a card that describes the change, and nothing happens until the doctor presses \textit{Accept} or \textit{Dismiss}.
 
-\paragraph{Geocoding and Tunisian Locations.}
-To find the patient's location, the platform uses Geoapify, which had the richest data among the services tested. It still has gaps: some addresses exist in several places, which makes them ambiguous. To compensate, the AI also receives a curated list of Tunisian cities and places, which helps it interpret what callers say. A setting switches the provider to Google Places without changing the code that calls it.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{images/screens/17_team.png}
+    \caption{Team page}
+    \label{fig:scr_team}
+\end{figure}
+A Pro doctor invites secretaries by email and can remove them. The list shows one active secretary and one invitation with its expiry date.
 
-\subsection{Management of Urgencies and Timeouts}\label{subsec:urgencies}
-The urgent booking flow and the timeout handling needed careful design. For signs of a life-threatening condition, such as chest pain, trouble breathing, or heavy bleeding, the AI first tells the patient to call the emergency number (SAMU, 190), and only then offers to contact nearby doctors. For other urgent cases, it asks whether the patient wants the closest available doctors right now. If so, it creates up to three pending appointments linked by an emergency group ID. The first doctor to accept gets the appointment, and the other requests are cancelled automatically. If a doctor only refuses their own request, the others stay open, and if the patient cancels one request, the whole group is cancelled. If nobody answers within 10 minutes, the whole group is cancelled and the patient is notified by a callback or a WhatsApp message. BullMQ schedules these tasks, and Redis holds their state. The mechanism draws on patterns from \textit{Enterprise Integration Patterns} \cite{hohpe2003eip}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{images/screens/18_subscription_usage.png}
+    \caption{Subscription and monthly usage}
+    \label{fig:scr_subscription}
+\end{figure}
+The subscription page shows the current plan, this month's recording time, WhatsApp sends and AI assistant use, and a button to buy extra recording hours. Below are the Riaya billing invoices, paid through Konnect: here the Pro plan and a 25-hour pack.
 
-\subsection{Rejection Handling Workflow}
-\label{subsec:rejection-handling}
+\subsection{Secretary View}
 
-One of the trickiest parts of the patient experience was deciding what happens when a doctor refuses an appointment or takes too long to answer. The team first considered asking the patient to choose a backup doctor up front, in case the first one refuses, but that would add yet another question to an already long call. The team chose a simpler approach: the patient picks one doctor, and if that doctor refuses, the platform remembers what the patient asked for (speciality, area, time, and the doctors who already said no) for 24 hours, then calls the patient back with up to three other doctors that have free slots. This keeps the call as easy as possible for the patient. The team plans to test the approach further and may revise it if a better alternative appears.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{images/screens/19_secretary_dashboard.png}
+    \caption{Secretary dashboard}
+    \label{fig:scr_secretary}
+\end{figure}
+A secretary sees the dashboard of the doctor they work for, without the plan card. The menu only has patients, appointments, invoices, availability and their own profile; medical files, recordings, the assistant and billing are not available.
 
-\subsection{Pricing Display Decision}
-\label{subsec:pricing-display}
+\subsection{Admin Back-Office}
 
-Price matters when choosing a doctor, and the team first wanted to show prices on the platform. If only the first consultation price mattered, this would be easy. But the real cost depends on many factors, and two doctors with the same first consultation price can charge very different amounts for their services. The team considered letting doctors enter a price for each service, which works for services with a fixed price, such as braces. In most cases, though, patients do not know what they need before a diagnosis, and an AI cannot reliably handle a diagnosis over the phone. The team therefore decided not to show full prices, so patients are not misled and the platform stays focused on booking rather than medical pricing.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{images/screens/20_admin_dashboard.png}
+    \caption{Administrator dashboard}
+    \label{fig:scr_admin_dashboard}
+\end{figure}
+The administrator's home page counts users by status and lists the doctor applications waiting for review. The badge next to \textit{Reported Calls} shows the number of open abuse reports.
 
-\subsection{Usage Limits and the Cost of AI}\label{subsec:usage-limits}
-The Free and Pro plans limit three things that cost money: WhatsApp sends, recording time, and AI assistant use. Each needed a different counting rule. Only the sends started by the doctor count towards the WhatsApp limit, and a medical file with documents counts as one caption plus one per document. Automatic messages to patients, such as confirmations and review requests, are never counted and never blocked. Recording time is counted once the recording is transcribed, and a re-run does not count again. The monthly hours are used first, then the purchased pack hours, which never expire. A database lock per doctor stops two simultaneous charges from racing, and usage rows stay after a recording is deleted, so deleting never gives time back. A recording is always saved, even when no time is left; it is then marked as not transcribed, and the doctor can transcribe it later.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth,height=0.78\textheight,keepaspectratio]{images/screens/21_application_detail.png}
+    \caption{Reviewing a doctor application}
+    \label{fig:scr_application_review}
+\end{figure}
+The administrator checks the identity card, the Medical Council certificate, the cabinet details and the cabinet position on the map, then approves or rejects the application. A rejection can carry reasons, which the doctor sees before applying again.
 
-The AI assistant is limited by its real cost and not by the number of messages, because a long chat with a transcript costs far more than a short question. OpenRouter reports the cost of each reply, and the app compares the monthly total with a budget: \$0.05 on Free and \$5 on Pro. A typical question costs about \$0.0025, which gives the ``about 20'' and ``about 2,000'' questions shown to doctors, who only see their usage as a percentage. Counters reset on the UTC calendar month. Phone booking has no limit on any plan.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/screens/22_bestfit_calendar.png}
+        \caption{Calendar view}
+        \label{fig:scr_bestfit_calendar}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/screens/22b_bestfit_map.png}
+        \caption{Map view}
+        \label{fig:scr_bestfit_map}
+    \end{subfigure}
+    \caption{Best Fit Finder}
+    \label{fig:scr_bestfit}
+\end{figure}
+The Best Fit Finder runs the same doctor search as the phone assistant for a chosen speciality and place. The calendar shows which doctors are free at each time, and the map shows the patient in red and the matching doctors around, grouped into numbered clusters when they are close together.
 
-\subsection{Voice Model Evaluation and Selection}
-\label{subsec:voice-model-evaluation}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{images/screens/23_live_calls.png}
+    \caption{Calls list with a call transcript}
+    \label{fig:scr_live_calls}
+\end{figure}
+The Calls page lists the active call at the top and the past calls below. The panel shows one urgent call: the AI tells the caller to call the SAMU at 190, the patient agrees to urgent requests, and the \texttt{book\_emergency\_appointments} tool sends three requests to nearby doctors.
 
-The phone call is the most important feature of Riaya, so the team put a lot of effort into choosing the AI models and the architecture behind it. This section covers the two main ways to build an AI phone call, the testing method, the problem of Tunisian Arabic, the approaches tested, the results, and the final choice.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/screens/24_reported_call.png}
+        \caption{Reported call}
+        \label{fig:scr_reported_call}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/screens/25_blocked_numbers.png}
+        \caption{Blocked numbers}
+        \label{fig:scr_blocked}
+    \end{subfigure}
+    \caption{Abuse reports and blocked numbers}
+    \label{fig:scr_abuse}
+\end{figure}
+A report opened by the AI shows why it reported the call, the recording when there is one, and the transcript with the \texttt{report\_abuse} tool call; the administrator dismisses it or blocks the number. Blocked numbers are rejected before the AI answers, and the list shows until when each number is blocked and how many of its calls were refused.
 
-\subsubsection{Two Approaches to Build a Phone Call}
-There are two fundamentally different ways to build an AI-powered phone call. The first is \emph{speech-to-speech} (realtime): a single model listens to the caller and answers with its own voice. This approach is fast and feels natural. The second is a \emph{chain of steps}: the caller's voice is converted to text (STT), an AI model generates the answer (LLM), and the answer is converted back to voice (TTS). This gives more control because the best model can be chosen for each step, but every step adds waiting time. The team tested both approaches.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{images/screens/26_test_call.png}
+    \caption{Test-call page}
+    \label{fig:scr_test_call}
+\end{figure}
+This page simulates a call without a phone, either through the normal phone path or through the LiveKit agent. The panel on the right chooses the realtime model and the caller transcription model for this test only; real phone calls always use the server's configuration.
 
-\subsubsection{Testing Methodology}
-The team built a small program that acts like a phone caller. It plays the same seven sentences each time, covering Tunisian Arabic, French, and mixed sentences such as \textit{``\foreignlanguage{arabic}{نحب ناخذ} rendez-vous \foreignlanguage{arabic}{عند} dermatologue''}. The program records the AI's answers and measures the response time. The real application instructions and booking tools were used, so the AI behaved as it would in production. Each step was also timed individually to identify bottlenecks. To compare fairly, a test call page was built where the engine could be switched and the same call run on each one. One limitation: the test voices were computer-generated, not real patients.
-
-\subsubsection{The Challenge of Tunisian Arabic}
-For English and French, almost every speech-to-text and voice model tested performed well. Tunisian Arabic (Derja) was where the models differed significantly, and it was the main problem from the start. Few models understand it: one model returned nothing for Arabic, while others dropped or misspelled words. Mixed sentences with French words inside Arabic were the hardest. Few voices speak it well: Gemini had the most natural Arabic voices, while Inworld offered only two Arabic voices that were not perfect. Every choice was judged on Tunisian Arabic first, because that is how the patients speak.
-
-\subsubsection{Approach 1: Realtime Models (Speech-to-Speech)}
-The team started with the realtime models, in which one model listens and answers with its own voice. OpenAI Realtime was the first one tested. It was fast, recognized speech well, and was the smartest model of the first tests, but its voice did not have the right accent and it was very expensive. Gemini Live was tested next. The first versions (\texttt{gemini-3.8-live} and its ``extended thinking'' version) had a good dialect and speed but did not understand the caller well, and the ``extended thinking'' version often failed to use the results of the booking tools (8 out of 18 tries in the test). The \texttt{gemini-3.1-flash-live-preview} model was the best of the family: its Tunisian dialect was almost perfect, it answered very fast, handled interruptions very well, and reasoned better than the other Gemini models. Its response time ranged from 1.6 to 4.5 seconds, faster when answering immediately and slower when it called a tool first. Its one weakness was the transcript of the caller, which comes from a separate speech-to-text step inside the Live API that cannot be tuned. This is why the team added a separate caller transcriber. GPT-Live, finally, was too artificial and too costly. Table~\ref{tab:realtime-models} summarizes the verdicts.
-
-\begin{table}[H]
-\centering
-\caption{Comparison of the realtime models tested.}
-\label{tab:realtime-models}
-\small
-\begin{tabular}{p{3.5cm}p{2cm}p{7.5cm}}
-\toprule
-\textbf{Model} & \textbf{Verdict} & \textbf{What was found} \\
-\midrule
-Gemini Live, \texttt{gemini-3.1-flash-live-preview} & Chosen & Dialect almost perfect, very fast, very good with interruptions, the best reasoning of the Gemini family, understands well. The transcript of the caller is very inaccurate, which led to a separate transcriber. \\
-Gemini Live, \texttt{gemini-3.8-live} (and extended thinking) & Not chosen & Good dialect and speed, but weak understanding. The extended version failed to use tool results in 8 of 18 tries. \\
-OpenAI Realtime & Good, not chosen & Fast, good speech recognition, the smartest model of the first tests, very good with interruptions. The voice does not have the right accent, and it is very expensive. \\
-GPT-Live & Bad & Fast, but too artificial, with mistakes and a flow that is not smooth. It is also costly because it uses two models. \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsubsection{Approach 2: Chain of Steps with Inworld.ai}
-Next, the team tried the chain of steps, first with Inworld.ai. The AI models available there were not great, and it answered in about 2.2 seconds in the test call. Inworld also has only two Arabic voices, which were not perfect.
-
-\subsubsection{Approach 3: LiveKit Agents with Different Models}
-After that, LiveKit agents were used. They allow choosing the model for every step, so many combinations could be tested. Table~\ref{tab:voice-model-comparison} comes from these tests. Inworld was mainly used as a speech-to-text and text-to-speech provider. Its speech-to-text was not good in Arabic, and its voice was not perfect either. No good combination of a good model and a fast response time was found.
-
-\begin{table}[h]
-\centering
-\caption{Comparison of models tested in the chain of steps.}
-\label{tab:voice-model-comparison}
-\begin{tabular}{p{2.5cm}p{3cm}p{5cm}p{4cm}}
-\hline
-\textbf{Step} & \textbf{Model} & \textbf{What was found} & \textbf{Problem} \\
-\hline
-Listening & Microsoft MAI & Best on our sentences, about 0.5 s & A preview product, one provider only \\
-Listening & Gemini & Excellent text & 2 to 3 s per sentence \\
-Listening & Inworld & Fast & Not good in Arabic, worst on mixed sentences \\
-Thinking & GPT-5.4 mini & Fast, about 1.2 s to start & Less smart than Claude \\
-Thinking & Claude Sonnet & The smartest & 3 times slower to start (3.6 s) \\
-Voice & Gemini & The most natural & 2 to 3 s before it starts talking \\
-Voice & Inworld & Fast & Only 2 Arabic voices, not perfect \\
-\hline
-\end{tabular}
-\end{table}
-
-Table~\ref{tab:voice-model-comparison} summarizes the results of the model evaluation.
-
-\subsubsection{Lessons Learned}
-The tests taught the team three things. The best models were often the slowest: the best voice and the best listening model were both slow. Delays add up, because each step in the chain adds its own wait. And testing found real bugs. For example, the AI saved the caller's name or language on almost every turn, which cost about one extra second each time, so this was moved to a background job. Even so, the fastest chain the team built waited about 6.8 seconds before answering, and with Gemini for both listening and the voice, it took more than 10 seconds.
-
-\subsubsection{Latency and Final Choice}
-On a phone call, the wait between the caller finishing and the AI answering matters a lot: a long wait makes the call feel strange, so the team paid close attention to speed. The realtime models, Gemini Live and OpenAI Realtime, both answered quickly. The Inworld setup was slower, at about 2.2 seconds, and the LiveKit chains were slower still, at 6.8 seconds or more.
-
-In the end, the team chose Gemini Live with the \texttt{gemini-3.1-flash-live-preview} model, because on Tunisian Arabic it combined the most natural dialect, a very fast response, good handling of interruptions, and good understanding. OpenAI Realtime was smarter in the first tests, but its voice did not have the right accent and it cost much more. The weak caller transcript was solved with the separate transcriber. The other realtime backends and the LiveKit chain stay in the code on purpose, so that new models can be compared again with the same test call page.
+\input{chap_03b}
 
 \section{Conclusion}
-This chapter presented the technical architecture of Riaya: the split into two repositories, the technology stack, and the deployment infrastructure. It covered the web stack, the database, the voice server, the AI services, the third-party integrations, the background jobs, and the CI/CD pipeline, showed the main features through screenshots, discussed security and confidentiality, and described the technical challenges and their solutions, including the best-fit search, the usage limits, and the comparison of voice models. The general conclusion that follows summarizes the work and presents future perspectives.
+This chapter described how Riaya is built. The system is split into a web application, which owns the database and the business rules, and a voice server, which handles the phone audio, the live feeds, WhatsApp and the background jobs and reaches the data only through the web application's internal API. We went through the stack area by area, from Next.js and the typed API to Gemini Live, OpenRouter, BullMQ and the deployment on an Ubuntu server, and showed the main screens of the four interfaces. We then covered how the platform protects accounts and medical data, and the technical problems we met along the way, with the tests that led to the choice of the voice model. The general conclusion that follows sums up the work and the next steps.

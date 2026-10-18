@@ -1,0 +1,85 @@
+classDiagram
+direction TB
+
+class doctor_profile {
+  int id
+}
+class person {
+  int id
+  string firstName, lastName
+  date dateOfBirth
+  string preferredLanguage
+  string source
+}
+class person_phone {
+  int personId
+  string phoneNumber
+  string relationship
+}
+class patient {
+  int id
+  int personId
+  int doctorId
+  string cin
+  string phoneNumber
+}
+class appointment {
+  int id
+  int personId
+  int patientId
+  string contactPhone
+  datetime start, end
+  string status
+  string source
+  bool urgent
+  string emergencyGroupId
+}
+class review {
+  string token
+  int rating
+  string waitTime
+}
+class consultation {
+  datetime date
+  string title
+}
+class patient_medical_file {
+  string type
+  string title
+  text[] documents
+  bool sentViaWhatsapp
+}
+class invoice {
+  string number
+  string status
+  int totalCentimes
+  int amountPaidCentimes
+}
+class invoice_item {
+  string description
+  int quantity
+  int unitPriceCentimes
+}
+class invoice_payment {
+  int amountCentimes
+  string paymentMethod
+  datetime paidAt
+}
+
+person "1" -- "1..*" person_phone
+person "1" -- "0..*" patient
+doctor_profile "1" -- "0..*" patient
+person "1" -- "0..*" appointment : is for
+patient "0..1" -- "0..*" appointment : linked on accept
+patient "1" -- "0..*" consultation
+patient "1" -- "0..*" patient_medical_file
+appointment "1" -- "0..*" review
+appointment "0..1" -- "0..*" invoice
+patient "1" -- "0..*" invoice
+invoice "1" *-- "1..*" invoice_item
+invoice "1" *-- "0..*" invoice_payment
+
+style doctor_profile fill:#FFFFFF,stroke:#94A3B8,stroke-dasharray:4 3
+style person fill:#FEF3C7,stroke:#D97706
+style person_phone fill:#FEF3C7,stroke:#D97706
+style patient fill:#FEF3C7,stroke:#D97706

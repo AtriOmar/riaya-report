@@ -1,0 +1,74 @@
+classDiagram
+direction TB
+
+class appointment {
+  int id
+}
+class callrow["call"] {
+  string callSid
+  string from, to
+  string direction
+  string status
+  int duration
+  string recordingUrl
+}
+class call_event {
+  string type
+  text content
+  string functionName
+  jsonb functionArgs
+  jsonb functionResult
+}
+class call_report {
+  string phoneNumber
+  string category
+  text summary
+  string status
+}
+class blocked_phone {
+  string phoneNumber PK
+  datetime expiresAt
+  int rejectedCallCount
+}
+class user {
+  <<Better Auth>>
+  text id
+}
+class doctor_profile {
+  int id
+}
+class subscription {
+  string planId
+  string status
+  datetime currentPeriodEnd
+  bool cancelAtPeriodEnd
+}
+class billing_invoice {
+  string kind
+  string number
+  string status
+  int amountMillimes
+  int creditSeconds
+  string konnectPaymentRef
+}
+class whatsapp_usage {
+  string periodYyyyMm
+  int sendCount
+}
+
+appointment "0..1" -- "0..*" callrow : booked during
+callrow "1" *-- "0..*" call_event
+callrow "1" -- "0..1" call_report
+call_report "0..1" -- "0..*" blocked_phone : leads to
+user "0..1" -- "0..*" call_report : reviews
+user "0..1" -- "0..*" blocked_phone : blocks
+doctor_profile "1" -- "0..1" subscription
+doctor_profile "1" -- "0..*" billing_invoice
+subscription "0..1" -- "0..*" billing_invoice
+doctor_profile "1" -- "0..*" whatsapp_usage
+
+style appointment fill:#FFFFFF,stroke:#94A3B8,stroke-dasharray:4 3
+style doctor_profile fill:#FFFFFF,stroke:#94A3B8,stroke-dasharray:4 3
+style user fill:#EEF2FF,stroke:#6366F1
+style call_report fill:#FEF3C7,stroke:#D97706
+style blocked_phone fill:#FEF3C7,stroke:#D97706

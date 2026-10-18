@@ -1,0 +1,65 @@
+// BPMN figure B: the doctor's answer (event-based gateway), callbacks and the review request.
+const L = {S: 'Lane_Server', A: 'Lane_AI'};
+const T = (id, lane, cx, cy, name, color) => ({id, type: 'task', lane, cx, cy, name, color, size: [168, 92]});
+const a1 = 200, r1 = 370, r2 = 490, r3 = 610;
+const W = 1500;
+module.exports = {
+  id: 'callback', font: 18, efont: 17,
+  pool: {name: 'Riaya', x: 0, y: 100, w: W},
+  blackPools: [
+    {id: 'Pool_Patient', name: 'Patient (phone and WhatsApp)', x: 0, y: 0, w: W, h: 70, fill: '#F0FDFA'},
+    {id: 'Pool_Doctor', name: 'Doctor (dashboard)', x: 0, y: 720, w: W, h: 70, fill: '#EEF2FF'},
+  ],
+  lanes: [
+    {id: L.A, name: 'AI system', h: 200, fill: '#F7FDFC'},
+    {id: L.S, name: 'Server and jobs', h: 390, fill: '#FFFFFF'},
+  ],
+  nodes: [
+    {id: 'from', type: 'intermediateCatchEvent', def: 'link', link: 'B', lane: L.S, cx: 115, cy: r2, name: 'From booking (A)', lw: 110, lh: 44},
+    {id: 'evgw', type: 'eventBasedGateway', lane: L.S, cx: 215, cy: r2},
+    {id: 'acc', type: 'intermediateCatchEvent', def: 'message', lane: L.S, cx: 320, cy: r1, name: 'Doctor accepts', lw: 130, lh: 24},
+    {id: 'tmo', type: 'intermediateCatchEvent', def: 'timer', timer: 'PT10M', lane: L.S, cx: 320, cy: r2, name: '10 min, no answer', lw: 150, lh: 24},
+    {id: 'ref', type: 'intermediateCatchEvent', def: 'message', lane: L.S, cx: 320, cy: r3, name: 'Doctor refuses', lw: 130, lh: 24},
+    T('conf', L.S, 485, r1, 'Confirm, link the file, WhatsApp the patient', 'good'),
+    {id: 't2h', type: 'intermediateCatchEvent', def: 'timer', timer: 'PT2H', lane: L.S, cx: 640, cy: r1, name: '2 h after the visit', lw: 100, lh: 44},
+    T('rev', L.S, 790, r1, 'Send the review link', 'good'),
+    {id: 'endAcc', type: 'endEvent', lane: L.S, cx: 920, cy: r1, name: 'Review asked', lpos: 'r', lw: 70, lh: 44},
+    T('cancelT', L.S, 485, r2, 'Cancel the request', 'warn'),
+    T('cancelR', L.S, 485, r3, 'Cancel, keep the request 24 h in Redis', 'warn'),
+    {id: 'merge', type: 'exclusiveGateway', lane: L.S, cx: 640, cy: r2},
+    {id: 'blk', type: 'exclusiveGateway', lane: L.S, cx: 790, cy: r2, name: 'Blocked number?', lpos: 'b', lw: 150, lh: 24, ldx: 70},
+    {id: 'endNo', type: 'endEvent', lane: L.S, cx: 790, cy: r3, name: 'Nothing sent', lpos: 'r', lw: 110, lh: 24},
+    T('call', L.A, 1030, a1 + 10, 'Call back: 3 other doctors or call again'),
+    {id: 'ans', type: 'exclusiveGateway', lane: L.A, cx: 1165, cy: a1 + 10, name: 'Answered?', lpos: 't', lw: 100, lh: 24},
+    T('wa', L.A, 1325, a1 + 10, 'WhatsApp from the platform account'),
+    {id: 'endWa', type: 'endEvent', lane: L.A, cx: 1455, cy: a1 + 10, name: 'Patient informed', lpos: 't', lw: 90, lh: 44},
+  ],
+  flows: [
+    {id: 'g0', from: 'from', to: 'evgw'},
+    {id: 'g1', from: 'evgw', to: 'acc', pts: [['evgw', 't'], [215, r1], ['acc', 'l']]},
+    {id: 'g2', from: 'evgw', to: 'tmo'},
+    {id: 'g3', from: 'evgw', to: 'ref', pts: [['evgw', 'b'], [215, r3], ['ref', 'l']]},
+    {id: 'g4', from: 'acc', to: 'conf'},
+    {id: 'g5', from: 'conf', to: 't2h'},
+    {id: 'g6', from: 't2h', to: 'rev'},
+    {id: 'g7', from: 'rev', to: 'endAcc'},
+    {id: 'g8', from: 'tmo', to: 'cancelT'},
+    {id: 'g9', from: 'ref', to: 'cancelR'},
+    {id: 'g10', from: 'cancelT', to: 'merge'},
+    {id: 'g11', from: 'cancelR', to: 'merge', pts: [['cancelR', 'r'], [640, r3], ['merge', 'b']]},
+    {id: 'g12', from: 'merge', to: 'blk'},
+    {id: 'g13', from: 'blk', to: 'endNo', name: 'yes', pts: [['blk', 'b'], ['endNo', 't']], at: [770, 555], lw: 40},
+    {id: 'g14', from: 'blk', to: 'call', name: 'no', pts: [['blk', 'r'], [1030, r2], ['call', 'b']], at: [900, 475], lw: 30},
+    {id: 'g15', from: 'call', to: 'ans'},
+    {id: 'g16', from: 'ans', to: 'wa', name: 'no', at: [1215, 195], lw: 30},
+    {id: 'g17', from: 'wa', to: 'endWa'},
+    {id: 'g18', from: 'ans', to: 'endWa', name: 'yes', pts: [['ans', 'b'], [1165, 278], [1455, 278], ['endWa', 'b']], at: [1260, 264], lw: 40},
+  ],
+  messageFlows: [
+    {id: 'm0', from: 'Pool_Doctor', to: 'Pool_1', name: 'accept or refuse', pts: [[320, 720], [320, 690]], at: [400, 705], lw: 140},
+    {id: 'm1', from: 'conf', to: 'Pool_Patient', name: 'WhatsApp', pts: [['conf', 't'], [485, 70]], at: [535, 120], lw: 80},
+    {id: 'm2', from: 'rev', to: 'Pool_Patient', name: 'rating link', pts: [['rev', 't'], [790, 70]], at: [842, 120], lw: 90},
+    {id: 'm3', from: 'call', to: 'Pool_Patient', name: 'phone call', pts: [['call', 't'], [1030, 70]], at: [980, 120], lw: 90},
+    {id: 'm4', from: 'wa', to: 'Pool_Patient', name: 'WhatsApp', pts: [['wa', 't'], [1325, 70]], at: [1275, 120], lw: 80},
+  ],
+};

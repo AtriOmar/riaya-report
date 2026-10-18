@@ -1,0 +1,110 @@
+[
+  {
+    "file": "class_diagram_people_care.png",
+    "title": "Class diagram: people and care",
+    "caption": "People, phones, patient files, appointments and patient billing.",
+    "shows": "person, person_phone (relationship to the phone owner), patient as the doctor-person link, appointment (personId, patientId, contactPhone, status, source, urgent, emergencyGroupId), review, consultation, patient_medical_file, invoice with invoice_item and invoice_payment. doctor_profile is a reference stub. Source: src/class_diagram_people_care.mmd (Mermaid)."
+  },
+  {
+    "file": "class_diagram_practice.png",
+    "title": "Class diagram: accounts, practice and doctor AI",
+    "caption": "Accounts, doctor verification, secretaries, recordings and the AI assistant.",
+    "shows": "Better Auth user, doctor_application, doctor_profile, speciality, cities, secretary, consultation_recording, recording_usage, ai_chat_conversation and ai_chat_message. patient is a reference stub. Source: src/class_diagram_practice.mmd (Mermaid)."
+  },
+  {
+    "file": "class_diagram_calls_billing.png",
+    "title": "Class diagram: calls, abuse and Riaya billing",
+    "caption": "Phone calls, abuse handling and what doctors pay Riaya.",
+    "shows": "call, call_event, call_report, blocked_phone (admin user reviews and blocks), subscription, billing_invoice (subscription or top_up, Konnect reference) and whatsapp_usage. appointment and doctor_profile are reference stubs. Source: src/class_diagram_calls_billing.mmd (Mermaid)."
+  },
+  {
+    "file": "sequence_call_flow.png",
+    "title": "Sequence diagram: an inbound call",
+    "caption": "An inbound call from dial to stored recording.",
+    "shows": "Twilio webhook, blocked-number check that fails open, call row and person created in parallel, TwiML stream and recording start, Gemini Live audio loop with the caller transcriber, live transcript to dashboards, tool calls through the web internal API (find slots, book pending + 10 min job), appointment_booked event, hangup, signed recording webhook and upload to R2. Source: src/sequence_call_flow.puml."
+  },
+  {
+    "file": "sequence_callback.png",
+    "title": "Sequence diagram: refusal and timeout callback",
+    "caption": "What happens when a doctor refuses or does not answer within 10 minutes.",
+    "shows": "Pending request with a delayed BullMQ job, refusal path (cancelled, 24 h Redis refusal context, immediate job) or timeout path, worker asks the web app to process the job, outbound Twilio callback where the AI speaks first and offers up to 3 other doctors, WhatsApp fallback from the platform account on no-answer, busy or failed. Source: src/sequence_callback.puml."
+  },
+  {
+    "file": "use_case_patient_admin.png",
+    "title": "Use cases: patient and administrator",
+    "caption": "What patients do by phone and WhatsApp, and what administrators do.",
+    "shows": "Patient: book by phone, family booking (extend), doctor by name, urgent doctor, list or cancel pending, change language, callbacks, WhatsApp messages, rating link. Phone AI reports abusive callers, which feeds the admin review queue. Admin: verify doctors, live calls and recordings, reported calls, block numbers, Best Fit Finder, users and specialities, platform WhatsApp, statistics. Source: src/use_case_patient_admin.puml."
+  },
+  {
+    "file": "use_case_doctor_secretary.png",
+    "title": "Use cases: doctor and secretary",
+    "caption": "Practice tasks shared with secretaries, and tasks reserved to the doctor.",
+    "shows": "Shared practice tasks (booking decisions, calendar, patients without medical files, invoices and payments, invoice on WhatsApp, availability, dashboard) and doctor-only tasks (sign-up and verification, medical files, recordings, AI note on Pro, AI assistant, WhatsApp link, subscription and hour packs, team invites, invoice branding). Source: src/use_case_doctor_secretary.puml."
+  },
+  {
+    "file": "architecture_global.png",
+    "title": "Global architecture",
+    "caption": "Riaya's users, edge, servers, data stores and external services.",
+    "shows": "Patient phone, doctor and admin browsers (Users); Twilio and Nginx (Edge); voice server and web app with Redis/BullMQ and PostgreSQL (Riaya); Gemini Live and WhatsApp/Baileys on the voice side; Google Places, Geoapify road km, Cloudflare R2 and Konnect on the web side; OpenRouter shared for caller transcription and the doctor AI. Labelled flows: call, HTTPS, audio, live events, pages/API, internal API, workers, jobs, SQL. Source: src/architecture_global.js (rendered with src/build.cjs, shared look in src/kit.js)."
+  },
+  {
+    "file": "architecture_two_repos.png",
+    "title": "The two repositories",
+    "caption": "Main modules of the voice and web repositories and how they talk.",
+    "shows": "voice repo: Express + WebSocket server, WhatsApp manager (Baileys), call tools, TwilioSession, realtime backends (Gemini Live used), caller transcriber and watchdog, LiveKit agent, BullMQ workers. web repo: App Router pages, API routes (Zod, OpenAPI, Orval), internal API, Better Auth, best fit and geo, plans and billing, doctor AI, queue producers, Drizzle schema. Cross calls: tools to internal API with x-internal-secret, web asks voice to send WhatsApp; browser WebSocket to voice, HTTPS to web; Redis shared for jobs; PostgreSQL used by web only. Source: src/architecture_two_repos.js (rendered with src/build.cjs, shared look in src/kit.js)."
+  },
+  {
+    "file": "deployment.png",
+    "title": "Deployment",
+    "caption": "From a push on GitHub to containers on the Ubuntu VPS.",
+    "shows": "Developer push to main, web and voice repos, GitHub Actions builds images to GHCR, secrets (.env, SSH key). SSH deploy to the Ubuntu VPS: Nginx (TLS, reverse proxy) in front of the Docker network riaya_network with web, voice, PostgreSQL and Redis (volumes); step 1 Drizzle migrations in a one-off container, 2 pull, 3 docker compose up -d. Outbound HTTPS to Twilio, Gemini, OpenRouter, WhatsApp, Google, Geoapify, R2, Konnect. Source: src/deployment.js (rendered with src/build.cjs, shared look in src/kit.js)."
+  },
+  {
+    "file": "activity_signup_verification.png",
+    "title": "Activity: sign-up and verification",
+    "caption": "Doctor sign-up with an email code, application and admin review.",
+    "shows": "Swimlanes Doctor / Riaya / Administrator. Sign-up form, pending sign-up and 6-digit email code (valid 10 min, 5 tries, new code after 60 s), account created only after a correct code, application (CIN photos, speciality, Medical Council no., TIN, cabinet on map), status pending, admin decision: approve (verified, dashboard unlocked), reject (reasons shown, fix and reapply back to pending) or ban. Source: src/activity_signup_verification.js (rendered with src/build.cjs, shared look in src/kit.js)."
+  },
+  {
+    "file": "activity_urgent_booking.png",
+    "title": "Activity: urgent booking",
+    "caption": "Life-threatening signs, SAMU advice and the emergency group of requests.",
+    "shows": "Swimlanes Patient / Riaya / Doctors. Life-threatening signs lead to 'call the SAMU at 190' first, then urgent requests are offered (also for urgent-only cases); if the patient agrees, best fit from now and up to 3 urgent pending requests in one emergency group; doctors see an urgent badge; first event: a doctor accepts (that request confirmed, siblings cancelled, WhatsApp confirmation), a doctor refuses (only that request cancelled, others stay open), the patient cancels one or 10 min pass (whole group cancelled, callback on timeout). Source: src/activity_urgent_booking.js (rendered with src/build.cjs, shared look in src/kit.js)."
+  },
+  {
+    "file": "activity_refusal_timeout.png",
+    "title": "Activity: accept, refuse or timeout",
+    "caption": "What happens after a normal phone booking.",
+    "shows": "Swimlanes Patient / Riaya / Doctor. Pending request with a 10 min timer, live on the doctor calendar. Accept: confirm, link patient file, WhatsApp confirmation, review job 2 h after the visit, patient rates from the link. Refuse: cancel and keep the request 24 h in Redis. No answer: timeout job cancels. Then blocked numbers get nothing; otherwise Riaya calls back (refused: up to 3 other doctors; timeout: call again) with a WhatsApp fallback from the platform account. Note: urgent requests get no callback. Source: src/activity_refusal_timeout.js (rendered with src/build.cjs, shared look in src/kit.js)."
+  },
+  {
+    "file": "bestfit_pipeline.png",
+    "title": "Best-fit pipeline",
+    "caption": "How Riaya picks the 2 or 3 doctors the AI offers.",
+    "shows": "Six numbered steps: locate the patient (Google Places, Tunisia), candidate doctors (verified, speciality, mapped cabinet, Haversine up to 50 km), nearest free 30-min slot within a week plus up to 3 extra slots, score = km + minutes/10, road-distance polish of the top 8 (Geoapify Route Matrix, one call, 3 s timeout), AI offers 2 to 3 doctors in km. Fallbacks: 24 city centres, 3 nearest beyond 50 km flagged far away, keep straight-line order. Side note: the plan never changes the ranking (Free doctors are not hidden). Source: src/bestfit_pipeline.js (rendered with src/build.cjs, shared look in src/kit.js)."
+  },
+  {
+    "file": "plan_limits_flow.png",
+    "title": "Plan limits check",
+    "caption": "How a doctor action is checked against the Free and Pro limits.",
+    "shows": "Effective plan (Pro only if pro, active and period end ahead; otherwise Free). WhatsApp sends started by the doctor: 1 caption + 1 per file, invoice = 1, atomic SQL check, Free 30 / Pro unlimited, automatic patient messages never counted. Recording: audio always saved, plan hours then packs, transcribe and charge once or 'skipped' to transcribe later by hand (Free 2 h, Pro 100 h, packs 25 h / 100 h). AI assistant: month spend vs real-cost budget $0.05 Free / $5 Pro (about 20 / 2,000 questions). Phone booking by the AI is never limited. Source: src/plan_limits_flow.js (rendered with src/build.cjs, shared look in src/kit.js)."
+  },
+  {
+    "file": "bpmn_booking.png",
+    "title": "BPMN A: from the call to the pending request",
+    "caption": "BPMN 2.0 process of a phone booking, with the abuse review path.",
+    "shows": "Pool 'Riaya phone booking' with lanes Patient, AI system, Doctor, Administrator. Start (patient calls), gateway number blocked (end: rejected as busy), collect reason/place/time with an abuse escalation boundary event (report, admin review, block 7 d / 30 d / for good or dismiss), gateway urgent signs (advise SAMU 190), best-fit search, gateway urgent: one pending request or up to 3 urgent requests in a group, merge, doctor sees the request, link event to figure B. Rendered with bpmn-js; sources src/bpmn/booking.cjs, src/bpmn/bpmn_booking.bpmn (generator src/bpmn/gen.cjs)."
+  },
+  {
+    "file": "bpmn_callback_review.png",
+    "title": "BPMN B: answer, callbacks and review",
+    "caption": "BPMN 2.0 process after the request: event-based gateway, callbacks and review.",
+    "shows": "Black-box pools Patient (top) and Doctor (bottom), pool Riaya with lanes AI system and Server and jobs. Link catch from A, event-based gateway: message 'doctor accepts' (confirm, link file, WhatsApp, 2 h timer after the visit, review link), 10 min timer (cancel) or message 'doctor refuses' (cancel, keep request 24 h in Redis); merge, gateway blocked number (nothing sent) else callback with 3 other doctors or 'call again', gateway answered, WhatsApp fallback from the platform account. Message flows to the patient: WhatsApp, rating link, phone call. Sources src/bpmn/callback.cjs, src/bpmn/bpmn_callback_review.bpmn."
+  },
+  {
+    "file": "bpmn_global.png",
+    "title": "BPMN overview (A and B stacked)",
+    "caption": "The whole booking process in BPMN 2.0, for a full-page figure.",
+    "shows": "bpmn_booking.png (A) above bpmn_callback_review.png (B) with short titles, joined by the link event B. Built by src/bpmn/stack.cjs. Use it when one full-page figure is wanted; otherwise use the two parts."
+  }
+]

@@ -1,0 +1,51 @@
+@startuml sequence_call_flow
+!include riaya_style.iuml
+hide footbox
+skinparam maxMessageSize 200
+
+actor "Patient" as P
+participant "Twilio" as T
+participant "Voice\nserver" as V
+participant "Gemini\nLive" as G
+participant "Web app" as W
+participant "Doctor and\nadmin UI" as D
+
+== Answer ==
+P -> T : dials Riaya
+T -> V : /incoming-call
+V -> W : number blocked? (fails open)
+alt blocked
+  V --> T : <Reject busy/>, no AI starts
+else allowed
+  V -> W : call row + person (parallel)
+  V --> T : TwiML <Stream>,\nstart recording
+end
+
+== Conversation ==
+T -> V : media WebSocket
+V -> G : open Live session
+loop each turn
+  P -> T : speaks
+  T -> V : caller audio
+  V -> G : audio
+  V -> V : caller transcriber\n(flash-lite) to text
+  G --> V : AI voice
+  V --> P : AI audio (through Twilio)
+  V ->> D : live transcript
+end
+
+== Booking (tools) ==
+G -> V : find_available_slots
+V -> W : internal API
+W --> V : doctors, slots
+G -> V : book_appointment
+V -> W : pending appointment,\n10 min timeout job
+V ->> D : appointment_booked
+
+== End ==
+G -> V : end_call
+V -> T : hang up
+V -> W : close call, save events
+T -> W : recording webhook
+W -> W : check signature,\nMP3 to R2
+@enduml

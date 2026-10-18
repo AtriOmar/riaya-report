@@ -1,0 +1,6 @@
+g.classGroup rect, .node rect, .node path { stroke-width: 1.4px; }
+.relation { stroke: #94A3B8 !important; stroke-width: 1.4px !important; }
+.edgeLabel, .edgeLabel p { color:#475569 !important; background:#FFFFFF !important; }
+.cardinality, .cardinality text { fill: #0F766E !important; font-weight: 600; }
+.classTitle .nodeLabel, .classTitle span { font-weight: 700 !important; color: #0F766E !important; }
+.cardinality, .cardinality text, .edgeTerminals { font-size: 14px !important; }

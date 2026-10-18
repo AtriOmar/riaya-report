@@ -2,24 +2,24 @@
 \addcontentsline{toc}{chapter}{General Introduction}
 
 \paragraph{General Context.}
-Healthcare is going digital worldwide, and Tunisia is part of that shift. Patients expect medical services that are faster and easier to reach, and digital platforms have appeared to simplify contact between patients and healthcare professionals. Artificial intelligence and real-time communication tools in particular can modernize how medical appointments are managed and make care easier to access.
+Healthcare services are moving online in many countries, and Tunisia is no exception. Patients want to reach a doctor faster, and several platforms now connect them with healthcare professionals over the web. Recent progress in artificial intelligence, especially in models that can hold a spoken conversation in real time, opens another option: booking a medical appointment by simply talking on the phone.
 
 \paragraph{Problem Statement.}
-Internet and mobile use keep growing, yet many patients in Tunisia still struggle to book a medical appointment. Booking usually means calling during working hours, going to the clinic in person, or using a web platform that not every user can handle. Language barriers, limited digital literacy, and urgent medical situations make the process slower and more stressful. Most existing solutions ask the patient to create an account or use a web portal. That leaves part of the population out, and these solutions do not offer immediate, simple help in several languages.
+Internet and smartphone use keep growing in Tunisia, yet booking a doctor is still hard for many patients. It usually means calling a cabinet during working hours, going there in person, or using a website that asks for an account. Older patients, people who are not at ease with apps, and people who speak mostly Tunisian Arabic (Derja) are the most affected. Urgent situations make things worse, because the patient has to call cabinet after cabinet to find a doctor who is free. Most existing solutions are built around a web portal or a mobile application, and none of them lets a patient book by speaking naturally in Derja.
 
 \paragraph{Proposed Solution.}
-Pengguin, a company led by John Jang, built \textbf{Riaya} to address this problem. Riaya is an AI-powered doctor appointment platform based in Tunisia, designed to be ``AI-first'' and ``voice-first'': patients need no web portal or mobile application. They make a phone call, talk to a voice assistant, and receive follow-up messages on WhatsApp. The assistant speaks English, French, and Tunisian Arabic. It helps patients describe their need, choose a speciality, give their location, and book an appointment with the most suitable doctor. Doctors get a web dashboard to manage their practice: appointments, patients, invoices, medical documents, consultation recordings with transcripts, an AI assistant, and WhatsApp messages. Administrators verify doctors, monitor live AI calls, handle abusive callers, and supervise the platform.
+Pengguin, a company led by John Jang, built \textbf{Riaya} to address this problem. Riaya is an AI doctor appointment platform made for Tunisia. Patients have no account and no website: they call a phone number, talk to an AI voice assistant in Tunisian Derja, French or English, and then receive messages on WhatsApp. The assistant asks for the reason of the visit, the place and the preferred time, finds a nearby doctor with a free slot, and sends that doctor a booking request. It can also send urgent requests to several doctors at once, and it tells the patient to call the SAMU (190) first when the symptoms sound life threatening. If a doctor refuses or does not answer within ten minutes, Riaya calls the patient back. Doctors manage their practice from a web dashboard with a calendar, patient files, invoices, consultation recordings with transcripts, an AI assistant and WhatsApp messages sent from their own number. On the paid plan they can add secretaries. Administrators verify doctors, watch live calls, review calls reported as abusive and block numbers.
 
 \paragraph{Objectives of the Report.}
 This report presents the Riaya project from a functional and a technical point of view. It aims to:
 \begin{itemize}
-    \item present the context of the project and the needs of each actor;
+    \item present the host company, the product and the needs of each actor;
     \item describe the functional and non-functional requirements of the platform;
-    \item analyze existing solutions and position Riaya against them;
-    \item explain the project management methodology (Kanban) and the modeling diagrams used;
-    \item detail the technical architecture, the technology stack, the implementation choices, and the deployment strategy;
-    \item show and describe the main features of the platform with screenshots.
+    \item compare Riaya with existing solutions;
+    \item explain the project management method (Kanban) and the modeling diagrams;
+    \item detail the architecture, the technology stack, the choice of AI models and the deployment;
+    \item show the main features of the platform with screenshots.
 \end{itemize}
 
 \paragraph{Structure of the Report.}
-The report has three chapters. Chapter 1 introduces Pengguin and the Riaya product, sets out the functional and non-functional requirements, compares Riaya with existing solutions, and models the complete process in BPMN. Chapter 2 covers the project management methodology: what Kanban is, its advantages and disadvantages, and how it compares with other methodologies. It also presents the main modeling diagrams for the project. Chapter 3 describes the technical architecture and implementation of Riaya: the technology stack, annotated screenshots, security, and the deployment pipeline. A general conclusion summarizes the work, the challenges encountered, and the future perspectives.
+The report has three chapters. Chapter 1 introduces Pengguin and the Riaya product, sets out the functional and non-functional requirements, compares Riaya with existing solutions, and models the booking process in BPMN. Chapter 2 covers the project management method: what Kanban is, its advantages and disadvantages, how it compares with other methods, and how we used it. It also presents the modeling diagrams of the project. Chapter 3 describes the technical architecture and the implementation: the technology stack, annotated screenshots, security, the technical challenges we met and the deployment pipeline. A general conclusion sums up the work, the lessons learned and the next steps.
