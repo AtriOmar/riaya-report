@@ -1,6 +1,6 @@
 % chap_03b.tex: fragment included inside Chapter 3 with \input{chap_03b}.
-% It holds two sections: security and access management, and the technical
-% challenges with the solutions we adopted.
+% It holds three sections: security and access management, the technical
+% challenges with the solutions we adopted, and the evaluations and tests.
 
 \section{Security, Confidentiality, and Access Management}
 
@@ -21,7 +21,7 @@ Secretaries are a Pro feature. The doctor invites them by email from the Team pa
     \caption{Authentication and authorization by role}
     \label{tab:auth_matrix}
     \small
-    \begin{tabular}{p{2.4cm}p{3.4cm}p{3.9cm}p{4.0cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.1752\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2482\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2847\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2920\dimexpr\textwidth-8\tabcolsep\relax\relax}}
         \toprule
         \textbf{Role} & \textbf{Authentication} & \textbf{Access} & \textbf{Restrictions} \\
         \midrule
@@ -65,9 +65,11 @@ A public phone number attracts abuse. The phone AI gives one calm warning for mo
 
 Before any AI session starts, the voice server asks the web app whether the caller is blocked. A blocked caller gets a busy signal from Twilio, the attempt is counted, and no recording, callback or WhatsApp message follows. The check has a timeout of about 1.5 seconds and fails open: if the web app is slow or down, the call goes through. We preferred letting an abuser through during an outage to turning away a real patient.
 
-\section{Technical Challenges Encountered and Solutions Adopted}
+\section{Technical Challenges Encountered and Solutions Adopted}\label{sec:challenges}
 
-\subsection{Real-Time Latency and Silence Handling}
+This section covers the problems that shaped the phone call, the doctor search and the handling of urgent and unanswered requests, and the design we chose for each. The tests and measurements behind several of these choices are grouped in Section~\ref{sec:evaluations}.
+
+\subsection{Real-Time Latency and Silence Handling}\label{subsec:latency}
 
 During a call, the voice server bridges three WebSocket connections: Twilio's audio stream (G.711 $\mu$-law at 8~kHz), the realtime AI model, and the admin dashboard that shows the live transcript. Every extra millisecond between the caller's last word and the AI's first word makes the call feel less natural. Telephone guidelines aim for a one-way delay of about 150~ms \cite{itu2003g114}; an AI that has to understand and answer takes far longer, so each step we could remove mattered. The choice of a speech-to-speech model was the biggest gain (Section~\ref{subsec:voice-model-evaluation}). Smaller ones came from the call set-up: the server creates the call row and loads the caller's profile in parallel and caches both, and the check for blocked numbers stops waiting after about 1.5 seconds.
 
@@ -103,16 +105,47 @@ While the patient waits on the line, the platform has to turn ``a dermatologist 
 
 The doctor's plan plays no part in this ranking (Section~\ref{subsec:free-doctors-bestfit}).
 
-\paragraph{Geocoding.} The search is only as good as the patient's position. Callers name neighbourhoods, hospitals, schools and streets, usually in Derja or in French, so we compared several place search services on Tunisian places before choosing Google Places \cite{googleplaces2026}. The next subsection describes that comparison. Google is not perfect either, and some names exist in several towns, so the AI also gets the list of Tunisian cities and asks the patient to choose when several places match.
+\paragraph{Design choices.} A single score lets the search compare a doctor who is close but free later with one who is farther away but free sooner. With 10 minutes of waiting worth one kilometre, a doctor 5~km away at the requested time comes before a doctor next door who is free only one hour later. The 50~km radius keeps the offers to trips that patients would actually make, and the far-away fallback means that a patient in an area with few doctors still gets an answer, with a clear warning about the distance. Road distance comes last and only reorders the 8 best doctors. Our experiment on 78 searches (Section~\ref{subsec:road-distance-experiment}) showed that it changes the best doctor in about one search out of three but never saves more than about 4 minutes of driving. We therefore kept it as a light polish, whose main benefit is that the AI can quote a real road distance.
 
-\paragraph{Road distance experiment.} Road distance costs a call to an outside service on every search, so we measured whether it changes the result. We ran the search for the 4 specialities with the most doctors, with the patient at the centre of each of the 24 cities, which gave 78 comparisons with no failed call. For each one we took the 8 nearest doctors by straight line and asked for their road distance. Table~\ref{tab:road-distance} shows the results. In one case in Tunis, the nearest doctor was 1.3~km away in a straight line but 5.8~km by road, while another doctor was 2.3~km away both ways; road distance correctly picks the second one. Overall, the best doctor changed in about one search out of three, but the trip saved was small, never more than about 4 minutes. Straight-line distance is therefore a good first filter, and road distance is a light polish whose main benefit is that the AI can quote a real road distance. The test has limits: it used distance only, without appointment times, it placed patients at city centres, it ran on our local data, which may include test doctors, and it only checked the 8 nearest doctors.
+\paragraph{Geocoding.} The search is only as good as the patient's position. Callers name neighbourhoods, hospitals, schools and streets, usually in Derja or in French, so we compared several place search services on Tunisian places before choosing Google Places \cite{googleplaces2026}. Section~\ref{subsec:geocoding-evaluation} describes that comparison. Google is not perfect either, and some names exist in several towns, so the AI also gets the list of Tunisian cities and asks the patient to choose when several places match.
+
+\subsection{Management of Urgencies and Timeouts}\label{subsec:urgencies}
+
+Some callers are in danger. When a caller describes signs of a life-threatening condition, such as chest pain, trouble breathing, signs of a stroke, heavy bleeding, fainting, a seizure or a serious injury, the AI first tells them to call the SAMU at 190. Riaya books visits and does not replace the emergency services, so the offer of urgent requests to nearby doctors only comes after that advice. For urgent cases that are not life-threatening, the AI asks whether the patient wants the closest available doctors right now. Figure~\ref{fig:activity_urgent} in Chapter~2 shows the whole flow.
+
+A patient in an urgent case should not wait 10 minutes for one doctor and then start again. An urgent booking therefore runs the best-fit search with ``now'' as the preferred time and sends up to 3 pending requests at once, all sharing one emergency group id. The first doctor to accept keeps the patient and the other requests of the group are cancelled automatically, so the patient never ends up with several appointments. A doctor who refuses cancels only their own request, since the others can still accept, and for the same reason a refused urgent request triggers no callback. When the patient cancels one urgent request by phone, the whole group is cancelled. If nobody accepts within 10 minutes, a delayed BullMQ job \cite{bullmq2024} cancels the group and Riaya calls the patient back, as for a normal request. Urgent requests are never limited by a doctor's plan. The delayed jobs and the events between the servers follow the message-based style described by Hohpe and Woolf \cite{hohpe2003eip}.
+
+\subsection{Rejection Handling and Callbacks}
+\label{subsec:rejection-handling}
+
+We had to decide what happens when a doctor refuses a request or does not answer. Our first idea was to ask the patient for a backup doctor during the call. The call already asks many questions, though, and we wanted to keep it short. So the patient picks one doctor, and if that doctor says no or stays silent, Riaya calls the patient back with new options. After a refusal, Riaya keeps what the patient asked for in Redis for 24 hours, and the AI speaks first in the callback and offers up to 3 other doctors with free slots. If the patient calls Riaya before that, the AI offers these doctors first. After a timeout, the callback only asks the patient to call again. A callback that does not reach the patient is replaced by the same message on WhatsApp from the platform account, and blocked numbers get neither. Figure~\ref{fig:activity_refusal} in Chapter~2 shows the three outcomes of a normal request, and Figure~\ref{fig:sequence_callback} shows how the queue, the web app, the voice server and Twilio work together for these callbacks.
+
+\section{Evaluations and Tests}\label{sec:evaluations}
+
+Several choices in Riaya depended on how outside services behave with Tunisian places and Tunisian speech, which their documentation does not tell. We therefore tested the options ourselves before settling on them. The comparison of geocoding providers led us to Google Places, the road-distance experiment showed how much the Route Matrix step adds to the best-fit search, and the voice model tests led to Gemini Live. The last subsection explains how the platform as a whole was tested.
+
+\subsection{Geocoding Provider Evaluation}
+\label{subsec:geocoding-evaluation}
+
+The first version of the search used Geoapify \cite{geoapify2024} to find places. Before settling on a provider, we compared several of them on the same Tunisian queries, among them Geoapify, Mapbox and Google Places.
+
+We wrote a list of real places of the kinds patients mention: hospitals, universities, train stations, and the addresses of doctors' cabinets, all written in French, the way most addresses are written in Tunisia. For each place we knew the true position. We sent every query to each provider, restricted to Tunisia, and compared the position it returned with the true one, looking at two things: whether the provider found the place at all, and how far its answer was from the real position.
+
+Google Places was clearly the best. It found many more of the places, including clinics, businesses and smaller institutions that the others did not know, and the positions it returned were more accurate. Geoapify and Mapbox were weaker on both points, so Geoapify was only used for these tests and Google Places became the provider for finding places. The code keeps a switch between the two providers behind one interface, so the rest of the search does not depend on the choice. Google's autocomplete and place details calls share a session token, which counts them as one lookup.
+
+Road distance is a different service. For the polish step of the best-fit search we still use Geoapify's Route Matrix, which returns the driving distances to the 8 candidates in a single call.
+
+\subsection{Road Distance Experiment}
+\label{subsec:road-distance-experiment}
+
+Road distance costs a call to an outside service on every search, so we measured whether it changes the result. We ran the search for the 4 specialities with the most doctors, with the patient at the centre of each of the 24 cities, which gave 78 comparisons with no failed call. For each one we took the 8 nearest doctors by straight line and asked for their road distance. Table~\ref{tab:road-distance} shows the results. In one case in Tunis, the nearest doctor was 1.3~km away in a straight line but 5.8~km by road, while another doctor was 2.3~km away both ways; road distance correctly picks the second one. Overall, the best doctor changed in about one search out of three, but the trip saved was small, never more than about 4 minutes. Straight-line distance is therefore a good first filter, and road distance is a light polish whose main benefit is that the AI can quote a real road distance. The test has limits: it used distance only, without appointment times, it placed patients at city centres, it ran on our local data, which may include test doctors, and it only checked the 8 nearest doctors.
 
 \begin{table}[H]
     \centering
     \caption{Effect of road distance on the best doctor (78 searches)}
     \label{tab:road-distance}
     \small
-    \begin{tabular}{p{7cm}p{6cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.5385\dimexpr\textwidth-4\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.4615\dimexpr\textwidth-4\tabcolsep\relax\relax}}
         \toprule
         \textbf{Measure} & \textbf{Result} \\
         \midrule
@@ -126,59 +159,6 @@ The doctor's plan plays no part in this ranking (Section~\ref{subsec:free-doctor
     \\[0.2cm]
     \small Source: author's own measurements.
 \end{table}
-
-\subsection{Geocoding Provider Evaluation}
-\label{subsec:geocoding-evaluation}
-
-The first version of the search used Geoapify \cite{geoapify2024} to find places. Before settling on a provider, we compared several of them on the same Tunisian queries, among them Geoapify, Mapbox and Google Places.
-
-We wrote a list of real places of the kinds patients mention: hospitals, universities, train stations, and the addresses of doctors' cabinets, all written in French, the way most addresses are written in Tunisia. For each place we knew the true position. We sent every query to each provider, restricted to Tunisia, and compared the position it returned with the true one, looking at two things: whether the provider found the place at all, and how far its answer was from the real position.
-
-Google Places was clearly the best. It found many more of the places, including clinics, businesses and smaller institutions that the others did not know, and the positions it returned were more accurate. Geoapify and Mapbox were weaker on both points, so Geoapify was only used for these tests and Google Places became the provider for finding places. The code keeps a switch between the two providers behind one interface, so the rest of the search does not depend on the choice. Google's autocomplete and place details calls share a session token, which counts them as one lookup.
-
-Road distance is a different service. For the polish step of the best-fit search we still use Geoapify's Route Matrix, which returns the driving distances to the 8 candidates in a single call.
-
-\subsection{Management of Urgencies and Timeouts}\label{subsec:urgencies}
-
-Some callers are in danger. When a caller describes signs of a life-threatening condition, such as chest pain, trouble breathing, signs of a stroke, heavy bleeding, fainting, a seizure or a serious injury, the AI first tells them to call the SAMU at 190. Only then does it ask whether they also want urgent requests sent to nearby doctors. For urgent cases that are not life-threatening, it asks whether the patient wants the closest available doctors right now. Figure~\ref{fig:activity_urgent} in Chapter~2 shows the flow.
-
-If the patient agrees, the best-fit search runs with ``now'' as the preferred time and the platform creates up to 3 pending appointments, all marked urgent and sharing one emergency group id. The doctors see a red badge and a stronger notification. The first doctor to accept keeps the patient, and the other requests in the group are cancelled automatically. A doctor who refuses cancels only their own request, and the others stay open. If the patient cancels one urgent request by phone, the whole group is cancelled. If nobody accepts within 10 minutes, a delayed BullMQ job \cite{bullmq2024} cancels the group and Riaya calls the patient back, as for a normal request. Urgent requests are never limited by a doctor's plan. The delayed jobs and the events between the servers follow the message-based style described by Hohpe and Woolf \cite{hohpe2003eip}.
-
-\subsection{Rejection Handling and Callbacks}
-\label{subsec:rejection-handling}
-
-We had to decide what happens when a doctor refuses a request or does not answer. Our first idea was to ask the patient for a backup doctor during the call. The call already asks many questions, though, and we wanted to keep it short. So the patient picks one doctor, and if that doctor says no or stays silent, Riaya calls the patient back with new options. Figure~\ref{fig:activity_refusal} in Chapter~2 shows the three outcomes of a normal request.
-
-When the doctor accepts, the visit is linked to the patient's file, the patient gets a WhatsApp confirmation, and a review request is scheduled for 2 hours after the visit. When the doctor refuses, Riaya stores what the patient asked for (speciality, area, time, and the doctors who already said no) in Redis for 24 hours, then places an outbound call in which the AI speaks first and offers up to 3 other doctors with free slots. If the patient calls Riaya instead, the AI offers these doctors first. When nobody answers within 10 minutes, the timeout job cancels the request and calls the patient with a short message asking them to call again. If the patient does not pick up, the line is busy, or the call fails, the same message goes out on WhatsApp from the platform account. Blocked numbers get neither the call nor the message, and a refused urgent request triggers nothing because other doctors in the group can still accept. Figure~\ref{fig:sequence_callback} in Chapter~2 shows how the queue, the web app, the voice server and Twilio work together for these callbacks.
-
-To test these callbacks without real phone calls, the voice server can send them to an open test-call page instead of Twilio. We will keep testing this approach and may change it.
-
-\subsection{Pricing Display Decision}
-\label{subsec:pricing-display}
-
-Price matters when choosing a doctor, and at first we wanted to show prices on the platform. If only the price of a first consultation mattered, this would be easy. The real cost, however, depends on many things, and two doctors with the same consultation price can charge very different amounts for what follows. We considered letting doctors enter a price for each service, which works for services with a fixed price, such as braces. In most cases, though, patients do not know what they need before a diagnosis, and an AI cannot make that diagnosis over the phone. We therefore decided not to show full prices. A partial price could mislead patients, and the platform's job is to book the visit.
-
-\subsection{Free Doctors in the Best-Fit Search}
-\label{subsec:free-doctors-bestfit}
-
-When we designed the plans, we considered leaving Free doctors out of the best-fit results, so that doctors would have one more reason to subscribe to Pro. We dropped the idea. A patient who calls Riaya should always be offered the doctor who best matches their need, place and time, whatever plan that doctor pays for. Hiding a closer doctor to sell subscriptions would make the service worse for the people it is built for. Free and Pro doctors are ranked the same way, and the plans only limit features on the doctor's side.
-
-\subsection{Usage Limits and the Cost of AI}\label{subsec:usage-limits}
-
-The Free and Pro plans limit three things that cost us money: WhatsApp sends, recording time and use of the AI assistant. Each one needed its own counting rule. Phone booking by the AI has no limit on any plan, because limiting it would punish patients for a doctor's plan. Figure~\ref{fig:plan_limits} shows how an action is checked.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{images/diagrams/plan_limits_flow.png}
-    \caption{How a doctor's action is checked against the Free and Pro limits}
-    \label{fig:plan_limits}
-\end{figure}
-
-The first step is the effective plan. A doctor is on Pro only if the subscription is Pro, its status is active, and its period end is still ahead; a missing, unpaid or expired subscription behaves as Free. For WhatsApp, only the sends the doctor starts count, with a limit of 30 a month on Free and none on Pro. A medical file with documents counts as one caption plus one per document, a text-only file counts as one, and an invoice PDF counts as one. Automatic messages to patients, such as confirmations, review requests and timeout or refusal messages, are never counted and never blocked. The check and the increment happen in one SQL statement, so two sends at the same moment cannot both pass the limit.
-
-Recording time is counted when a recording is transcribed, and re-running a transcription does not count again. Free includes 2 hours a month and Pro 100 hours, and Pro doctors can buy packs of 25 hours for 15~TND or 100 hours for 50~TND. The monthly hours are used first, then the pack hours, which never expire. A database lock per doctor stops two charges from racing, and usage rows stay after a recording is deleted, so deleting never gives time back. A recording is always saved, even with no time left. It is then marked as not transcribed, and the doctor can transcribe it later with one click.
-
-The AI assistant is limited by its real cost and not by the number of messages, because a long chat with a transcript attached costs far more than a short question. OpenRouter reports the cost of each reply, and the app compares the month's total with a budget of \$0.05 on Free and \$5 on Pro. A typical question costs about \$0.0025, which gives the ``about 20'' and ``about 2,000'' questions shown in the offer. Doctors only see their usage as a percentage. Since the cost of a reply is known only after it ends, the last reply of the month can go slightly over the budget. All counters reset at the start of each UTC calendar month.
 
 \subsection{Voice Model Evaluation and Selection}
 \label{subsec:voice-model-evaluation}
@@ -208,7 +188,7 @@ Table~\ref{tab:realtime-models} gives our verdicts on the realtime models. OpenA
     \caption{Realtime (speech-to-speech) models tested}
     \label{tab:realtime-models}
     \small
-    \begin{tabular}{p{4.2cm}p{1.9cm}p{7.6cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.3066\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.1387\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.5547\dimexpr\textwidth-6\tabcolsep\relax\relax}}
         \toprule
         \textbf{Model} & \textbf{Verdict} & \textbf{What we found} \\
         \midrule
@@ -230,7 +210,7 @@ For the chain, the listening step had to handle Derja and keep French words in L
     \caption{Main speech-to-text models tested}
     \label{tab:stt-models}
     \small
-    \begin{tabular}{p{4.2cm}p{1.9cm}p{7.6cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.3066\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.1387\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.5547\dimexpr\textwidth-6\tabcolsep\relax\relax}}
         \toprule
         \textbf{Model} & \textbf{Verdict} & \textbf{What we found} \\
         \midrule
@@ -255,7 +235,7 @@ The language model of the chain had to follow a long prompt, call the booking to
     \caption{Main language models tested in the chain}
     \label{tab:llm-models}
     \small
-    \begin{tabular}{p{4.2cm}p{1.9cm}p{7.6cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.3066\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.1387\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.5547\dimexpr\textwidth-6\tabcolsep\relax\relax}}
         \toprule
         \textbf{Model} & \textbf{Verdict} & \textbf{What we found} \\
         \midrule
@@ -279,7 +259,7 @@ For the voice, the problem was the opposite of listening: the voices that spoke 
     \caption{Main text-to-speech models tested}
     \label{tab:tts-models}
     \small
-    \begin{tabular}{p{4.2cm}p{1.9cm}p{7.6cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.3066\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.1387\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.5547\dimexpr\textwidth-6\tabcolsep\relax\relax}}
         \toprule
         \textbf{Model} & \textbf{Verdict} & \textbf{What we found} \\
         \midrule
@@ -303,7 +283,7 @@ The best models were often the slowest: the best listening model and the best vo
     \caption{Speed of each step in the chains we timed}
     \label{tab:voice-model-comparison}
     \small
-    \begin{tabular}{p{2.2cm}p{3cm}p{4.4cm}p{4.4cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.1571\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2143\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.3143\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.3143\dimexpr\textwidth-8\tabcolsep\relax\relax}}
         \toprule
         \textbf{Step} & \textbf{Model} & \textbf{What we found} & \textbf{Problem} \\
         \midrule
@@ -324,12 +304,12 @@ The tests also found a real bug. The AI saved the caller's name or language on a
 
 We chose Gemini Live with the \texttt{gemini-3.1-flash-live-preview} model and the Puck voice. Of all the models we tried, it had the most natural Tunisian dialect, it answered very fast, it handled interruptions very well, and it understood and reasoned best among the Gemini models. OpenAI Realtime was smarter in the first tests, but its accent was wrong for Tunisian callers and it cost much more. GPT-Live sounded too artificial and was also costly, and every chain we built was too slow for a phone call.
 
-Gemini Live's one weakness is its transcript of the caller, which comes from a separate speech-to-text step inside the Live API that we cannot tune. The separate caller transcriber described in the latency subsection fixes it for the admin live view and the stored call events. We kept the other realtime backends and the LiveKit chain in the code on purpose, so that new models can be compared again on the test-call page with the same calls.
+Gemini Live's one weakness is its transcript of the caller, which comes from a separate speech-to-text step inside the Live API that we cannot tune. The separate caller transcriber described in Section~\ref{subsec:latency} fixes it for the admin live view and the stored call events. We kept the other realtime backends and the LiveKit chain in the code on purpose, so that new models can be compared again on the test-call page with the same calls.
 
 \subsection{How the Platform Was Tested}
 
-All the testing during the internship was manual or done with small scripts. The test-call page was the main tool. It let us place simulated calls from the browser, switch models per call, watch the transcript and the tool calls live, and receive refusal and timeout callbacks without Twilio. Before the launch, a call to the real Twilio number checked that the production phone line reached the assistant. For payments, a development mode replaces the Konnect page with a fake one that still finishes through the real webhook, so the renewal and pack flows could be tried without paying.
+All the testing during the internship was manual or done with small scripts. The test-call page was the main tool. It let us place simulated calls from the browser, switch models per call, watch the transcript and the tool calls live, and receive refusal and timeout callbacks without Twilio: the voice server can send a callback to an open test-call page instead of placing a real call. We are still trying this way of testing callbacks and may change it. Before the launch, a call to the real Twilio number checked that the production phone line reached the assistant. For payments, a development mode replaces the Konnect page with a fake one that still finishes through the real webhook, so the renewal and pack flows could be tried without paying.
 
-Three experiments gave us data for design choices: the scripted caller with the 7 sentences for the voice models, the comparison of geocoding providers on known Tunisian places, and the 78 road-distance comparisons. The admin Best Fit Finder, which runs the same search on a map and a calendar, helped us check the ranking by eye.
+The three experiments described above gave us data for design choices: the scripted caller with the 7 sentences for the voice models (Section~\ref{subsec:voice-model-evaluation}), the comparison of geocoding providers on known Tunisian places (Section~\ref{subsec:geocoding-evaluation}), and the 78 road-distance comparisons (Section~\ref{subsec:road-distance-experiment}). The admin Best Fit Finder, which runs the same search on a map and a calendar, helped us check the ranking by eye.
 
 Neither repository has automated unit tests or end-to-end tests yet. Every change was checked by hand, which is slow and lets regressions through. Adding automated tests, starting with the best-fit search, the plan limits and the booking flow, is the first task for the future work.

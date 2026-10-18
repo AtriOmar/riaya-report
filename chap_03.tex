@@ -9,7 +9,7 @@
     \end{subfigure}}
 
 \section{Introduction}
-This chapter explains how Riaya is built and how it runs. It starts with the architecture: the principles we followed, the split of the code into a web repository and a voice repository, and the path that a phone call takes through the system. It then goes through the technology stack area by area, with what each tool does in Riaya and why we chose it. A set of screenshots follows, covering the public pages, the doctor dashboard, the secretary view and the administrator back-office. The chapter then covers security and access management, and ends with the technical problems we met and how we solved them, including the tests we ran to choose the voice model.
+This chapter explains how Riaya is built and how it runs. It starts with the architecture: the principles we followed, the split of the code into a web repository and a voice repository, and the path that a phone call takes through the system. It then goes through the technology stack area by area, with what each tool does in Riaya and why we chose it. A set of screenshots follows, covering the public pages, the doctor dashboard, the secretary view and the administrator back-office. The chapter then covers security and access management and the technical problems we met, with the solutions we adopted. It ends with the evaluations behind our main technical choices, namely the geocoding provider, the road-distance step and the voice model, and with the way the platform was tested.
 
 \section{Global System Architecture}\label{sec:architecture}
 
@@ -77,7 +77,7 @@ This section goes through the stack area by area. For each tool, it says what th
     \caption{Technology stack of Riaya}
     \label{tab:stack}
     \small
-    \begin{tabular}{>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{4.6cm}>{\raggedright\arraybackslash}p{6.2cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.2286\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.3286\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.4429\dimexpr\textwidth-6\tabcolsep\relax\relax}}
         \toprule
         \textbf{Area} & \textbf{Technology} & \textbf{Role in Riaya} \\
         \midrule
@@ -490,4 +490,4 @@ This page simulates a call without a phone, either through the normal phone path
 \input{chap_03b}
 
 \section{Conclusion}
-This chapter described how Riaya is built. The system is split into a web application, which owns the database and the business rules, and a voice server, which handles the phone audio, the live feeds, WhatsApp and the background jobs and reaches the data only through the web application's internal API. We went through the stack area by area, from Next.js and the typed API to Gemini Live, OpenRouter, BullMQ and the deployment on an Ubuntu server, and showed the main screens of the four interfaces. We then covered how the platform protects accounts and medical data, and the technical problems we met along the way, with the tests that led to the choice of the voice model. The general conclusion that follows sums up the work and the next steps.
+This chapter described how Riaya is built. The system is split into a web application, which owns the database and the business rules, and a voice server, which handles the phone audio, the live feeds, WhatsApp and the background jobs and reaches the data only through the web application's internal API. We went through the stack area by area, from Next.js and the typed API to Gemini Live, OpenRouter, BullMQ and the deployment on an Ubuntu server, and showed the main screens of the four interfaces. We then covered how the platform protects accounts and medical data and the technical problems we met along the way. The last section gathered the evaluations that led to Google Places, the road-distance polish and Gemini Live, and described how the platform was tested. The general conclusion that follows sums up the work and the next steps.

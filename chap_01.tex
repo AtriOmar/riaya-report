@@ -56,20 +56,16 @@ The platform is built around three main actors, plus the secretary who works on 
 \subsection{Business Model (Freemium: Free vs Pro)}
 Riaya offers doctors two plans, Free and Pro. Both give the main practice features: patients, appointments, availability, invoices and medical files. Phone booking by the AI assistant is unlimited on both plans, so a patient is never turned away because of the plan a doctor chose. The plans differ on the features that cost Riaya money to run: WhatsApp messages started by the doctor, recording and transcription time, and the AI assistant.
 
-On the Free plan a doctor can send 30 WhatsApp messages a month (a medical file counts one message for the caption plus one per document, an invoice counts one), record and transcribe 2 hours of consultations, and ask the AI assistant about 20 questions. Automatic messages to patients, such as confirmations, review links and timeout or refusal messages, are never counted. The Pro plan costs 49~TND per month. It removes the WhatsApp limit, gives 100 hours of recording, and allows about 2,000 assistant questions. Pro doctors can also buy extra recording hours in packs (25 hours for 15~TND, 100 hours for 50~TND), get an AI consultation note on each transcribed recording, add secretaries and print their logo and stamp on invoices.
-
-The assistant allowance is not a message count. It is a monthly budget measured in the real cost of each AI reply, because a long chat with an attached transcript costs much more than a short question. The ``about 20'' and ``about 2,000'' figures come from the cost of a typical question, and the dashboard shows the usage as a percentage. All monthly counters reset at the start of each UTC calendar month.
+On the Free plan a doctor can send 30 WhatsApp messages a month, record and transcribe 2 hours of consultations, and ask the AI assistant about 20 questions. The Pro plan costs 49~TND per month. It removes the WhatsApp limit, gives 100 hours of recording, and allows about 2,000 assistant questions. Pro doctors can also buy extra recording hours in packs (25 hours for 15~TND, 100 hours for 50~TND), get an AI consultation note on each transcribed recording, add secretaries and print their logo and stamp on invoices.
 
 Doctors can upgrade at any time. Payments go through the Konnect.network API \cite{konnect2024}. Konnect has no built-in subscriptions, so Riaya manages the cycle itself: a daily BullMQ job \cite{bullmq2024} at 08:00 UTC finds Pro subscriptions that end within three days and creates the next invoice with a payment link. The doctor pays it from the Subscription page to keep Pro. A Pro plan that is not renewed falls back to Free.
-
-We considered leaving Free doctors out of the best-fit results, so they would have one more reason to subscribe. We dropped the idea. The patient should always be offered the doctor who matches best, whatever plan that doctor is on, so the plan plays no part in the search.
 
 \begin{table}[H]
     \centering
     \caption{Comparison of Free and Pro Subscription Plans}
     \label{tab:plans}
     \small
-    \begin{tabular}{p{5.5cm}p{3.5cm}p{4.5cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.4074\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2593\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.3333\dimexpr\textwidth-6\tabcolsep\relax\relax}}
         \toprule
         \textbf{Feature} & \textbf{Free} & \textbf{Pro} \\
         \midrule
@@ -93,6 +89,34 @@ We considered leaving Free doctors out of the best-fit results, so they would ha
 \end{table}
 
 Table~\ref{tab:plans} summarizes the differences between the two plans.
+
+\subsection{How the Limits Are Counted}\label{subsec:usage-limits}
+
+The Free and Pro plans limit three things that cost us money: WhatsApp sends, recording time and use of the AI assistant. Each one needed its own counting rule. Phone booking by the AI has no limit on any plan, because limiting it would punish patients for a doctor's plan. Figure~\ref{fig:plan_limits} shows how an action is checked.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{images/diagrams/plan_limits_flow.png}
+    \caption{How a doctor's action is checked against the Free and Pro limits}
+    \label{fig:plan_limits}
+    \small Source: Author's own work.
+\end{figure}
+
+The first step is the effective plan. A doctor is on Pro only if the subscription is Pro, its status is active, and its period end is still ahead; a missing, unpaid or expired subscription behaves as Free. For WhatsApp, only the sends the doctor starts count, with a limit of 30 a month on Free and none on Pro. A medical file with documents counts as one caption plus one per document, a text-only file counts as one, and an invoice PDF counts as one. Automatic messages to patients, such as confirmations, review requests and timeout or refusal messages, are never counted and never blocked. The check and the increment happen in one SQL statement, so two sends at the same moment cannot both pass the limit.
+
+Recording time is counted when a recording is transcribed, and re-running a transcription does not count again. Free includes 2 hours a month and Pro 100 hours, and Pro doctors can buy packs of 25 hours for 15~TND or 100 hours for 50~TND. The monthly hours are used first, then the pack hours, which never expire. A database lock per doctor stops two charges from racing, and usage rows stay after a recording is deleted, so deleting never gives time back. A recording is always saved, even with no time left. It is then marked as not transcribed, and the doctor can transcribe it later with one click.
+
+The AI assistant is limited by its real cost and not by the number of messages, because a long chat with a transcript attached costs far more than a short question. OpenRouter reports the cost of each reply, and the app compares the month's total with a budget of \$0.05 on Free and \$5 on Pro. A typical question costs about \$0.0025, which gives the ``about 20'' and ``about 2,000'' questions shown in the offer. Doctors only see their usage as a percentage. Since the cost of a reply is known only after it ends, the last reply of the month can go slightly over the budget. All counters reset at the start of each UTC calendar month.
+
+\subsection{Free Doctors in the Best-Fit Search}
+\label{subsec:free-doctors-bestfit}
+
+When we designed the plans, we considered leaving Free doctors out of the best-fit results, the ranked list of nearby doctors that the AI offers on the phone (Section~\ref{subsec:bestfit}), so that doctors would have one more reason to subscribe to Pro. We dropped the idea. A patient who calls Riaya should always be offered the doctor who best matches their need, place and time, whatever plan that doctor pays for. Hiding a closer doctor to sell subscriptions would make the service worse for the people it is built for. Free and Pro doctors are ranked the same way, and the plans only limit features on the doctor's side.
+
+\subsection{Pricing Display Decision}
+\label{subsec:pricing-display}
+
+Price matters when choosing a doctor, and at first we wanted to show doctors' prices on the platform. If only the price of a first consultation mattered, this would be easy. The real cost, however, depends on many things, and two doctors with the same consultation price can charge very different amounts for what follows. We considered letting doctors enter a price for each service, which works for services with a fixed price, such as braces. In most cases, though, patients do not know what they need before a diagnosis, and an AI cannot make that diagnosis over the phone. We therefore decided not to show full prices. A partial price could mislead patients, and the platform's job is to book the visit.
 
 \section{Functional Requirements}
 
@@ -147,7 +171,7 @@ A public phone number attracts some prank and abusive calls. The assistant gives
     \caption{Summary of Functional Requirements by Actor}
     \label{tab:functional_requirements}
     \small
-    \begin{tabular}{p{3cm}p{10cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.2308\dimexpr\textwidth-4\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.7692\dimexpr\textwidth-4\tabcolsep\relax\relax}}
         \toprule
         \textbf{Actor} & \textbf{Main Functional Requirements} \\
         \midrule
@@ -206,7 +230,7 @@ Doctolib is designed for European healthcare systems. Patients must create an ac
     \caption{Doctolib: Main Features and Limitations}
     \label{tab:doctolib}
     \small
-    \begin{tabular}{p{5cm}p{9cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.3571\dimexpr\textwidth-4\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.6429\dimexpr\textwidth-4\tabcolsep\relax\relax}}
         \toprule
         \textbf{Aspect} & \textbf{Description} \\
         \midrule
@@ -237,7 +261,7 @@ The patient needs internet access and, to book, an account. All interaction is t
     \caption{TunisieDocteur / Mondocteur: Main Features and Limitations}
     \label{tab:tunisiedoctor}
     \small
-    \begin{tabular}{p{5cm}p{9cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.3571\dimexpr\textwidth-4\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.6429\dimexpr\textwidth-4\tabcolsep\relax\relax}}
         \toprule
         \textbf{Aspect} & \textbf{Description} \\
         \midrule
@@ -268,7 +292,7 @@ The caller has to go through a fixed menu, which is slow and often frustrating, 
     \caption{Classic IVR Systems: Main Features and Limitations}
     \label{tab:ivr}
     \small
-    \begin{tabular}{p{5cm}p{9cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.3571\dimexpr\textwidth-4\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.6429\dimexpr\textwidth-4\tabcolsep\relax\relax}}
         \toprule
         \textbf{Aspect} & \textbf{Description} \\
         \midrule
@@ -290,7 +314,7 @@ Table~\ref{tab:comparison_solutions} compares the three solutions and Riaya on t
     \caption{Comparison of Existing Solutions and Riaya}
     \label{tab:comparison_solutions}
     \small
-    \begin{tabular}{p{2.9cm}p{2.1cm}p{2.3cm}p{2.1cm}p{2.3cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.2479\dimexpr\textwidth-10\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.1795\dimexpr\textwidth-10\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.1966\dimexpr\textwidth-10\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.1795\dimexpr\textwidth-10\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.1966\dimexpr\textwidth-10\tabcolsep\relax\relax}}
         \toprule
         \textbf{Criteria} & \textbf{Doctolib} & \textbf{Tunisie\-Docteur} & \textbf{Classic IVR} & \textbf{Riaya} \\
         \midrule
@@ -339,4 +363,4 @@ We modeled the booking process in BPMN 2.0 \cite{omg2011bpmn}. The model has two
 Figure~\ref{fig:bpmn_global} shows the whole process. Part A, at the top, contains the standard and urgent paths of the call and the abuse review by the administrator. Part B, at the bottom, contains the doctor's answer, the refusal and timeout callbacks with the WhatsApp fallback, and the review request.
 
 \section{Conclusion}
-This chapter presented the host company Pengguin and the Riaya product, its plans and its actors. It listed the functional requirements of patients, doctors, secretaries and administrators, and the non-functional requirements on speed, security, scalability, resilience, usability and constraints. The comparison with Doctolib, local directories and classic IVR systems showed what Riaya adds for Tunisian patients, and the BPMN model described the booking process from the call to the review. The next chapter covers the project management method, Kanban, and the modeling diagrams.
+This chapter presented the host company Pengguin and the Riaya product, its actors and its plans, with the way their limits are counted and two product decisions about free doctors and prices. It listed the functional requirements of patients, doctors, secretaries and administrators, and the non-functional requirements on speed, security, scalability, resilience, usability and constraints. The comparison with Doctolib, local directories and classic IVR systems showed what Riaya adds for Tunisian patients, and the BPMN model described the booking process from the call to the review. The next chapter covers the project management method, Kanban, and the modeling diagrams.
