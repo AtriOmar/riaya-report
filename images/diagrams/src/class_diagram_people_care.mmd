@@ -77,3 +77,6 @@ appointment "0..1" -- "0..*" invoice
 patient "1" -- "0..*" invoice
 invoice "1" *-- "1..*" invoice_item
 invoice "1" *-- "0..*" invoice_payment
+
+classDef ref fill:#EEEEEE,stroke:#A3A3A3
+class doctor_profile:::ref

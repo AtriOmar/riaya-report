@@ -72,3 +72,8 @@ doctor_profile "1" -- "0..1" subscription
 doctor_profile "1" -- "0..*" billing_invoice
 subscription "0..1" -- "0..*" billing_invoice
 doctor_profile "1" -- "0..*" whatsapp_usage
+
+classDef ref fill:#EEEEEE,stroke:#A3A3A3
+class appointment:::ref
+class user:::ref
+class doctor_profile:::ref

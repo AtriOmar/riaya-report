@@ -72,3 +72,6 @@ consultation_recording "0..1" -- "0..1" recording_usage
 doctor_profile "1" -- "0..*" ai_chat_conversation
 ai_chat_conversation "0..*" -- "0..1" consultation_recording : discusses
 ai_chat_conversation "1" *-- "0..*" ai_chat_message
+
+classDef ref fill:#EEEEEE,stroke:#A3A3A3
+class patient:::ref

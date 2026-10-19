@@ -19,32 +19,55 @@ control "Call Session\n(Voice server)" as S
 participant "Gemini Live" as G
 boundary "API\n(Web app)" as A
 entity "Appointment" as E
+queue "Timeout queue\n(Redis)" as Q
+participant "Google Places" as GP
+boundary "Doctor Calendar\n(Web app)" as C
 
 P -> T : dial()
 T -> H : incomingCall(from)
 H -> A : isBlocked(from)
-A --> H : blocked
-alt number is blocked
+A --> H : blockStatus
+break number is blocked
   H --> T : reject(busy)
-else number is allowed
-  H -> A : createCall(from)
-  H --> T : openStream(), startRecording()
-  T -> S : mediaStream()
-  S -> G : openSession(instructions, tools)
-  loop each turn
-    T -> S : callerAudio
-    S -> G : callerAudio
-    G --> S : aiAudio
-    S --> T : aiAudio
-  end
-  G -> S : findAvailableSlots(speciality, place, time)
-  S -> A : findSlots()
-  A --> S : doctors, slots
-  G -> S : bookAppointment(doctor, slot)
-  S -> A : book()
-  A -> E : create(status = pending)
-  G -> S : endCall()
-  S -> T : hangUp()
-  T -> A : recordingReady(url)
 end
+H -> A : createCall(from)
+H --> T : openStream(), startRecording()
+T -> S : mediaStream()
+S -> A : getCallerContext(from)
+A --> S : name, language, people on the line,\nrefused request
+S -> G : openSession(instructions, tools)
+note right of G
+  instructions include the current time
+  in Tunisia and the caller context
+end note
+loop each turn, until the AI ends the call
+  T -> S : callerAudio
+  S -> G : callerAudio
+  alt patient named a place
+    G -> S : searchLocation(city, place)
+    S -> A : searchPlaces()
+    A -> GP : search(place)
+    GP --> A : coordinates
+    A --> S : places
+    S --> G : places
+  else speciality, place and time are known
+    G -> S : findAvailableSlots(speciality, coordinates, time)
+    S -> A : findSlots()
+    A --> S : doctors, slots
+    S --> G : doctors, slots
+  else patient chose a doctor
+    G -> S : bookAppointment(doctor, slot)
+    S -> A : book()
+    A -> E : create(status = pending)
+    A -> Q : add timeout job (10 min)
+    A --> S : appointment
+    S -> C : appointment_booked
+    S --> G : request sent
+  end
+  G --> S : aiAudio
+  S --> T : aiAudio
+end
+G -> S : endCall()
+S -> T : hangUp()
+T -> A : recordingReady(url)
 @enduml

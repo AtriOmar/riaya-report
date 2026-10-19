@@ -68,7 +68,7 @@ Riaya is not a full microservices system \cite{newman2015microservices}. It has 
 \paragraph{WhatsApp.} Each doctor links a WhatsApp account by scanning a QR code that the voice server streams to the WhatsApp page over a WebSocket. After that, the web application asks the voice server to send each message, and the message leaves from the doctor's own number. The platform account, linked by the administrator, sends the system messages that do not come from a doctor.
 
 \section{Technology Stack and Component Description}\label{sec:stack}
-This section goes through the stack area by area. For each tool, it says what the tool does in Riaya and why we chose it. \xref{tab:stack} gives the whole stack at a glance.
+\xref{tab:stack} lists the technologies used in Riaya.
 
 \begin{table}[H]
     \centering
@@ -100,15 +100,13 @@ This section goes through the stack area by area. For each tool, it says what th
 \end{table}
 
 \subsection{Web Application: Next.js, React, TypeScript, Tailwind CSS}
-The web application uses Next.js 16 with the App Router \cite{nextjs2024}, React 19 \cite{react2026} and TypeScript \cite{typescript2026}. Next.js keeps the pages and the API routes in one project, so a single developer could work on a screen and the route behind it in the same change, with shared types. The App Router's nested layouts fit the dashboards well: the doctor, secretary and administrator areas share a layout with a sidebar, and each page only renders its own content. TypeScript catches a large class of mistakes before the code runs, which matters when one developer writes all of it.
-
-The interface is styled with Tailwind CSS v4 \cite{tailwind2024} and built from shadcn components on top of Radix and Base UI. These components handle keyboard access and focus, and since their code is copied into the project we can change them freely. A few libraries cover specific screens: react-big-calendar for the appointment calendar, Leaflet for the maps, and pdfkit for the invoice PDF.
+The web application is built with Next.js \cite{nextjs2024}, React \cite{react2026} and TypeScript \cite{typescript2026}, and styled with Tailwind CSS \cite{tailwind2024}. Next.js keeps the pages and the API in one project, which suited a single developer, and TypeScript catches many mistakes before the code runs.
 
 \subsection{Typed API and Data Fetching: Zod, OpenAPI, Orval, SWR}
-Every API route registers a Zod schema \cite{zod2026} for its input and output. A script turns these schemas into an OpenAPI specification \cite{openapi2024}, and Orval \cite{orval2026} generates from it a typed client with one SWR hook \cite{swr2026} per route. The pages use these hooks and never write a request by hand. When a route changes, the generated client changes too, and every page that uses it in the old way fails to compile instead of failing in front of a doctor. Forms use React Hook Form with the same Zod schemas, so a field is checked the same way in the browser and on the server. Errors are returned as stable codes, which the interface maps to readable messages.
+Each API route declares its input and output with Zod \cite{zod2026}. From these schemas we generate an OpenAPI specification \cite{openapi2024} and, with Orval \cite{orval2026}, a typed client with SWR hooks \cite{swr2026}, so a change to a route shows up as a compile error in the pages that use it.
 
 \subsection{Authentication and Email: Better Auth, Nodemailer}
-Better Auth \cite{betterauth2024} handles accounts and sessions with email and password. We added a step at sign-up: Riaya emails a 6-digit code with Nodemailer \cite{nodemailer2026}, valid for 10 minutes, with 5 attempts and a new code allowed after 60 seconds. The pending sign-up, with the hashed code and the encrypted password, waits in Better Auth's verification table, and the user account is only created once the code is correct. Nodemailer also sends the invitations that a Pro doctor sends to secretaries. We chose Better Auth because it runs inside our own Next.js application and stores its tables in our own PostgreSQL database, so user data does not go to an outside identity service.
+Better Auth \cite{betterauth2024} handles accounts and sessions inside our own application and database, so user data does not go to an outside identity service. Nodemailer \cite{nodemailer2026} sends the sign-up codes and the secretary invitations.
 
 \begin{figure}[H]
     \centering
@@ -126,9 +124,7 @@ Better Auth \cite{betterauth2024} handles accounts and sessions with email and p
 \end{figure}
 
 \subsection{Database: PostgreSQL and Drizzle ORM}
-All persistent data lives in PostgreSQL \cite{postgresql2024}: people and phones, patient files, appointments, invoices, calls and their events, subscriptions and usage. The data is relational and many rules depend on transactions. For example, the WhatsApp limit of a Free doctor is checked and counted in one SQL statement, and recording time is charged under a per-doctor advisory lock so that two transcriptions cannot charge the same hours twice. The data model is described in Section~\ref{subsec:erd-ref}.
-
-Drizzle ORM \cite{drizzle2024} defines the schema in TypeScript and gives typed queries that stay close to SQL. Its tool \texttt{drizzle-kit} generates a migration file for each schema change, and the deployment runs the migrations in a one-off container before the new web container starts. Only the web application imports this schema; the voice server never connects to the database.
+PostgreSQL \cite{postgresql2024} stores all persistent data, which is relational and relies on transactions for rules such as the plan limits. Drizzle ORM \cite{drizzle2024} defines the schema in TypeScript and generates the migrations. Section~\ref{subsec:erd-ref} describes the data model.
 
 \begin{figure}[H]
     \centering
@@ -139,9 +135,7 @@ Drizzle ORM \cite{drizzle2024} defines the schema in TypeScript and gives typed 
 \end{figure}
 
 \subsection{Voice Server: Node.js, Express, ws, Twilio}
-The voice server runs on Node.js \cite{nodejs2026} with Express 5 \cite{express2024} for the HTTP routes and the \texttt{ws} library \cite{ws2026} for WebSockets, with Pino for logs. One HTTP server accepts several WebSocket paths: the Twilio media streams, the \texttt{/dashboard} feed for the Live Calls page and the doctor calendar, and the \texttt{/whatsapp} feed that carries the QR code and the connection status. We kept the same language as the web application, and the SDKs we needed (Twilio, the Gemini API, Baileys, BullMQ) are all available for Node.js.
-
-Twilio \cite{twilio2024} provides the phone number. It sends the incoming call webhook, streams the audio both ways over the media stream \cite{twiliomedia2026}, places the outbound callbacks after a refusal or a timeout, and records each answered call on two channels. The server also cleans the 8~kHz audio with a noise gate and runs a watchdog that asks a silent caller whether they are still there after 12 seconds, hangs up 10 seconds later, and ends any call after 15 minutes.
+The voice server runs on Node.js \cite{nodejs2026} with Express \cite{express2024} and the \texttt{ws} library \cite{ws2026}, the same language as the web application. Twilio \cite{twilio2024} provides the phone number, streams the call audio to the server \cite{twiliomedia2026}, places the callbacks and records the calls.
 
 \begin{figure}[H]
     \centering
@@ -153,11 +147,11 @@ Twilio \cite{twilio2024} provides the phone number. It sends the incoming call w
 \end{figure}
 
 \subsection{AI Services: Gemini Live, OpenRouter, LiveKit}
-The patient speaks with Gemini Live \cite{gemini2026live}, using the \texttt{gemini-3.1-flash-live-preview} model and the Puck voice. It is a speech-to-speech model: the same model listens to the caller, decides what to do, calls the booking tools and answers with its own voice. We chose it after testing several realtime models and chains of models on Tunisian Arabic; the tests are described at the end of this chapter. Its one weak point is its transcript of the caller, which was very inaccurate in our tests even when the model understood the caller well. The voice server therefore has its own caller transcriber: it cuts the caller's audio into sentences with an energy check and sends each sentence to \texttt{google/gemini-3.1-flash-lite} through OpenRouter. This text is what administrators read on the Live Calls page. The other realtime backends we tested (OpenAI Realtime, GPT-Live and Inworld) stay in the code behind a setting, so they can be compared again later.
+Patients speak with Gemini Live \cite{gemini2026live}, a speech-to-speech model that listens, calls the booking tools and answers with its own voice. We chose it after the tests described in Section~\ref{subsec:voice-model-evaluation}.
 
-OpenRouter \cite{openrouter2026} gives access to many models through one API and one bill. The web application uses it for the doctor AI assistant (\texttt{deepseek/deepseek-v4-flash-0731} by default), for the transcription of consultation recordings, with speakers separated (the model is \texttt{microsoft/\allowbreak mai-transcribe-2}), and for the small calls that title a recording, give each speaker a role and write the French consultation note on the Pro plan. The chat model is a setting, so changing it does not need a code change. These chat requests can contain patient data, so each one is sent with \texttt{zdr: true} and \texttt{data\_collection: deny}, which limits routing to providers that neither keep nor train on the request \cite{openrouterzdr2026}. OpenRouter also returns the real cost of each reply, and Riaya uses this figure to enforce the monthly AI budget of each plan.
+OpenRouter \cite{openrouter2026} gives access to many models through one API. We use it for the doctor's AI assistant and for transcribing consultations and the caller's words. Requests that can contain patient data only go to providers that neither keep nor train on them \cite{openrouterzdr2026}.
 
-LiveKit \cite{livekit2026} runs a separate agent in the voice repository. In this agent each step is a separate model: speech to text, a language model, then text to speech, and each can be chosen per test call. Real phone calls do not use it. We use it on the test-call page to compare combinations of models with the same instructions and tools as the phone line.
+LiveKit \cite{livekit2026} runs a separate agent, used only on the test-call page to compare chains of models.
 
 \begin{figure}[H]
     \centering
@@ -169,15 +163,7 @@ LiveKit \cite{livekit2026} runs a separate agent in the voice repository. In thi
 \end{figure}
 
 \subsection{Background Jobs and Cache: BullMQ, Redis}
-BullMQ \cite{bullmq2024} stores its jobs in Redis \cite{redis2024}. Riaya has three queues:
-\begin{itemize}
-    \item \texttt{pending-timeout-queue}: a delayed job, added with each phone booking, cancels the request if no doctor answered after 10 minutes, calls the patient back, and falls back to WhatsApp if the patient does not pick up. The same queue sends the callback after a doctor refuses.
-    \item \texttt{review-queue}: a delayed job sends the WhatsApp rating link two hours after the appointment ends.
-    \item \texttt{subscription-queue}: a job that runs daily at 08:00 UTC, and once at startup, creates the renewal invoice of each Pro subscription that ends within three days.
-\end{itemize}
-Redis also keeps the context of a refused request for 24 hours, so that the callback can offer up to three other doctors, and the model settings chosen for a simulated call on the test-call page.
-
-A timer inside the Node.js process would be lost at every restart or deployment, and a 10-minute timeout would then never fire. BullMQ jobs are stored in Redis, survive restarts, can be retried, and are taken by one worker only.
+BullMQ \cite{bullmq2024} queues on Redis \cite{redis2024} run the delayed work: the timeout of a pending request, the review request after a visit and the subscription renewals. The jobs are stored in Redis, so they survive a restart or a deployment.
 
 \begin{figure}[H]
     \centering
@@ -188,15 +174,7 @@ A timer inside the Node.js process would be lost at every restart or deployment,
 \end{figure}
 
 \subsection{Third-Party Services: WhatsApp, Cloudflare R2, Konnect, Google Places, Geoapify}
-WhatsApp messages go through Baileys \cite{baileys2024}, a library that connects to WhatsApp as a linked device. Each doctor links their own account by scanning a QR code, and the voice server keeps one session per doctor. Patients receive confirmations, files and invoices from their doctor's own number, which they recognize, and the conversation stays between the doctor and the patient.
-
-Cloudflare R2 \cite{cloudflare2024r2} stores the files: identity card and Medical Council pictures, medical documents, invoice logos and stamps, consultation recordings and call recordings. The web application creates a presigned URL, the browser uploads the file straight to R2, and the record only keeps the public link. Large audio files never pass through our server. R2 uses the S3 API and charges no egress fees, which keeps the cost of playing recordings low.
-
-Konnect \cite{konnect2024} is a Tunisian payment gateway, used for the Pro plan at 49~TND per month and for recording hour packs. It has no subscriptions, so Riaya runs its own billing cycle. The first payment activates Pro for one month. Konnect then calls a webhook on every status change, and the webhook ignores payments it has already handled. Three days before the end of a period, the daily job creates an open invoice with a payment link that the doctor pays to keep Pro.
-
-Google Places \cite{googleplaces2026} turns what the caller says (a city with a street, a district or a landmark) into coordinates, restricted to Tunisia. We tested several providers on Tunisian hospitals, universities, train stations and doctors' cabinet addresses written in French, and compared each returned position with the real one. Google Places was clearly the best: it knew many more places and placed them more accurately. A setting still allows switching to Geoapify, which we only used for testing places.
-
-Geoapify \cite{geoapify2024} provides road distances through its Route Matrix \cite{geoapifymatrix2026}. After the best-fit search ranks the doctors by straight-line distance and waiting time, the eight best are re-ranked by driving distance in a single request with a 3-second timeout. If the request fails or is slow, the straight-line order is kept.
+Baileys \cite{baileys2024} links each doctor's own WhatsApp account, so patients receive messages from their doctor's number. Cloudflare R2 \cite{cloudflare2024r2} stores documents and recordings, which browsers upload to it directly. Konnect \cite{konnect2024}, a Tunisian payment gateway, handles the Pro plan and the recording hour packs. Google Places \cite{googleplaces2026} finds the places that callers name (Section~\ref{subsec:geocoding-evaluation}), and the Geoapify Route Matrix \cite{geoapify2024, geoapifymatrix2026} gives road distances to the best doctors.
 
 \begin{figure}[H]
     \centering
@@ -210,7 +188,7 @@ Geoapify \cite{geoapify2024} provides road distances through its Route Matrix \c
 \end{figure}
 
 \subsection{Infrastructure: Docker, GitHub Actions, Nginx, Ubuntu}
-Each repository has its own GitHub Actions workflow \cite{githubactions2026}. On every push to the \texttt{main} branch, a GitHub-hosted runner builds the Docker image \cite{docker2024}, pushes it to the GitHub Container Registry \cite{ghcr2026}, and deploys it over SSH to a self-hosted Ubuntu server \cite{ubuntu2026}. The environment files come from a GitHub secret. On the server, Docker Compose runs the web and voice containers next to PostgreSQL and Redis on a shared Docker network, and Nginx \cite{nginx2026} sits in front as the reverse proxy that handles TLS and routes requests and WebSockets. A web deployment runs the Drizzle migrations before starting the new container. The deployment diagram in \xref{fig:deployment} shows these steps. We followed the continuous delivery idea of making every change on \texttt{main} deployable by a script \cite{humble2010continuous}.
+Each repository has a GitHub Actions workflow \cite{githubactions2026} that builds a Docker image \cite{docker2024}, pushes it to the GitHub Container Registry \cite{ghcr2026} and deploys it to an Ubuntu server \cite{ubuntu2026}, where Docker Compose runs the containers behind Nginx \cite{nginx2026}. \xref{fig:deployment} shows these steps.
 
 \begin{figure}[H]
     \centering
@@ -223,7 +201,7 @@ Each repository has its own GitHub Actions workflow \cite{githubactions2026}. On
 \end{figure}
 
 \subsection{Development Tools: pnpm, GitHub, Notion}
-Both repositories use pnpm \cite{pnpm2026} as package manager, which installs dependencies quickly and keeps one lockfile per repository, and Biome to lint and format the code. The code is hosted on GitHub, and the work was planned on the Notion board described in Chapter~2 \cite{notion2026}.
+Both repositories use pnpm \cite{pnpm2026} and Biome. The code is hosted on GitHub, and the work was planned on Notion \cite{notion2026}.
 
 \begin{figure}[H]
     \centering
@@ -253,7 +231,7 @@ The public home page presents Riaya to doctors and leads to the sign-up form. Pa
     \caption{Pricing section with the Free and Pro plans}
     \label{fig:scr_pricing}
 \end{figure}
-The two plans side by side. Free costs nothing and Pro costs 49~TND per month; both include unlimited AI phone booking, and the limits on WhatsApp sends, recording hours and assistant questions differ, and only Pro has invoice branding and secretary accounts.
+The public pricing section shows the two plans of \xref{tab:plans} side by side.
 
 \begin{figure}[H]
     \centering

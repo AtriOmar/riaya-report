@@ -4,3 +4,5 @@ g.classGroup rect, .node rect, .node path { stroke-width: 1.4px; }
 .cardinality, .cardinality text { fill: #1F2937 !important; font-weight: 600; }
 .classTitle .nodeLabel, .classTitle span { font-weight: 700 !important; color: #1F2937 !important; }
 .cardinality, .cardinality text, .edgeTerminals { font-size: 14px !important; }
+/* classes repeated from another part of the class diagram are drawn in gray */
+.node.ref rect, .node.ref path, .node.ref polygon { fill: #EEEEEE !important; stroke: #A3A3A3 !important; }

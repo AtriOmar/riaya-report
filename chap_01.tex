@@ -41,9 +41,7 @@ The platform has five actors: the patient, the visitor, the doctor, the secretar
 \end{itemize}
 
 \subsection{Business Model (Freemium: Free vs Pro)}
-Riaya offers doctors two plans, Free and Pro. Both give the main practice features: patients, appointments, availability, invoices and medical files. Phone booking by the AI assistant is unlimited on both plans, so a patient is never turned away because of the plan a doctor chose. The plans differ on the features that cost Riaya money to run: WhatsApp messages started by the doctor, recording and transcription time, and the AI assistant.
-
-On the Free plan a doctor can send 30 WhatsApp messages a month, record and transcribe 2 hours of consultations, and ask the AI assistant about 20 questions. The Pro plan costs 49~TND per month. It removes the WhatsApp limit, gives 100 hours of recording, and allows about 2,000 assistant questions. Pro doctors can also buy extra recording hours in packs (25 hours for 15~TND, 100 hours for 50~TND), get an AI consultation note on each transcribed recording, add secretaries and print their logo and stamp on invoices.
+Riaya offers doctors two plans, Free and Pro. Both give the main practice features: patients, appointments, availability, invoices and medical files. Phone booking by the AI assistant is unlimited on both plans, so a patient is never turned away because of the plan a doctor chose. The plans differ on the features that cost Riaya money to run: WhatsApp messages started by the doctor, recording and transcription time, and the AI assistant. \xref{tab:plans} compares the two plans.
 
 Doctors can upgrade at any time. Payments go through the Konnect.network API \cite{konnect2024}. Konnect has no built-in subscriptions, so Riaya manages the cycle itself: a daily BullMQ job \cite{bullmq2024} at 08:00 UTC finds Pro subscriptions that end within three days and creates the next invoice with a payment link. The doctor pays it from the Subscription page to keep Pro. A Pro plan that is not renewed falls back to Free.
 
@@ -74,22 +72,11 @@ Doctors can upgrade at any time. Payments go through the Konnect.network API \ci
     \\[0.2cm]
 \end{table}
 
-\subsection{How the Limits Are Counted}\label{subsec:usage-limits}
+\subsection{Plan Limits}\label{subsec:usage-limits}
 
-The Free and Pro plans limit three things that cost us money: WhatsApp sends, recording time and use of the AI assistant. Each one needed its own counting rule. Phone booking by the AI has no limit on any plan, because limiting it would punish patients for a doctor's plan. \xref{fig:plan_limits} shows how an action is checked.
+The two plans set their limits for different reasons. The Free limits give a doctor enough credit to try each feature, but they are too small to run a practice on, so a doctor who wants to use these features in daily work subscribes to Pro. The Pro limits follow what each feature costs us to run.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth,height=0.72\textheight,keepaspectratio]{images/diagrams/plan_limits_flow.png}
-    \caption{How a doctor's action is checked against the Free and Pro limits}
-    \label{fig:plan_limits}
-\end{figure}
-
-The first step is the effective plan. A doctor is on Pro only if the subscription is Pro, its status is active, and its period end is still ahead; a missing, unpaid or expired subscription behaves as Free. For WhatsApp, only the sends the doctor starts count, with a limit of 30 a month on Free and none on Pro. A medical file with documents counts as one caption plus one per document, a text-only file counts as one, and an invoice PDF counts as one. Automatic messages to patients, such as confirmations, review requests and timeout or refusal messages, are never counted and never blocked. The check and the increment happen in one SQL statement, so two sends at the same moment cannot both pass the limit.
-
-Recording time is counted when a recording is transcribed, and re-running a transcription does not count again. Free includes 2 hours a month and Pro 100 hours, and Pro doctors can buy packs of 25 hours for 15~TND or 100 hours for 50~TND. The monthly hours are used first, then the pack hours, which never expire. A database lock per doctor stops two charges from racing, and usage rows stay after a recording is deleted, so deleting never gives time back. A recording is always saved, even with no time left. It is then marked as not transcribed, and the doctor can transcribe it later with one click.
-
-The AI assistant is limited by its real cost and not by the number of messages, because a long chat with a transcript attached costs far more than a short question. OpenRouter reports the cost of each reply, and the app compares the month's total with a budget of \$0.05 on Free and \$5 on Pro. A typical question costs about \$0.0025, which gives the ``about 20'' and ``about 2,000'' questions shown in the offer. Doctors only see their usage as a percentage. Since the cost of a reply is known only after it ends, the last reply of the month can go slightly over the budget. All counters reset at the start of each UTC calendar month.
+Automatic WhatsApp messages to patients, such as confirmations and review requests, have no limit on either plan. Recording time is counted when a recording is transcribed. The AI assistant is limited by what its replies cost us and not by the number of messages, because a long chat with a transcript attached costs far more than a short question. All counters reset every month.
 
 \subsection{Free Doctors in the Best-Fit Search}
 \label{subsec:free-doctors-bestfit}
@@ -103,92 +90,66 @@ Price matters when choosing a doctor, and at first we wanted to show doctors' pr
 
 \section{Functional Requirements}
 
-\subsection{Functional Requirements of the Patient (No Account)}
-Patients have no account; the calling phone number identifies the line, and the assistant never asks for it. They use two channels, the phone call and WhatsApp. Their requirements are:
+\subsection{Functional Requirements of the Patient}
+The patient has no account and uses only the phone and WhatsApp. The patient must be able to:
 \begin{itemize}
-    \item \textbf{Voice interaction with the AI:} talk to the assistant in Tunisian Derja, French or English. Derja is the default; the patient can switch language, and the choice is kept for later calls and WhatsApp messages. Mixing a few French words into Derja does not count as a switch. The assistant gives no medical advice or diagnosis.
-    \item \textbf{Standard booking:} give a name if the assistant does not know it, the reason or the speciality, the place and the preferred time. The assistant confirms the speciality, proposes two or three doctors within 50~km with the distance in kilometres and the time, and keeps searching until the patient chooses or stops. The booking is a pending request, so the assistant says it was sent, not confirmed.
-    \item \textbf{Booking a specific doctor:} name a doctor directly and get that doctor's free slots, without giving a speciality or a city.
-    \item \textbf{Urgent booking:} for urgent symptoms, accept to send requests to up to three of the closest available doctors at once. For life-threatening signs such as chest pain, trouble breathing or heavy bleeding, the assistant first tells the patient to call the SAMU at 190, then offers the urgent requests.
-    \item \textbf{Listing and cancelling bookings:} ask about upcoming or recent phone bookings and cancel one while it is still pending. A confirmed appointment can only be changed through the doctor's office.
-    \item \textbf{WhatsApp messages:} receive confirmations, medical documents and invoices from the doctor's own WhatsApp number, in the patient's preferred language.
-    \item \textbf{Callbacks:} be called back if a doctor refuses the request or does not answer within ten minutes. After a refusal the callback offers up to three other doctors. If the patient does not pick up, the same message arrives on WhatsApp.
-    \item \textbf{Rating:} two hours after the visit, open a link received on WhatsApp and rate the doctor (rating, waiting time, comment) without an account.
+    \item talk to the assistant in Tunisian Derja, French or English;
+    \item book an appointment with a nearby doctor, or with a doctor named directly;
+    \item book for a family member who uses the same phone;
+    \item send an urgent request to several nearby doctors at once;
+    \item list and cancel pending bookings;
+    \item receive confirmations, medical documents and invoices on WhatsApp;
+    \item be called back when a doctor refuses the request or does not answer;
+    \item rate the doctor after the visit.
 \end{itemize}
 
-\subsection{Booking for Family Members}
-One phone often serves a whole family, so the assistant asks who the appointment is for when other people are known on the line. A known family member is booked directly. A new one is added with a first name, a last name and the relationship to the phone owner (child, parent, spouse, sibling or other). The reason for the visit always describes the patient, not the caller. If the caller is not the phone owner, for example a wife using her husband's phone, the assistant adds her as a family member and leaves the owner's profile unchanged.
-
 \subsection{Functional Requirements of the Doctor}
-The doctor uses a web dashboard. The requirements are:
+The doctor must be able to:
 \begin{itemize}
-    \item \textbf{Registration and verification:} create an account with an email one-time code, then submit an application with identity card photos, speciality, Medical Council number and certificate, tax ID, cabinet details and the cabinet position chosen on a map. Until an administrator approves it, only the Profile page is open. A rejected doctor sees the reasons, fixes the data and applies again.
-    \item \textbf{Availability and calendar:} set weekly working hours, which the AI uses when it searches for slots. Create, move, edit or cancel appointments on a 30-minute calendar grid. Accept or refuse phone bookings, which appear live with a sound, and with a red badge when they are urgent.
-    \item \textbf{Patients and medical files:} create and update patient records, link a phone booking to a patient file when accepting it, and store consultation notes, prescriptions and lab reports with attached documents.
-    \item \textbf{Invoicing:} create invoices, record cash or transfer payments, cancel invoices, and send the PDF to the patient on WhatsApp.
-    \item \textbf{Consultation recordings:} record a consultation in the browser, get a transcript with the speakers separated, and on Pro an AI consultation note in French.
-    \item \textbf{AI assistant:} ask medical or product questions, attach a transcript, and ask about the schedule, patients or invoices. The assistant can propose an invoice, a booking decision, a note, an appointment or a move, and the change only happens after the doctor confirms it.
-    \item \textbf{WhatsApp link:} link the doctor's own WhatsApp number by scanning a QR code, so messages to patients leave from that number \cite{baileys2024}.
-    \item \textbf{Subscription:} see the plan limits and current usage, upgrade, pay the monthly Riaya invoice, and buy extra recording hours.
+    \item sign up and apply for verification;
+    \item set weekly availability and manage appointments on a calendar;
+    \item accept or refuse phone bookings;
+    \item manage patients and medical files;
+    \item create invoices and send them on WhatsApp;
+    \item record consultations and get their transcripts;
+    \item ask an AI assistant about the practice;
+    \item link their own WhatsApp number;
+    \item manage the subscription and invite secretaries.
 \end{itemize}
 
 \subsection{Functional Requirements of the Secretary}
-A doctor on the Pro plan can invite any number of secretaries by email from the Team page. The invitation link is valid for seven days and can be sent again or cancelled. The secretary signs up or signs in with the invited email address and joins the practice. A secretary can then use the dashboard home, patients (without medical files), appointments, invoices and availability for that doctor. Invoices a secretary sends still leave from the doctor's WhatsApp number. Medical files, recordings, the AI assistant, WhatsApp setup, the subscription and the team page stay reserved to the doctor. If the doctor goes back to the Free plan, the secretary's access is paused, and it comes back when Pro is renewed.
+A secretary is invited by a doctor on the Pro plan. The secretary must be able to manage that doctor's appointments, patients, invoices and availability, without access to medical files, recordings, the AI assistant or billing.
 
 \subsection{Functional Requirements of the Administrator}
-The administrator manages the platform from a dedicated back-office. The requirements are:
+The administrator must be able to:
 \begin{itemize}
-    \item \textbf{Doctor verification:} browse and search applications, open the documents, then approve, reject with reasons, or ban.
-    \item \textbf{Live call monitoring:} follow ongoing calls with the live transcript, the tool calls and the booking status, and listen to recordings of past calls.
-    \item \textbf{Best-fit search:} run the same doctor search as the phone assistant on a map and a calendar, and open any doctor's availability.
-    \item \textbf{Platform data:} manage users and the list of specialities, and link the platform WhatsApp account used for system messages.
-    \item \textbf{Abuse handling:} review the calls the AI reported, with the recording and the transcript, then dismiss the report, reopen it, or block the number for 7 days, 30 days or permanently. A block can be shortened, extended or lifted later.
-    \item \textbf{Statistics:} read platform statistics on doctors, appointments and calls.
+    \item verify, reject or ban doctors;
+    \item monitor live calls and listen to call recordings;
+    \item review calls reported as abusive and block numbers;
+    \item run the same doctor search as the phone assistant;
+    \item manage users, specialities and the platform WhatsApp account;
+    \item read platform statistics.
 \end{itemize}
-
-\subsection{Abuse Handling and Blocked Numbers}
-A public phone number attracts some prank and abusive calls. The assistant gives one calm warning for mocking or insults and reports the call at once for threats or sexual talk. It never reports confusion, frustration, elderly callers, children, bad lines or questions such as ``are you a robot''; when in doubt it does not report. After a report it says a neutral goodbye and hangs up, without telling the caller about the report. Each report holds a category, a short summary written by the AI and a review status, and it appears in the administrator's queue with a counter in the sidebar. Only an administrator can block a number. A blocked caller is rejected with a busy signal before any AI session starts, and receives no callback and no WhatsApp message.
-
-\begin{table}[H]
-    \centering
-    \caption{Summary of Functional Requirements by Actor}
-    \label{tab:functional_requirements}
-    \small
-    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.2308\dimexpr\textwidth-4\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.7692\dimexpr\textwidth-4\tabcolsep\relax\relax}}
-        \toprule
-        \textbf{Actor} & \textbf{Main Functional Requirements} \\
-        \midrule
-        Patient & Voice booking in Derja, French or English (standard, urgent, by doctor name, for family members), listing and cancelling pending bookings, callbacks after refusal or timeout, WhatsApp messages, rating link. \\
-        \addlinespace
-        Doctor & Registration and verification, availability and calendar, accepting or refusing phone bookings, patients and medical files, invoicing on WhatsApp, recordings and transcripts, AI assistant, WhatsApp link, team, subscription. \\
-        \addlinespace
-        Secretary & Appointments, patients without medical files, invoices and availability for one doctor (Pro only). \\
-        \addlinespace
-        Administrator & Doctor verification, live call monitoring, abuse review and number blocking, best-fit search, users and specialities, platform WhatsApp, statistics. \\
-        \bottomrule
-    \end{tabular}
-    \\[0.2cm]
-\end{table}
 
 \section{Non-Functional Requirements}
 
 \subsection{Performance and Real-Time}
-A phone conversation only feels natural if the assistant answers quickly, so the voice server relays audio between Twilio \cite{twilio2024} and the Gemini Live API as a continuous stream, with no intermediate text step. The best-fit search runs while the patient waits on the line. It filters doctors by straight-line distance first and only asks a routing service for road distances for the eight best candidates, in one call with a 3-second limit. New requests reach the doctor's calendar through WebSockets \cite{fette2011websocket}, so the doctor sees them without reloading the page. Work that does not need to happen during the call, such as timeouts, callbacks and review requests, runs in background jobs.
+The assistant must answer fast enough for a natural phone conversation, and the doctor search must finish while the caller waits on the line. New bookings must appear on the doctor's calendar without reloading the page.
 
 \subsection{Security and Confidentiality}
-Doctors sign up with an email one-time code (six digits, valid ten minutes, five attempts) and sign in with email and password through Better Auth \cite{betterauth2024}. The account is created only after the code is verified, and until then the password is kept encrypted. Every API route checks the role of the caller, and secretaries are kept away from medical data. Calls from the voice server to the web app carry a shared secret, and Twilio's recording webhook is checked against Twilio's signature. Documents and recordings are stored in Cloudflare R2 \cite{cloudflare2024r2} and uploaded with short-lived signed URLs. Requests to the doctor AI assistant may contain patient data, so they are only routed to providers that neither keep nor train on them. WhatsApp messages to patients leave from the doctor's own number, which keeps the conversation between the doctor and the patient. The platform must also respect the Tunisian data protection law (INPDP) \cite{inpdp2004} and, where applicable, the principles of the GDPR \cite{gdpr2016}.
+Each user must only reach the data of their own role and practice, and secretaries must never see medical data. Patient data must not be kept or used for training by the AI providers. The platform must respect the Tunisian data protection law (INPDP) \cite{inpdp2004} and, where applicable, the principles of the GDPR \cite{gdpr2016}.
 
 \subsection{Scalability and High Availability}
-The code is split into two repositories: the web application (Next.js \cite{nextjs2024}) and the real-time voice server (Express.js \cite{express2024}). Each one has its own CI/CD pipeline and its own Docker image, so we can deploy one without touching the other. Both run in Docker containers managed with Docker Compose \cite{docker2024}, next to PostgreSQL and Redis containers. Background work goes through BullMQ queues on Redis \cite{redis2024}, which keeps the web requests short.
+The platform must handle several calls at once, and the web application and the voice server must be deployable separately, so that updating one does not stop the other.
 
 \subsection{Resilience and Fault Tolerance}
-External services can fail, and a failure should never leave a patient without an answer. If the callback call cannot be placed or the patient does not pick up, Riaya sends the same message on WhatsApp from the platform account. If the road-distance service is slow or fails, the search keeps the straight-line order. The blocked-number check at the start of a call fails open: if the web app does not answer within about 1.5 seconds, the call goes through. Unanswered requests are cancelled after ten minutes by a delayed job, so a patient never waits on a request that nobody will handle. A call watchdog handles silent callers: after 12 seconds of silence the assistant asks once whether the caller is still there, and after 10 more seconds it says goodbye and hangs up. Every call ends politely after 15 minutes at most. Finally, no plan limit ever blocks a patient's booking.
+A failure of an outside service must never leave a patient without an answer, and no plan limit may block a patient's booking.
 
 \subsection{Ergonomics and User Experience (UX/UI)}
-Patients install nothing and create no account. The assistant uses one or two sentences per turn, asks one question at a time, speaks only Tunisian Derja among the Arabic dialects, and says distances in kilometres. WhatsApp messages go out in the patient's preferred language. The doctor dashboard is built with Tailwind CSS \cite{tailwind2024}, works on mobile and desktop, shows errors with clear messages and keeps drafts in forms. Consultation recordings are also kept in the browser while they are made, so a closed tab does not lose the audio.
+Patients must not need to install anything or create an account. The assistant must speak briefly and ask one question at a time. The doctor dashboard must work on mobile and desktop.
 
 \subsection{Technical and Regulatory Constraints}
-Patients speak in Tunisia time (GMT+1), while the system stores and exchanges every time in UTC; the assistant converts in both directions, and the doctor assistant works in Africa/Tunis wall-clock time. Plan counters reset on the UTC calendar month. Place search is restricted to Tunisia. Each cabinet is stored with the exact latitude and longitude picked on the registration map, so the search compares coordinates instead of city names. The assistant must speak Derja and never another Arabic dialect, and it pronounces doctor names in Arabic. Amounts are stored in millimes (1~TND = 1,000 millimes) to avoid rounding errors. The platform must comply with the INPDP rules and, where applicable, with the GDPR principles of data minimization, purpose limitation and the right to erasure.
+The assistant must speak Tunisian Derja and never another Arabic dialect. Place search is limited to Tunisia, patients speak in Tunisia time, and amounts are in Tunisian dinars.
 
 \section{Existing Solutions}
 Before designing Riaya, we looked at the existing ways to book a medical appointment. They fall into three groups: international web and mobile platforms, local Tunisian directories, and classic Interactive Voice Response (IVR) systems \cite{voicexml2004}. For each one we noted its features, its strengths and what it leaves out for Tunisian patients.
