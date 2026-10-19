@@ -39,7 +39,7 @@ Files are stored in Cloudflare R2 \cite{cloudflare2024r2}. To upload a document,
 
 One weakness remains. The link stored on each record is a public CDN address. The random file names make the links impossible to guess in practice, but anyone who has a link can open the file without signing in, and a link that is forwarded by mistake keeps working. A cleaner design is a private bucket where the API hands out a short-lived signed download link after the same ownership check. We kept this for the future work because it touches every screen that shows a file.
 
-Health data is a sensitive category under the Tunisian law on personal data \cite{inpdp2004}, and the GDPR \cite{gdpr2016} is a useful reference for its principles of data minimization and purpose limitation. Riaya keeps little data about patients: no account, no password, and only what the call needs (name, date of birth, gender, address, preferred language).
+Health data is a sensitive category under the Tunisian law on personal data \cite{inpdp2004}, and the GDPR \cite{gdpr2016} is a useful reference for its principles of data minimization and purpose limitation. Riaya keeps little data about patients: no account, no password, and only what the call needs (name, date of birth, gender, address, preferred language), plus the place each phone booking was searched from.
 
 \subsection{Confidentiality of WhatsApp Conversations}
 
@@ -91,7 +91,7 @@ While the patient waits on the line, the platform has to turn ``a dermatologist 
 \end{figure}
 
 \begin{enumerate}
-    \item \textbf{Locate the patient.} The place the patient names is looked up with Google Places, restricted to Tunisia. If no precise place is found, the AI falls back to a stored list of 24 Tunisian cities with GPS coordinates. Doctors store the exact coordinates of their cabinet, picked on a map at registration, so the search compares coordinates and not city names.
+    \item \textbf{Locate the patient.} If this phone line has booked before, the AI first asks whether the patient is in the same area as last time and, if so, reuses that place. Otherwise the place the patient names is looked up with Google Places, restricted to Tunisia. If no precise place is found, the AI falls back to a stored list of 24 Tunisian cities with GPS coordinates. Doctors store the exact coordinates of their cabinet, picked on a map at registration, so the search compares coordinates and not city names.
     \item \textbf{Candidates.} Only verified doctors with the chosen speciality and a mapped cabinet are kept. Doctors farther than 50~km in a straight line, computed with the Haversine formula \cite{haversine1971}, are left out, so a patient in Tunis is not offered a doctor in Sfax. If nobody within 50~km has a free slot, the 3 nearest doctors beyond that limit are returned with a ``far away'' flag, and the AI tells the patient so. Before this fallback, such a search returned nothing.
     \item \textbf{Nearest free slot.} For each doctor, the search finds the free 30-minute slot closest to the preferred time within the next week, before or after it, skipping existing appointments and hours outside the doctor's weekly availability. Up to 3 later slots are kept, so the AI can offer other times without a new search.
     \item \textbf{Score and sort.} Each doctor gets the score below. Lower is better, and 10 minutes of waiting count as much as one kilometre. The time difference is measured against what the patient asked for, not against the current time.
