@@ -255,7 +255,7 @@ After sign-up, the doctor fills in the application on the Profile page: name, id
     \caption{Patient review page}
     \label{fig:scr_review}
 \end{figure}
-Two hours after a visit, the patient receives a WhatsApp link to this page. It asks for a star rating, the waiting time and an optional comment, and it needs no account.
+Two hours after a visit, the patient receives a WhatsApp link to this page. It asks for a star rating, the waiting time and an optional comment, and it needs no account. Each visit can be rated once, and the link stops working after 30 days.
 
 \subsection{Doctor Dashboard}
 
@@ -453,6 +453,41 @@ The Calls page lists the active call at the top and the past calls below. The pa
     \label{fig:scr_abuse}
 \end{figure}
 A report opened by the AI shows why it reported the call, the recording when there is one, and the transcript with the \texttt{report\_abuse} tool call; the administrator dismisses it or blocks the number. Blocked numbers are rejected before the AI answers, and the list shows until when each number is blocked and how many of its calls were refused.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{images/screens/27_admin_ratings.png}
+    \caption{Doctor ratings}
+    \label{fig:scr_ratings}
+\end{figure}
+The Ratings page lists the doctors that patients have rated. The two doctors in red have an average under 3 over at least 5 reviews. Values based on fewer than 5 reviews are shown in grey, and these doctors come last when the list is sorted by average.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/screens/28_rating_sheet.png}
+        \caption{Reviews of one doctor}
+        \label{fig:scr_rating_sheet}
+    \end{subfigure}\hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/screens/28b_exclude_dialog.png}
+        \caption{Stopping referrals}
+        \label{fig:scr_exclude_dialog}
+    \end{subfigure}
+    \caption{Reviews of a doctor and exclusion from referrals}
+    \label{fig:scr_rating_detail}
+\end{figure}
+Opening a doctor shows each review with its waiting time, the visit and the comment, written in French, in Derja or in English. From there the administrator can stop referrals to the doctor. The reason is required, and the dialog warns that the doctor will read it as written.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{images/screens/29_referral_banner.png}
+    \caption{Doctor dashboard while excluded from referrals}
+    \label{fig:scr_referral_banner}
+\end{figure}
+While a doctor is excluded, every dashboard page starts with this banner. It gives the administrator's reason and the support address, and shows no rating.
 
 \begin{figure}[H]
     \centering

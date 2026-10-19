@@ -18,6 +18,9 @@ class doctor_profile {
   double precision cabinet_latitude, cabinet_longitude
   jsonb availability
   varchar logo_url, stamp_url
+  timestamp best_fit_excluded_at
+  text best_fit_excluded_by
+  text best_fit_excluded_reason
 }
 class speciality {
   varchar en_name

@@ -37,8 +37,11 @@ class appointment {
 }
 class review {
   varchar token
+  review_status status
   integer rating
-  varchar wait_time
+  review_wait_time wait_time
+  text comment
+  timestamp expires_at
 }
 class consultation {
   timestamp date
@@ -74,7 +77,7 @@ person "1" -- "0..*" appointment : is for
 patient "0..1" -- "0..*" appointment : linked on accept
 patient "1" -- "0..*" consultation
 patient "1" -- "0..*" patient_medical_file
-appointment "1" -- "0..*" review
+appointment "1" -- "0..1" review
 appointment "0..1" -- "0..*" invoice
 patient "1" -- "0..*" invoice
 invoice "1" *-- "1..*" invoice_item

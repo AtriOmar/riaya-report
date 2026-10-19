@@ -53,6 +53,7 @@ loop each turn, until the AI ends the call
   else speciality, place and time are known
     G -> S : findAvailableSlots(speciality, coordinates, time)
     S -> A : findSlots()
+    A -> A : keep verified doctors not\nexcluded from referrals
     A --> S : doctors, slots
     S --> G : doctors, slots
   else patient chose a doctor

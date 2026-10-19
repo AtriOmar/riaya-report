@@ -18,6 +18,8 @@ rectangle "Admin area" {
   usecase "Manage reports and\nblocked numbers" as A3
   usecase "Manage users" as A4
   usecase "Manage specialities" as A5
+  usecase "Read doctor ratings\nand comments" as A6
+  usecase "Exclude a doctor\nfrom referrals" as A7
 }
 
 P --> P1
@@ -29,10 +31,14 @@ A --> A2
 A --> A3
 A --> A4
 A --> A5
+A --> A6
+A --> A7
 
 A1 ..> AUTH : <<include>>
 A2 ..> AUTH : <<include>>
 A3 ..> AUTH : <<include>>
 A4 ..> AUTH : <<include>>
 A5 ..> AUTH : <<include>>
+A6 ..> AUTH : <<include>>
+A7 ..> AUTH : <<include>>
 @enduml
