@@ -93,42 +93,46 @@ Price matters when choosing a doctor, and at first we wanted to show doctors' pr
 \subsection{Functional Requirements of the Patient}
 The patient has no account and uses only the phone and WhatsApp. The patient must be able to:
 \begin{itemize}
-    \item talk to the assistant in Tunisian Derja, French or English;
-    \item book an appointment with a nearby doctor, or with a doctor named directly;
-    \item book for a family member who uses the same phone;
-    \item send an urgent request to several nearby doctors at once;
-    \item list and cancel pending bookings;
-    \item receive confirmations, medical documents and invoices on WhatsApp;
-    \item be called back when a doctor refuses the request or does not answer;
-    \item rate the doctor after the visit.
+    \item \textbf{Talk to the assistant in their language:} the call can be held in Tunisian Derja, French or English.
+    \item \textbf{Book an appointment:} the patient asks for a nearby doctor of the right speciality, or names a doctor directly, and chooses a free slot.
+    \item \textbf{Book for a family member:} one phone can serve a whole family, so the patient can book for a relative who uses the same phone.
+    \item \textbf{Send an urgent request:} in an urgent case, one request goes to several nearby doctors at once and the first one who accepts keeps it.
+    \item \textbf{Manage pending bookings:} in a later call, the patient can list the bookings still waiting for a doctor and cancel them.
+    \item \textbf{Rate the doctor:} after the visit, the patient receives a link to rate the doctor and leave a comment.
 \end{itemize}
 
 \subsection{Functional Requirements of the Doctor}
 The doctor must be able to:
 \begin{itemize}
-    \item sign up and apply for verification;
-    \item set weekly availability and manage appointments on a calendar;
-    \item accept or refuse phone bookings;
-    \item manage patients and medical files;
-    \item create invoices and send them on WhatsApp;
-    \item record consultations and get their transcripts;
-    \item ask an AI assistant about the practice;
-    \item link their own WhatsApp number;
-    \item manage the subscription and invite secretaries.
+    \item \textbf{Sign up and get verified:} the doctor creates an account, submits professional documents and waits for an administrator's approval.
+    \item \textbf{Manage availability and appointments:} the doctor sets the weekly working hours and manages appointments on a calendar.
+    \item \textbf{Answer phone bookings:} the doctor accepts or refuses each booking made over the phone, and sees what the caller said.
+    \item \textbf{Manage patients and medical files:} the doctor keeps a file for each patient, with prescriptions, consultation notes and lab reports.
+    \item \textbf{Create invoices:} the doctor bills a patient, records payments and sends the invoice on WhatsApp.
+    \item \textbf{Record consultations:} the doctor records a consultation in the browser and gets a transcript that keeps the doctor's words apart from the patient's. Riaya then writes a structured consultation note that the doctor can edit or regenerate, and a recording attached to a patient appears in that patient's file. Recording time counts against the plan, and extra hours can be bought.
+    \item \textbf{Use the AI assistant:} the doctor asks questions in a chat about medicine, about Riaya or about a recorded consultation. The assistant reads the practice's data (schedule, pending bookings, patients, free slots, invoices and statistics) and can prepare an invoice, a booking decision, a medical note, a new appointment or a new time for an existing one. Each change appears as a card, and nothing is saved until the doctor accepts it.
+    \item \textbf{Link a WhatsApp number:} the doctor links a personal WhatsApp number, so that documents and invoices reach patients from that number.
+    \item \textbf{Manage the subscription and the team:} the doctor chooses a plan and, on the Pro plan, invites secretaries.
 \end{itemize}
 
 \subsection{Functional Requirements of the Secretary}
-A secretary is invited by a doctor on the Pro plan. The secretary must be able to manage that doctor's appointments, patients, invoices and availability, without access to medical files, recordings, the AI assistant or billing.
+A secretary is invited by a doctor on the Pro plan. The secretary must be able to:
+\begin{itemize}
+    \item \textbf{Manage the doctor's appointments:} create and move appointments on the doctor's calendar, and accept or refuse phone bookings.
+    \item \textbf{Manage patients and invoices:} add patients, create invoices and record payments for that doctor.
+    \item \textbf{Manage availability:} set the doctor's weekly working hours.
+\end{itemize}
+The secretary has no access to medical files, recordings, the AI assistant or billing.
 
 \subsection{Functional Requirements of the Administrator}
 The administrator must be able to:
 \begin{itemize}
-    \item verify, reject or ban doctors;
-    \item monitor live calls and listen to call recordings;
-    \item review calls reported as abusive and block numbers;
-    \item run the same doctor search as the phone assistant;
-    \item manage users, specialities and the platform WhatsApp account;
-    \item read platform statistics.
+    \item \textbf{Verify doctors:} review each application with its documents, then approve, reject or ban the doctor.
+    \item \textbf{Monitor calls:} follow live calls with their transcript and listen to call recordings.
+    \item \textbf{Handle abuse:} review calls reported as abusive and block the number for a period or for good.
+    \item \textbf{Search for doctors:} run the same doctor search as the phone assistant.
+    \item \textbf{Follow doctor quality:} read the patients' ratings and comments for each doctor, and stop or resume referrals to a doctor with a reason the doctor can read.
+    \item \textbf{Manage the platform:} manage users, specialities and the platform WhatsApp account, and read platform statistics.
 \end{itemize}
 
 \section{Non-Functional Requirements}

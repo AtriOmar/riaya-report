@@ -1,53 +1,55 @@
 \chapter{Project Management Methodology and Modeling}
 
 \section{Introduction}
-This chapter covers how the Riaya project was organized and how the platform was modeled. The first part presents the Kanban method: where it comes from, its principles and metrics, and how it compares with Scrum and Waterfall \cite{schwaber2020scrum, pmi2021pmbok}. It then describes the Notion board used during the internship and explains why Kanban suited this project better than Scrum. The second part models the platform: two use case diagrams for the five actors, three class diagrams of the database, two sequence diagrams for an inbound call and a callback, three activity diagrams, the deployment diagram, and the two halves of the BPMN booking process.
+This chapter covers how the Riaya project was organized and how the platform was modeled. The first part briefly presents the Kanban method, compares it with Scrum and Waterfall \cite{schwaber2020scrum, pmi2021pmbok}, explains why it suited this project, and describes how the Notion board was used during the internship. The second part models the platform: two use case diagrams for the five actors, three class diagrams of the database, two sequence diagrams for an inbound call and a callback, three activity diagrams, the deployment diagram, and the two halves of the BPMN booking process.
 
 \section{The Kanban Method}
 
-\subsection{Historical Context and Origins}
-Kanban comes from manufacturing. Toyota used it in Japan from the late 1940s, and it was adapted to software development and IT operations in the 2000s \cite{anderson2010kanban}. The word means ``visual signal'' or ``card'' in Japanese. On Toyota's production lines, a card signalled that a part had to be replenished, which made just-in-time (JIT) production possible. David J. Anderson adapted the method to knowledge work in 2007 and added limits on work in progress (WIP) to improve the flow of work in software teams \cite{anderson2010kanban}. It is usually counted among the agile methods \cite{beck2001agile}.
-
-\subsection{Definition and Fundamental Principles}
-Kanban starts from the way a team already works and improves it step by step, without imposing roles, meetings or fixed iterations. Three principles guide the daily work:
+\subsection{Definition and Principles}
+Kanban is an agile method \cite{beck2001agile} that David J. Anderson adapted from Toyota's production system to software work \cite{anderson2010kanban}. It starts from the way a team already works and improves it step by step, without imposing roles, meetings or fixed iterations. It rests on three principles:
 
 \begin{itemize}
-    \item \textbf{Visualization:} The work is shown on a board divided into columns, one per stage. Each task is a card that moves from left to right as it progresses. Anyone who opens the board can see what is waiting, what is being worked on and what is finished. On Riaya this mattered because three people with different roles followed the same work: the developer, the company founder who spoke with the client, and the academic supervisor.
-
-    \item \textbf{Limits on work in progress:} Each active column has a maximum number of cards. When the limit is reached, a new card can only start once another one has moved on. The limit reduces switching between tasks and makes bottlenecks visible \cite{anderson2010kanban}. On Riaya, the ``In Progress'' column was limited to three cards. With a single developer, a higher limit would only have meant more half-finished work.
-
-    \item \textbf{Managing the flow:} The aim is a steady stream of finished work. The team measures how long cards take to cross the board and uses those numbers to find where work waits.
+    \item \textbf{Visualization:} each task is a card that moves across a board with one column per stage, so anyone can see what is waiting, in progress or finished.
+    \item \textbf{Limits on work in progress:} each active column holds a maximum number of cards, which reduces switching between tasks and shows where work gets stuck.
+    \item \textbf{Managing the flow:} the team measures how long cards take to cross the board, mainly with lead time, cycle time and throughput, and uses these numbers to find where work waits.
 \end{itemize}
 
-\subsection{Kanban Practices and Metrics}
-Kanban also asks teams to make their rules explicit (for example, what must be true before a card can move to the next column), to set up feedback loops and to improve in small steps. The usual metrics are:
-
-\begin{itemize}
-    \item \textbf{Lead time:} the time from the creation of a card to its completion.
-    \item \textbf{Cycle time:} the time from the start of work on a card to its completion.
-    \item \textbf{Throughput:} the number of cards finished per week.
-    \item \textbf{WIP:} the number of cards being worked on at a given moment.
-\end{itemize}
-
-\xref{tab:kanban_metrics} gives these metrics for the 143 cards finished on the Riaya board between 27 April and 18 October.
-
+\subsection{Comparative Table: Kanban vs Scrum vs Waterfall}
 \begin{table}[H]
     \centering
-    \caption{Kanban Metrics of the Riaya Board}
-    \label{tab:kanban_metrics}
+    \caption{Comparison of Kanban, Scrum, and Waterfall \cite{kniberg2010kanban, schwaber2020scrum}}
+    \label{tab:comparison_methods}
     \small
-    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.2074\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.3111\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.4815\dimexpr\textwidth-6\tabcolsep\relax\relax}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.1756\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2748\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2748\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2748\dimexpr\textwidth-8\tabcolsep\relax\relax}}
         \toprule
-        \textbf{Metric} & \textbf{Definition} & \textbf{Value on the Riaya board} \\
+        \textbf{Criteria} & \textbf{Kanban} & \textbf{Scrum} & \textbf{Waterfall} \\
         \midrule
-        Lead time & Creation to completion & 4.2 days on average (median 3.9 days) \\
-        Cycle time & Start to completion & 3.2 days on average (median 3.0 days) \\
-        Throughput & Cards finished per week & 5.8 per week over the whole internship \\
-        WIP & Cards in ``In Progress'' & 3 (team rule) \\
+        Approach & Continuous flow & Sprints of one month or less & Sequential phases \\
+        Roles & None required & Product Owner, Scrum Master, Developers & Project manager and specialists for each phase \\
+        Team size & Any & 10 people or fewer & Any \\
+        Changes & At any time & Between sprints; the sprint goal stays fixed & Costly once a phase is validated \\
+        Delivery & When a card is done & A usable increment in every sprint & At the end of the project \\
+        WIP limits & Explicit, per column & Indirect, through the sprint scope & None \\
+        Meetings & None required; the team chooses its own cadence & Sprint planning, daily scrum, sprint review, retrospective & Phase and milestone reviews \\
+        Metrics & Lead time, cycle time, throughput & Velocity, burndown chart & Milestones, earned value \\
+        Best suited for & Changing priorities, support work, small teams & Complex products built by a team in regular iterations & Stable, well-known requirements \\
         \bottomrule
     \end{tabular}
     \\[0.2cm]
 \end{table}
+
+\subsection{Justification of the Choice of Kanban}
+Kanban fit Riaya better than Scrum for five reasons.
+
+First, there was one developer. Scrum is built around a team: a Product Owner, a Scrum Master and several developers, who meet in four fixed events every sprint \cite{schwaber2020scrum}. On Riaya, John would have been the Product Owner, and the Scrum Master and the whole development team would have been the same person. Sprint planning, daily scrums and retrospectives would have taken time without telling anyone more than the board already showed.
+
+Second, requests arrived at irregular times. The client spoke only with John, who passed requests on as they came. A request could change a feature built a few weeks earlier, as happened three times with the plan limits. In Scrum, work outside the current sprint goal usually waits for the next sprint. In Kanban, the card goes into ``To Do'' at the right priority.
+
+Third, much of the work was research of unknown length. Comparing speech models for Tunisian Arabic and trying different techniques took almost two weeks, and this could not be sized in advance, since nobody knew how many options would need testing. Such tasks are hard to fit into a sprint. On the board they were Spike cards that stayed open until they had a written conclusion.
+
+Fourth, John showed each new feature to the client as soon as it was ready on the team's server. Bugs and feedback from these demonstrations had to be handled as they came, next to the planned work, and Kanban lets an urgent card go straight to the top of ``To Do''.
+
+Finally, the board doubled as a report for the people outside development. John used it to see what the client could expect and when, and Ismail used it to follow the internship and add the documentation he needed, without separate status meetings.
 
 \subsection{The Riaya Board in Notion}
 The board was a Notion database \cite{notion2026} shared by the three people involved in the project:
@@ -83,7 +85,7 @@ The board was a Notion database \cite{notion2026} shared by the three people inv
 
 The page of each card holds a short description of the request. When a card changes an earlier decision, its description gives the number of the card it replaces.
 
-\xref{tab:board_statuses} describes the seven statuses. Two rules govern how cards move: a card leaves ``To Do'' only when ``In Progress'' has room, and a card is ``Done'' only once it has been merged and deployed.
+\xref{tab:board_statuses} describes the seven statuses. Two rules govern how cards move: a card leaves ``To Do'' only when ``In Progress'' has room, and a card is ``Done'' only once it has been merged and deployed. ``In Progress'' was limited to three cards, since with a single developer a higher limit would only have meant more half-finished work.
 
 \begin{table}[H]
     \centering
@@ -122,16 +124,27 @@ The same cards appear in three views. The default view (\xref{fig:riaya_board_ta
     \label{fig:riaya_board_kanban}
 \end{figure}
 
-\subsection{Advantages of Kanban for the Riaya Project}
-Kanban let priorities change at any time. When a new request mattered more than the planned work, its card went to the top of ``To Do'' and was picked up next, without waiting for the end of an iteration.
+\xref{tab:kanban_metrics} gives the flow metrics for the 143 cards finished on the board between 27 April and 18 October.
 
-It also kept the time between a request and its delivery short. Each card was deployed as soon as it was merged, so the client could see a change a few days after asking for it, and a bug found during a demonstration could be fixed and deployed the same day.
+\begin{table}[H]
+    \centering
+    \caption{Kanban Metrics of the Riaya Board}
+    \label{tab:kanban_metrics}
+    \small
+    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.2074\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.3111\dimexpr\textwidth-6\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.4815\dimexpr\textwidth-6\tabcolsep\relax\relax}}
+        \toprule
+        \textbf{Metric} & \textbf{Definition} & \textbf{Value on the Riaya board} \\
+        \midrule
+        Lead time & Creation to completion & 4.2 days on average (median 3.9 days) \\
+        Cycle time & Start to completion & 3.2 days on average (median 3.0 days) \\
+        Throughput & Cards finished per week & 5.8 per week over the whole internship \\
+        WIP & Cards in ``In Progress'' & 3 (team rule) \\
+        \bottomrule
+    \end{tabular}
+    \\[0.2cm]
+\end{table}
 
-The board made progress visible without meetings. The company founder and the academic supervisor could follow the work at any moment, and documentation tasks for the report went through the same columns as product work.
-
-Finally, the board kept a record of decisions. A research card keeps its conclusion even when the idea is dropped, so the reasons behind a choice are not lost.
-
-\subsection{Disadvantages and Limitations of the Method}
+\subsection{Limitations Met on the Project}
 Kanban has no sprints, so nothing forces a regular deadline or a fixed moment to review the work. Any dates have to be set by the people involved.
 
 The freedom to reorder the board at any time can also make priorities unstable. On Riaya, a new request from the client could move ahead of work that was already planned, and some cards were pushed back more than once.
@@ -141,43 +154,6 @@ Dependencies between cards are hard to see. A card is shown on its own, and the 
 Without fixed iterations, it is also harder to say when a feature will be ready. The size of each card (S, M or L) gives only a rough idea, and the client's questions about dates had to be answered from experience.
 
 Finally, with a single developer, the board is only as accurate as that developer keeps it, since nobody else moves the cards.
-
-\subsection{Comparative Table: Kanban vs Scrum vs Waterfall}
-\begin{table}[H]
-    \centering
-    \caption{Comparison of Kanban, Scrum, and Waterfall \cite{kniberg2010kanban, schwaber2020scrum}}
-    \label{tab:comparison_methods}
-    \small
-    \begin{tabular}{>{\raggedright\arraybackslash}p{\dimexpr 0.1756\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2748\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2748\dimexpr\textwidth-8\tabcolsep\relax\relax}>{\raggedright\arraybackslash}p{\dimexpr 0.2748\dimexpr\textwidth-8\tabcolsep\relax\relax}}
-        \toprule
-        \textbf{Criteria} & \textbf{Kanban} & \textbf{Scrum} & \textbf{Waterfall} \\
-        \midrule
-        Approach & Continuous flow & Sprints of one month or less & Sequential phases \\
-        Roles & None required & Product Owner, Scrum Master, Developers & Project manager and specialists for each phase \\
-        Team size & Any & 10 people or fewer & Any \\
-        Changes & At any time & Between sprints; the sprint goal stays fixed & Costly once a phase is validated \\
-        Delivery & When a card is done & A usable increment in every sprint & At the end of the project \\
-        WIP limits & Explicit, per column & Indirect, through the sprint scope & None \\
-        Meetings & None required; the team chooses its own cadence & Sprint planning, daily scrum, sprint review, retrospective & Phase and milestone reviews \\
-        Metrics & Lead time, cycle time, throughput & Velocity, burndown chart & Milestones, earned value \\
-        Best suited for & Changing priorities, support work, small teams & Complex products built by a team in regular iterations & Stable, well-known requirements \\
-        \bottomrule
-    \end{tabular}
-    \\[0.2cm]
-\end{table}
-
-\subsection{Justification of the Choice of Kanban}
-Kanban fit Riaya better than Scrum for five reasons.
-
-First, there was one developer. Scrum is built around a team: a Product Owner, a Scrum Master and several developers, who meet in four fixed events every sprint \cite{schwaber2020scrum}. On Riaya, John would have been the Product Owner, and the Scrum Master and the whole development team would have been the same person. Sprint planning, daily scrums and retrospectives would have taken time without telling anyone more than the board already showed.
-
-Second, requests arrived at irregular times. The client spoke only with John, who passed requests on as they came. A request could change a feature built a few weeks earlier, as happened three times with the plan limits. In Scrum, work outside the current sprint goal usually waits for the next sprint. In Kanban, the card goes into ``To Do'' at the right priority.
-
-Third, much of the work was research of unknown length. Comparing speech models for Tunisian Arabic and trying different techniques took almost two weeks, and this could not be sized in advance, since nobody knew how many options would need testing. Such tasks are hard to fit into a sprint. On the board they were Spike cards that stayed open until they had a written conclusion.
-
-Fourth, John showed each new feature to the client as soon as it was ready on the team's server. Bugs and feedback from these demonstrations had to be handled as they came, next to the planned work, and Kanban lets an urgent card go straight to the top of ``To Do''.
-
-Finally, the board doubled as a report for the people outside development. John used it to see what the client could expect and when, and Ismail used it to follow the internship and add the documentation he needed, without separate status meetings.
 
 \section{Modeling Diagrams}
 Each diagram in this section shows one view of Riaya \cite{omg2017uml, fowler2003uml}: who uses the platform, how the data is organized, how a call runs in time, how the main processes branch, and how the code reaches the server.
