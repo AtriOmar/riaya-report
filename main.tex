@@ -20,6 +20,9 @@
 
 \input{new_commands}
 
+% Draft speed-up: uncomment to compile only these chapters (needs one full build first, do a full build before submitting)
+%\includeonly{chap_03}
+
 \begin{document}
     \input{global_config}
     
@@ -56,40 +59,40 @@
         \thispagestyle{frontmatter}
     
     \mainmatter
-        \input{introduction}
+        \include{introduction}
         % the introduction is an unnumbered chapter listed in the TOC; skip its minitoc slot
         \adjustmtc
         \clearpage
         
-        \input{chap_01}
+        \include{chap_01}
         \clearpage
 
-        \input{chap_02}
+        \include{chap_02}
         \clearpage
         
-        \input{chap_03}
+        \include{chap_03}
         \clearpage
 
-        %\input{chap_04}
+        %\include{chap_04}
         %\clearpage
 
-        %\input{chap_05}
+        %\include{chap_05}
         %\clearpage
         
-        %\input{chap_06}
+        %\include{chap_06}
         %\clearpage
         
-        %\input{chap_07}
+        %\include{chap_07}
         %\clearpage
         
         
-        %\input{chap_08}
+        %\include{chap_08}
         %\clearpage
         
-        %\input{chap_09}
+        %\include{chap_09}
         %\clearpage
         
-        \input{conclusion}
+        \include{conclusion}
         
         % @author: Stoufa
 		% the command `\nocite{*}` is mandatory to avoid the “no \citation commands” error

@@ -1,25 +1,37 @@
 \chapter*{General Introduction}
 \addcontentsline{toc}{chapter}{General Introduction}
 
-\paragraph{General Context.}
-Healthcare services are moving online in many countries, and Tunisia is no exception. Patients want to reach a doctor faster, and several platforms now connect them with healthcare professionals over the web. Recent progress in artificial intelligence, especially in models that can hold a spoken conversation in real time, opens another option: booking a medical appointment by simply talking on the phone.
+% the report uses parskip (no indent); restore indented paragraphs for this chapter only
+\begingroup
+\setlength{\parindent}{12mm}
+\setlength{\parskip}{3pt}
 
-\paragraph{Problem Statement.}
-Internet and smartphone use keep growing in Tunisia, yet booking a doctor is still hard for many patients. It usually means calling a cabinet during working hours, going there in person, or using a website that asks for an account. Older patients, people who are not at ease with apps, and people who speak mostly Tunisian Arabic (Derja) are the most affected. Urgent situations make things worse, because the patient has to call cabinet after cabinet to find a doctor who is free. Most existing solutions are built around a web portal or a mobile application, and none of them lets a patient book by speaking naturally in Derja.
+Healthcare services are moving online in many countries, and Tunisia is no exception. Several platforms now connect patients with doctors over the web, and internet and smartphone use keep growing.
 
-\paragraph{Proposed Solution.}
-Pengguin, a company led by John Jang, built \textbf{Riaya} to address this problem. Riaya is an AI doctor appointment platform made for Tunisia. Patients have no account and no website: they call a phone number, talk to an AI voice assistant in Tunisian Derja, French or English, and then receive messages on WhatsApp. The assistant asks for the reason of the visit, the place and the preferred time, finds a nearby doctor with a free slot, and sends that doctor a booking request. It can also send urgent requests to several doctors at once, and it tells the patient to call the SAMU (190) first when the symptoms sound life threatening. If a doctor refuses or does not answer within ten minutes, Riaya calls the patient back. Doctors manage their practice from a web dashboard with a calendar, patient files, invoices, consultation recordings with transcripts, an AI assistant and WhatsApp messages sent from their own number. On the paid plan they can add secretaries. Administrators verify doctors, watch live calls, review calls reported as abusive and block numbers.
+Booking a doctor is still hard for many patients. It usually means calling a cabinet during working hours, going there in person, or using a website that asks for an account. Older patients and people who are not at ease with apps are the most affected.
 
-\paragraph{Objectives of the Report.}
-This report presents the Riaya project from a functional and a technical point of view. It aims to:
-\begin{itemize}
-    \item present the host company, the product and the needs of each actor;
-    \item describe the functional and non-functional requirements of the platform;
-    \item compare Riaya with existing solutions;
-    \item explain the project management method (Kanban) and the modeling diagrams;
-    \item detail the architecture, the technology stack, the choice of AI models and the deployment;
-    \item show the main features of the platform with screenshots.
-\end{itemize}
+Urgent situations make things worse. The patient has to call cabinet after cabinet to find a doctor who is free, and most existing solutions are built around a web portal or a mobile application. None of them lets a patient book by speaking naturally in Tunisian Arabic (Derja).
 
-\paragraph{Structure of the Report.}
-The report has three chapters. Chapter 1 introduces Pengguin and the Riaya product, with its Free and Pro plans and how their limits are counted, sets out the functional and non-functional requirements, compares Riaya with existing solutions, and models the booking process in BPMN. Chapter 2 covers the project management method: what Kanban is, its advantages and disadvantages, how it compares with other methods, and how we used it. It also presents the modeling diagrams of the project. Chapter 3 describes the technical architecture and the implementation: the technology stack with the deployment pipeline, and annotated screenshots. It ends with security, the technical challenges we met, and the evaluations and tests behind our choices of place search and voice model. A general conclusion sums up the work, the lessons learned and the next steps.
+Recent progress in artificial intelligence, especially in models that can hold a spoken conversation in real time, opens another option: booking an appointment by simply talking on the phone. A voice assistant has several advantages over a human agent.
+
+A human agent needs time to check agendas, look for the best fit and call back. The assistant searches for a nearby doctor with a free slot within seconds. It is also available at any hour, and it can contact several doctors at the same time for an urgent request, which a person making calls one by one cannot do.
+
+Patients also behave differently with an assistant. With a human agent, many people hesitate to ask several questions, to change their mind or to call a second time, because they do not want to bother anyone. With an assistant, there is no such hesitation. The patient can call as often as needed and take as long as needed.
+
+Finally, an AI agent scales easily. It can take many calls at once, so no patient meets a busy line, and handling ten times more calls does not require recruiting and training ten times more staff. For a human team, recruitment is often the main limit to growth.
+
+Pengguin, the host company, built \textbf{Riaya} on this idea. Riaya is an AI doctor appointment platform made for Tunisia. Patients have no account and no website: they call a phone number, talk to the assistant in Derja, French or English, and receive messages on WhatsApp. The assistant asks for the reason of the visit, the place and the preferred time, then sends a booking request to a suitable doctor.
+
+Doctors manage their practice from a web dashboard, and administrators verify doctors, monitor live calls and handle abusive callers. Chapter 1 describes all of this in detail.
+
+The report has three chapters.
+
+Chapter 1 introduces Pengguin and the Riaya product with its Free and Pro plans. It sets out the functional and non-functional requirements, compares Riaya with existing solutions and models the booking process in BPMN.
+
+Chapter 2 covers the project management method. It explains what Kanban is, how it compares with other methods and how we used it, then presents the modeling diagrams of the project.
+
+Chapter 3 describes the technical architecture and the implementation: the technology stack, the deployment pipeline and annotated screenshots. It ends with security, the technical challenges we met, and the evaluations behind our choices of place search and voice model.
+
+A general conclusion sums up the work, the lessons learned and the next steps.
+
+\endgroup

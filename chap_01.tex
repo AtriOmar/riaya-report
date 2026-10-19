@@ -19,14 +19,12 @@ Besides SpeakDuo, Pengguin sometimes takes on web development work for outside c
 \section{Presentation of the Riaya Product (Client of Pengguin)}
 
 \subsection{Definition and Genesis of the Project}
-Riaya is an AI doctor appointment platform made for Tunisia. It started from a simple observation: many patients are not comfortable with web portals or mobile applications, but almost everyone can make a phone call. A Tunisian client initiated the project, and Pengguin developed it.
+Riaya is an AI doctor appointment platform made for Tunisia. The project started from the observation that many patients are not comfortable with web portals or mobile applications, while almost everyone can make a phone call.
 
-Patients do not download an application or create an account. They call the Riaya number and talk to an AI voice assistant. The assistant asks what the problem is, where the patient is and when they would like to come, then proposes two or three nearby doctors with a free slot and sends a booking request to the one the patient picks. The doctor accepts or refuses the request from a web dashboard. The patient then receives a confirmation on WhatsApp, which is already widely used in Tunisia \cite{whatsapp2024tunisia}.
-
-The phone number identifies the line, and one line can serve a whole family. A mother can call from her phone and book for her child, and the assistant files the visit under the child. The assistant speaks Tunisian Arabic (Derja), French and English. When a patient describes urgent symptoms, it can send requests to up to three nearby doctors at the same time, and for life-threatening signs it first tells the patient to call the SAMU at 190.
+Patients book an appointment by calling a phone line and talking, without installing an application or creating an account. Doctors use a web tool to run their practice: their agenda, their patients and medical files, and their invoices. The phone line can only book doctors who keep their agenda up to date in that tool, so each side depends on the other.
 
 \subsection{Value Proposition: The ``AI-first'' and ``Voice-first'' Concept}
-``Voice-first'' means the phone call is the main channel for patients. We chose this on purpose: in Tunisia, a phone call is a familiar and trusted way to reach a cabinet. WhatsApp is the second channel, used after the call for confirmations, medical documents, invoices and rating links. Patients never need a website.
+``Voice-first'' means the phone call is the main channel for patients. We chose this on purpose: in Tunisia, a phone call is a familiar and trusted way to reach a cabinet. WhatsApp, already widely used in Tunisia \cite{whatsapp2024tunisia}, is the second channel, used after the call for confirmations, medical documents, invoices and rating links. Patients never need a website.
 
 ``AI-first'' means the patient side is built around an AI agent instead of menus or forms. The voice agent uses the Gemini Live API \cite{gemini2026live} with the Gemini 3.1 Flash Live preview model. It listens and answers with its own voice, so the conversation flows like a normal call and the patient can interrupt it. We picked it after comparing several realtime models and chains of separate speech-to-text, language and text-to-speech models; Chapter~3 explains that choice. During the call the agent uses tools in the Riaya system to look up places, search for doctors and free slots, book or cancel requests and save the caller's name and language. It keeps its replies short, asks one question at a time and never gives medical advice.
 
@@ -39,7 +37,7 @@ The platform has five actors: the patient, the visitor, the doctor, the secretar
     \item \textbf{Visitor:} someone who has not signed up yet, usually a doctor discovering the platform. The visitor can only sign up, with an email code, and then becomes a doctor who applies for verification.
     \item \textbf{Doctor:} signs up on the website, submits professional documents and waits for an administrator's approval. Once verified, the doctor sets weekly availability, accepts or refuses phone bookings, manages patients, medical files and invoices, records consultations, uses the AI assistant, links their own WhatsApp number and manages the subscription.
     \item \textbf{Secretary:} is invited by email by a doctor on the Pro plan. A secretary handles appointments, patients, invoices and availability for that doctor, without access to medical files, recordings, the AI assistant or billing.
-    \item \textbf{Administrator:} runs the platform from a back-office. The administrator verifies doctors, watches live calls, reviews calls reported as abusive, blocks numbers, runs best-fit searches, manages specialities and users, links the platform WhatsApp account and reads platform statistics.
+    \item \textbf{Administrator:} runs the platform from a back-office. The administrator verifies doctors, monitors live calls, reviews calls reported as abusive, blocks numbers, runs best-fit searches, manages specialities and users, links the platform WhatsApp account and reads platform statistics.
 \end{itemize}
 
 \subsection{Business Model (Freemium: Free vs Pro)}
@@ -141,7 +139,7 @@ A doctor on the Pro plan can invite any number of secretaries by email from the 
 The administrator manages the platform from a dedicated back-office. The requirements are:
 \begin{itemize}
     \item \textbf{Doctor verification:} browse and search applications, open the documents, then approve, reject with reasons, or ban.
-    \item \textbf{Live call monitoring:} watch ongoing calls with the live transcript, the tool calls and the booking status, and listen to recordings of past calls.
+    \item \textbf{Live call monitoring:} follow ongoing calls with the live transcript, the tool calls and the booking status, and listen to recordings of past calls.
     \item \textbf{Best-fit search:} run the same doctor search as the phone assistant on a map and a calendar, and open any doctor's availability.
     \item \textbf{Platform data:} manage users and the list of specialities, and link the platform WhatsApp account used for system messages.
     \item \textbf{Abuse handling:} review the calls the AI reported, with the recording and the transcript, then dismiss the report, reopen it, or block the number for 7 days, 30 days or permanently. A block can be shortened, extended or lifted later.
