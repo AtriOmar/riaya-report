@@ -45,7 +45,7 @@ Health data is a sensitive category under the Tunisian law on personal data \cit
 
 Each doctor links their own WhatsApp account by scanning a QR code on the WhatsApp page. The voice server then sends messages through Baileys \cite{baileys2024} from the doctor's own number. Patients see a message from their doctor, and their replies reach the doctor's phone without going through Riaya. Invoices that a secretary sends still leave from the doctor's number. Only system messages, such as the notice that a request expired, come from the platform's own WhatsApp account.
 
-The database has no table for message content. It keeps a monthly counter of the sends a doctor started, for the Free plan limit, and a flag on a medical file once it has been sent. Riaya therefore holds no copy of what doctors and patients write to each other. Baileys works by linking the server as a WhatsApp Web device, so the session keys of each doctor's account live on the voice server. Anyone who controlled that server could send messages as the doctor, which is one more reason to protect it carefully.
+The database has no table for message content. It keeps a monthly counter of the sends a doctor started, for the Free plan limit, and a flag on a medical file once it has been sent. Riaya therefore holds no copy of what doctors and patients write to each other. Baileys works by linking the server as a WhatsApp Web device, so the session keys of each doctor's account live on the voice server. Anyone who controlled that server could send messages as the doctor.
 
 \subsection{Server-to-Server Security}
 
@@ -162,7 +162,7 @@ Road distance costs a call to an outside service on every search, so we measured
 \subsection{Voice Model Evaluation and Selection}
 \label{subsec:voice-model-evaluation}
 
-The phone call is the reason patients use Riaya, so most of our testing time went into it. This subsection explains how an AI phone call can be built, how we tested the models, what we found for each kind of model, and why we chose Gemini Live.
+The phone call is the reason patients use Riaya, so most of our testing time went into it.
 
 \subsubsection{Two Ways to Build a Phone Call}
 
