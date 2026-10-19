@@ -1,4 +1,4 @@
-\chapter{Technical Architecture, Implementation, and Deployment}
+\chapter{Technical Architecture, Implementation, and Deployment}\label{chap:technical}
 
 % One logo in a logo grid: file name in images/logos/ and caption.
 \providecommand{\stacklogo}[2]{%
@@ -9,25 +9,25 @@
     \end{subfigure}}
 
 \section{Introduction}
-This chapter explains how Riaya is built and how it runs. It starts with the architecture: the principles we followed, the split of the code into a web repository and a voice repository, and the path that a phone call takes through the system. It then goes through the technology stack area by area, with what each tool does in Riaya and why we chose it. A set of screenshots follows, covering the public pages, the doctor dashboard, the secretary view and the administrator back-office. The chapter then covers security and access management and the technical problems we met, with the solutions we adopted. It ends with the evaluations behind our main technical choices, namely the geocoding provider, the road-distance step and the voice model, and with the way the platform was tested.
+This chapter explains how Riaya is built and how it runs. It starts with the architecture: the principles we followed, the split of the code into a web repository and a voice repository, and the path that a phone call takes through the system. It then goes through the technology stack area by area, with what each tool does in Riaya and why we chose it. The next three sections cover the features one by one: phone booking, from the call to the review after the visit, then consultation recordings and the AI assistant. The evaluations behind our main technical choices follow, namely the geocoding provider, the road-distance step and the voice model, with the way the platform was tested. The chapter then covers security and access management, and ends with screenshots of the public pages, the doctor dashboard, the secretary view and the administrator back-office.
 
 \section{Global System Architecture}\label{sec:architecture}
 
 \subsection{Architectural Principles}
-The design follows three common principles: separation of concerns, event-driven communication, and running every part in a container \cite{fowler2002patterns}.
+The design follows three common principles: separation of concerns, event-driven communication, and running every part in a container.
 
 Separation of concerns decided where each piece of logic lives. The web application owns the database and every business rule: booking checks, the best-fit search, plan limits and billing. The voice server owns the long-lived connections: the phone audio, the session with the AI model, the live WebSocket feeds, the WhatsApp sessions and the job workers. A rule is written once, in the web application, and the voice server asks for it over HTTP.
 
-Event-driven communication is used wherever a person waits for something to happen. The voice server pushes each new transcript line and each booking over a WebSocket \cite{fette2011websocket}, so the administrator and the doctor see them without reloading the page. Delayed work, such as cancelling a request that no doctor answered after 10 minutes, is a job in a queue instead of a timer inside a process.
+Event-driven communication is used wherever a person waits for something to happen. The voice server pushes each new transcript line and each booking over a WebSocket, so the administrator and the doctor see them without reloading the page. Delayed work, such as cancelling a request that no doctor answered after 10 minutes, is a job in a queue instead of a timer inside a process.
 
-Containerized deployment means that each part runs in its own Docker container \cite{docker2024}, built by the CI pipeline and started the same way on the server every time.
+Containerized deployment means that each part runs in its own Docker container, built by the CI pipeline and started the same way on the server every time.
 
 \subsection{Separation into Two Repositories (Web App and Voice Server)}
 The code is split into two repositories.
 
-The \textbf{web repository} is a Next.js application \cite{nextjs2024}. It holds the public pages, the doctor, secretary and administrator dashboards, the review page for patients and the test-call page. It also holds the internal API used only by the voice server, authentication with Better Auth, the best-fit search and the place lookup, plan limits and payments, the doctor AI assistant, the producers of background jobs and the Drizzle schema of the PostgreSQL database \cite{postgresql2024, drizzle2024}.
+The \textbf{web repository} is a Next.js application. It holds the public pages, the doctor, secretary and administrator dashboards, the review page for patients and the test-call page. It also holds the internal API used only by the voice server, authentication with Better Auth, the best-fit search and the place lookup, plan limits and payments, the doctor AI assistant, the producers of background jobs and the Drizzle schema of the PostgreSQL database.
 
-The \textbf{voice repository} is a Node.js server built with Express \cite{express2024}. It receives the Twilio calls \cite{twilio2024}, bridges the phone audio to Gemini Live \cite{gemini2026live}, runs the caller transcriber and the silence watchdog, and exposes the call tools that the AI uses to search and book. It keeps one WhatsApp session per doctor with Baileys \cite{baileys2024} and runs the BullMQ workers \cite{bullmq2024}. It also contains a separate LiveKit agent process, used on the test-call page to try other chains of models.
+The \textbf{voice repository} is a Node.js server built with Express. It receives the Twilio calls, bridges the phone audio to Gemini Live, runs the caller transcriber and the silence watchdog, and exposes the call tools that the AI uses to search and book. It keeps one WhatsApp session per doctor with Baileys and runs the BullMQ workers. It also contains a separate LiveKit agent process, used on the test-call page to try other chains of models.
 
 The voice server has no database connection. Every read and write, from checking whether a caller is blocked to booking an appointment, goes through the web application's API, and the request carries a shared secret in the \texttt{x-internal-secret} header. The calls also go the other way: when a doctor sends an invoice on WhatsApp, the web application asks the voice server to send it, because the WhatsApp sessions live in that process. The two applications also share Redis: the web application adds jobs to the queues, and the workers in the voice server run them.
 
@@ -41,7 +41,7 @@ The voice server has no database connection. Every read and write, from checking
 This split has a cost: each tool call during a phone conversation makes one extra HTTP request to the web application. In return, the business rules exist in a single place, only the web application holds the database credentials, and the voice server can be restarted or redeployed without touching the database or its migrations. A crash in the voice server stops calls but leaves the doctor dashboard working, and the reverse is also true.
 
 \subsection{Technical Architecture Schema (Microservices, Event-Driven)}
-Riaya is not a full microservices system \cite{newman2015microservices}. It has two services with clear interfaces, one database owned by the web application, and a Redis instance shared for jobs. \xref{fig:global_arch} shows the users, the edge, the two servers, the data stores and the external services.
+Riaya is not a full microservices system. It has two services with clear interfaces, one database owned by the web application, and a Redis instance shared for jobs. \xref{fig:global_arch} shows the users, the edge, the two servers, the data stores and the external services.
 
 \begin{figure}[H]
     \centering
@@ -54,7 +54,7 @@ Riaya is not a full microservices system \cite{newman2015microservices}. It has 
 \begin{enumerate}
     \item Twilio receives the call and sends a webhook to the voice server.
     \item The voice server asks the web application whether the number is blocked. A blocked caller is rejected with a busy signal before any AI starts. If the web application does not answer within about 1.5 seconds, the call goes on, so an outage never turns patients away.
-    \item In parallel, the voice server creates the call record and finds or creates the person behind the phone number, both through the web API. It answers Twilio with TwiML that opens a media stream WebSocket \cite{twiliomedia2026}, and it starts a two-channel recording of the call.
+    \item In parallel, the voice server creates the call record and finds or creates the person behind the phone number, both through the web API. It answers Twilio with TwiML that opens a media stream WebSocket, and it starts a two-channel recording of the call.
     \item A session object bridges the phone audio (8~kHz $\mu$-law) and the Gemini Live session. A copy of the caller's audio goes to the caller transcriber, which cuts it into sentences and sends each one to a transcription model through OpenRouter.
     \item When Gemini Live calls a tool, the tool sends a request to the internal API: look up a place with Google Places, search for doctors and free slots (the best-fit search, which asks the Geoapify Route Matrix for road distances), or book. A booking creates a pending appointment, and the web application adds a job that will cancel it if no doctor answers within 10 minutes.
     \item During the call, the voice server pushes every transcript line and every tool call over its \texttt{/dashboard} WebSocket. Each booking also sends an \texttt{appointment\_booked} event on the same feed. The administrator's Live Calls page listens to it, and so does the doctor's calendar, where the new request appears with a sound.
@@ -86,7 +86,7 @@ Riaya is not a full microservices system \cite{newman2015microservices}. It has 
         Voice server & Node.js, Express, \texttt{ws}, Twilio & Phone calls, media streams, live WebSocket feeds \\
         Phone AI & Gemini Live & The model that speaks with patients \\
         AI gateway & OpenRouter & Caller transcript, doctor assistant, recording transcription \\
-        Model testing & LiveKit & Agent with a chosen model per step, used on the test-call page \\
+        Model testing & LiveKit & Tested a chain of speech-to-text, LLM and text-to-speech models on the test-call page; not chosen for production, Gemini Live is \\
         Background jobs & BullMQ, Redis & Timeouts, review requests, subscription renewals \\
         Messaging & WhatsApp through Baileys & One linked session per doctor \\
         Files & Cloudflare R2 & Documents and recordings, uploaded with presigned URLs \\
@@ -100,13 +100,13 @@ Riaya is not a full microservices system \cite{newman2015microservices}. It has 
 \end{table}
 
 \subsection{Web Application: Next.js, React, TypeScript, Tailwind CSS}
-The web application is built with Next.js \cite{nextjs2024}, React \cite{react2026} and TypeScript \cite{typescript2026}, and styled with Tailwind CSS \cite{tailwind2024}. Next.js keeps the pages and the API in one project, which suited a single developer, and TypeScript catches many mistakes before the code runs.
+The web application is built with Next.js, React and TypeScript, and styled with Tailwind CSS. Next.js keeps the pages and the API in one project, which suited a single developer, and TypeScript catches many mistakes before the code runs.
 
 \subsection{Typed API and Data Fetching: Zod, OpenAPI, Orval, SWR}
-Each API route declares its input and output with Zod \cite{zod2026}. From these schemas we generate an OpenAPI specification \cite{openapi2024} and, with Orval \cite{orval2026}, a typed client with SWR hooks \cite{swr2026}, so a change to a route shows up as a compile error in the pages that use it.
+Each API route declares its input and output with Zod. From these schemas we generate an OpenAPI specification and, with Orval, a typed client with SWR hooks, so a change to a route shows up as a compile error in the pages that use it.
 
 \subsection{Authentication and Email: Better Auth, Nodemailer}
-Better Auth \cite{betterauth2024} handles accounts and sessions inside our own application and database, so user data does not go to an outside identity service. Nodemailer \cite{nodemailer2026} sends the sign-up codes and the secretary invitations.
+Better Auth handles accounts and sessions inside our own application and database, so user data does not go to an outside identity service. Nodemailer sends the sign-up codes and the secretary invitations.
 
 \begin{figure}[H]
     \centering
@@ -124,7 +124,7 @@ Better Auth \cite{betterauth2024} handles accounts and sessions inside our own a
 \end{figure}
 
 \subsection{Database: PostgreSQL and Drizzle ORM}
-PostgreSQL \cite{postgresql2024} stores all persistent data, which is relational and relies on transactions for rules such as the plan limits. Drizzle ORM \cite{drizzle2024} defines the schema in TypeScript and generates the migrations. Section~\ref{subsec:erd-ref} describes the data model.
+PostgreSQL stores all persistent data, which is relational and relies on transactions for rules such as the plan limits. Drizzle ORM defines the schema in TypeScript and generates the migrations. \secref{subsec:erd-ref} describes the data model.
 
 \begin{figure}[H]
     \centering
@@ -135,7 +135,7 @@ PostgreSQL \cite{postgresql2024} stores all persistent data, which is relational
 \end{figure}
 
 \subsection{Voice Server: Node.js, Express, ws, Twilio}
-The voice server runs on Node.js \cite{nodejs2026} with Express \cite{express2024} and the \texttt{ws} library \cite{ws2026}, the same language as the web application. Twilio \cite{twilio2024} provides the phone number, streams the call audio to the server \cite{twiliomedia2026}, places the callbacks and records the calls.
+The voice server runs on Node.js with Express and the \texttt{ws} library, the same language as the web application. Twilio provides the phone number, streams the call audio to the server, places the callbacks and records the calls.
 
 \begin{figure}[H]
     \centering
@@ -147,11 +147,11 @@ The voice server runs on Node.js \cite{nodejs2026} with Express \cite{express202
 \end{figure}
 
 \subsection{AI Services: Gemini Live, OpenRouter, LiveKit}
-Patients speak with Gemini Live \cite{gemini2026live}, a speech-to-speech model that listens, calls the booking tools and answers with its own voice. We chose it after the tests described in Section~\ref{subsec:voice-model-evaluation}.
+Patients speak with Gemini Live, a speech-to-speech model that listens, calls the booking tools and answers with its own voice. We chose it after the tests described in \secref{subsec:voice-model-evaluation}, where we compared speech-to-speech models with a chain of separate models for listening, thinking and speaking.
 
-OpenRouter \cite{openrouter2026} gives access to many models through one API. We use it for the doctor's AI assistant and for transcribing consultations and the caller's words. Requests that can contain patient data only go to providers that neither keep nor train on them \cite{openrouterzdr2026}.
+OpenRouter gives access to many models through one API. We use it for the doctor's AI assistant and for transcribing consultations and the caller's words. Requests that can contain patient data only go to providers that neither keep nor train on them.
 
-LiveKit \cite{livekit2026} runs a separate agent, used only on the test-call page to compare chains of models.
+LiveKit let us build and test the second approach, the chain of speech-to-text, language model and text-to-speech, as a separate agent where each step's model can be swapped. We did not choose it for production, because every chain we built was too slow for a phone call, so Gemini Live answers the real calls. The LiveKit agent stays in the code and is used only on the test-call page, to compare new models.
 
 \begin{figure}[H]
     \centering
@@ -163,7 +163,7 @@ LiveKit \cite{livekit2026} runs a separate agent, used only on the test-call pag
 \end{figure}
 
 \subsection{Background Jobs and Cache: BullMQ, Redis}
-BullMQ \cite{bullmq2024} queues on Redis \cite{redis2024} run the delayed work: the timeout of a pending request, the review request after a visit and the subscription renewals. The jobs are stored in Redis, so they survive a restart or a deployment.
+BullMQ queues on Redis run the delayed work: the timeout of a pending request, the review request after a visit and the subscription renewals. The jobs are stored in Redis, so they survive a restart or a deployment.
 
 \begin{figure}[H]
     \centering
@@ -174,7 +174,7 @@ BullMQ \cite{bullmq2024} queues on Redis \cite{redis2024} run the delayed work: 
 \end{figure}
 
 \subsection{Third-Party Services: WhatsApp, Cloudflare R2, Konnect, Google Places, Geoapify}
-Baileys \cite{baileys2024} links each doctor's own WhatsApp account, so patients receive messages from their doctor's number. Cloudflare R2 \cite{cloudflare2024r2} stores documents and recordings, which browsers upload to it directly. Konnect \cite{konnect2024}, a Tunisian payment gateway, handles the Pro plan and the recording hour packs. Google Places \cite{googleplaces2026} finds the places that callers name (Section~\ref{subsec:geocoding-evaluation}), and the Geoapify Route Matrix \cite{geoapify2024, geoapifymatrix2026} gives road distances to the best doctors.
+Baileys links each doctor's own WhatsApp account, so patients receive messages from their doctor's number. Cloudflare R2 stores documents and recordings, which browsers upload to it directly. Konnect, a Tunisian payment gateway, handles the Pro plan and the recording hour packs. Google Places finds the places that callers name (\secref{subsec:geocoding-evaluation}), and the Geoapify Route Matrix gives road distances to the best doctors.
 
 \begin{figure}[H]
     \centering
@@ -188,7 +188,7 @@ Baileys \cite{baileys2024} links each doctor's own WhatsApp account, so patients
 \end{figure}
 
 \subsection{Infrastructure: Docker, GitHub Actions, Nginx, Ubuntu}
-Each repository has a GitHub Actions workflow \cite{githubactions2026} that builds a Docker image \cite{docker2024}, pushes it to the GitHub Container Registry \cite{ghcr2026} and deploys it to an Ubuntu server \cite{ubuntu2026}, where Docker Compose runs the containers behind Nginx \cite{nginx2026}. \xref{fig:deployment} shows these steps.
+Each repository has a GitHub Actions workflow that builds a Docker image, pushes it to the GitHub Container Registry and deploys it to an Ubuntu server, where Docker Compose runs the containers behind Nginx. \xref{fig:deployment} shows these steps.
 
 \begin{figure}[H]
     \centering
@@ -201,7 +201,7 @@ Each repository has a GitHub Actions workflow \cite{githubactions2026} that buil
 \end{figure}
 
 \subsection{Development Tools: pnpm, GitHub, Notion}
-Both repositories use pnpm \cite{pnpm2026} and Biome. The code is hosted on GitHub, and the work was planned on Notion \cite{notion2026}.
+Both repositories use pnpm and Biome. The code is hosted on GitHub, and the work was planned on Notion.
 
 \begin{figure}[H]
     \centering
@@ -211,6 +211,8 @@ Both repositories use pnpm \cite{pnpm2026} and Biome. The code is hosted on GitH
     \caption{Development tools}
     \label{fig:logos_tools}
 \end{figure}
+
+\input{chap_03b}
 
 \section{Screenshots and Detailed Descriptions}\label{sec:screens}
 This section shows the main screens of Riaya, grouped by interface. All names, phone numbers, documents, amounts and conversations in these screenshots are demo data created for this report.
@@ -497,7 +499,5 @@ While a doctor is excluded, every dashboard page starts with this banner. It giv
 \end{figure}
 This page simulates a call without a phone, either through the normal phone path or through the LiveKit agent. The panel on the right chooses the realtime model and the caller transcription model for this test only; real phone calls always use the server's configuration.
 
-\input{chap_03b}
-
 \section{Conclusion}
-This chapter described how Riaya is built. The system is split into a web application, which owns the database and the business rules, and a voice server, which handles the phone audio, the live feeds, WhatsApp and the background jobs and reaches the data only through the web application's internal API. We went through the stack area by area, from Next.js and the typed API to Gemini Live, OpenRouter, BullMQ and the deployment on an Ubuntu server, and showed the main screens of the four interfaces. We then covered how the platform protects accounts and medical data and the technical problems we met along the way. The last section gathered the evaluations that led to Google Places, the road-distance polish and Gemini Live, and described how the platform was tested. The general conclusion that follows sums up the work and the next steps.
+This chapter described how Riaya is built. The system is split into a web application, which owns the database and the business rules, and a voice server, which handles the phone audio, the live feeds, WhatsApp and the background jobs and reaches the data only through the web application's internal API. We went through the stack area by area, from Next.js and the typed API to Gemini Live, OpenRouter, BullMQ and the deployment on an Ubuntu server. We then explained how phone booking works, from the call to the review, and how consultation recordings and the AI assistant work. The evaluations that led to Google Places, the road-distance polish and Gemini Live followed, with how the platform was tested. We covered how the platform protects accounts and medical data, and closed with the main screens of the four interfaces. The general conclusion that follows sums up the work and the next steps.

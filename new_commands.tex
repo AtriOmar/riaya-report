@@ -122,3 +122,6 @@
 \usepackage{hyperref}
 % "Figure 2.1" / "Table 1.1" as one clickable, colored link (the label type gives the word)
 \newcommand{\xref}[1]{{\hypersetup{linkcolor=isiBlue}\autoref{#1}}}
+% "Section 3.4.2" / "Chapter 2" as one bold, clickable, colored link
+\newcommand{\secref}[1]{{\hypersetup{linkcolor=isiBlue}\hyperref[#1]{\textbf{Section~\ref*{#1}}}}}
+\newcommand{\chapref}[1]{{\hypersetup{linkcolor=isiBlue}\hyperref[#1]{\textbf{Chapter~\ref*{#1}}}}}

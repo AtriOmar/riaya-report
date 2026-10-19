@@ -29,11 +29,8 @@
     \frontmatter
         % Official university cover, included as-is (no headers, no scaling crop)
         \includepdf[pages=1,fitpaper=true,pagecommand={\thispagestyle{empty}}]{images/page_de_garde.pdf}
-        \newpage
-        \thispagestyle{empty}
-        \null
-        \newpage
-        
+        \clearpage
+
         \setcounter{page}{1}
         \input{dedicaces}
         \thispagestyle{frontmatter}
@@ -73,6 +70,6 @@
         \include{chap_03}
         \clearpage
 
-        \include{conclusion}
+        \input{conclusion}
 
 \end{document}
