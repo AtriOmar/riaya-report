@@ -40,9 +40,9 @@ function draw(K) {
   const steps = [
     ['loc', 'Locate the patient', ['Google Places, restricted to Tunisia', 'cabinets keep exact map coordinates'], LG + 'google-places.png'],
     ['cand', 'Candidate doctors', ['verified, chosen speciality, cabinet mapped', 'straight-line (Haversine) distance up to 50 km'], I + 'user-check.svg'],
-    ['slot', 'Nearest free slot', ['30-minute slot around the preferred time', 'within one week, before or after', 'plus up to 3 extra later slots'], I + 'calendar-check.svg'],
+    ['slot', 'Nearest free slot', ['30-minute slot around the preferred time', 'starting once the patient can get there', 'within one week, before or after', 'plus up to 3 extra later slots'], I + 'calendar-check.svg'],
     ['score', 'Score and sort', ['score = km + minutes away / 10', '10 minutes of waiting counts as 1 km'], I + 'list-check.svg'],
-    ['road', 'Road-distance polish', ['top 8 re-ranked by driving km', 'Geoapify Route Matrix, one call, 3 s timeout'], LG + 'geoapify.png'],
+    ['road', 'Road-distance polish', ['top 8 re-ranked by driving km,', 'slots redone with the real drive time', 'Google Routes API, one call, 3 s timeout'], LG + 'google-places.png'],
     ['say', 'AI offers 2 to 3 doctors', ['name, cabinet address, distance in km, time', 'never a drive time'], I + 'comments.svg'],
   ];
   steps.forEach(([id, t, l, ic], i) => {
@@ -56,7 +56,7 @@ function draw(K) {
 
   // fallbacks
   const mid = (id) => K.boxes[id].y + K.boxes[id].h / 2;
-  fall('f1', mid('loc'), 'Place not found', ['use one of 24 city centres', 'with stored GPS points']);
+  fall('f1', mid('loc'), 'Only a city, or not found', ['ask once for the area,', 'else one of 24 city centres']);
   fall('f2', mid('cand'), 'Nobody within 50 km has a slot', ['return the 3 nearest beyond,', 'flagged far away, said honestly']);
   fall('f5', mid('road'), 'Service slow or failing', ['keep the straight-line order']);
   const nh = 210, nb = (K.boxes.slot.y + K.boxes.score.y + K.boxes.score.h) / 2 - nh / 2;

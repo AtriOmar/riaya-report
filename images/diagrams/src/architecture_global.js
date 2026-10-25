@@ -35,7 +35,7 @@ function draw(K) {
   K.card({id: 'wa', x: 36, cy: cy.store, w: lw, title: 'WhatsApp', sub: 'Baileys', icon: LG + 'whatsapp.png', chip: 'white'});
   const ry = [330, 444, 558, 672];
   K.card({id: 'places', x: 966, cy: ry[0], w: rw, title: 'Google', sub: 'Places', icon: LG + 'google-places.png', chip: 'white'});
-  K.card({id: 'geo', x: 966, cy: ry[1], w: rw, title: 'Geoapify', sub: 'road km', icon: LG + 'geoapify.png', chip: 'white'});
+  K.card({id: 'geo', x: 966, cy: ry[1], w: rw, title: 'Google', sub: 'Routes (km)', icon: LG + 'google-places.png', chip: 'white'});
   K.card({id: 'r2', x: 966, cy: ry[2], w: rw, title: 'R2', sub: 'file storage', icon: LG + 'cloudflare-r2.png', chip: 'white'});
   K.card({id: 'konnect', x: 966, cy: ry[3], w: rw, title: 'Konnect', sub: 'payments', icon: LG + 'konnect.png', chip: 'white'});
   K.card({id: 'openrouter', cx: (L + R) / 2, cy: cy.gw + 8, title: 'OpenRouter', sub: 'transcription, doctor AI', icon: LG + 'openrouter.png', chip: 'white'});

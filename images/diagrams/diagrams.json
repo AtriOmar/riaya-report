@@ -45,7 +45,7 @@
     "file": "architecture_global.png",
     "title": "Global architecture",
     "caption": "Riaya's users, edge, servers, data stores and external services.",
-    "shows": "Patient phone, doctor and admin browsers (Users); Twilio and Nginx (Edge); voice server and web app with Redis/BullMQ and PostgreSQL (Riaya); Gemini Live and WhatsApp/Baileys on the voice side; Google Places, Geoapify road km, Cloudflare R2 and Konnect on the web side; OpenRouter shared for caller transcription and the doctor AI. Labelled flows: call, HTTPS, audio, live events, pages/API, internal API, workers, jobs, SQL. Source: src/architecture_global.js (rendered with src/build.cjs, shared look in src/kit.js)."
+    "shows": "Patient phone, doctor and admin browsers (Users); Twilio and Nginx (Edge); voice server and web app with Redis/BullMQ and PostgreSQL (Riaya); Gemini Live and WhatsApp/Baileys on the voice side; Google Places, Google Routes road km, Cloudflare R2 and Konnect on the web side; OpenRouter shared for caller transcription and the doctor AI. Labelled flows: call, HTTPS, audio, live events, pages/API, internal API, workers, jobs, SQL. Source: src/architecture_global.js (rendered with src/build.cjs, shared look in src/kit.js)."
   },
   {
     "file": "architecture_two_repos.png",
@@ -57,7 +57,7 @@
     "file": "deployment.png",
     "title": "Deployment",
     "caption": "From a push on GitHub to containers on the Ubuntu VPS.",
-    "shows": "Developer push to main, web and voice repos, GitHub Actions builds images to GHCR, secrets (.env, SSH key). SSH deploy to the Ubuntu VPS: Nginx (TLS, reverse proxy) in front of the Docker network riaya_network with web, voice, PostgreSQL and Redis (volumes); step 1 Drizzle migrations in a one-off container, 2 pull, 3 docker compose up -d. Outbound HTTPS to Twilio, Gemini, OpenRouter, WhatsApp, Google, Geoapify, R2, Konnect. Source: src/deployment.js (rendered with src/build.cjs, shared look in src/kit.js)."
+    "shows": "Developer push to main, web and voice repos, GitHub Actions builds images to GHCR, secrets (.env, SSH key). SSH deploy to the Ubuntu VPS: Nginx (TLS, reverse proxy) in front of the Docker network riaya_network with web, voice, PostgreSQL and Redis (volumes); step 1 Drizzle migrations in a one-off container, 2 pull, 3 docker compose up -d. Outbound HTTPS to Twilio, Gemini, OpenRouter, WhatsApp, Google, Google Routes, R2, Konnect. Source: src/deployment.js (rendered with src/build.cjs, shared look in src/kit.js)."
   },
   {
     "file": "activity_signup_verification.png",
@@ -81,7 +81,7 @@
     "file": "bestfit_pipeline.png",
     "title": "Best-fit pipeline",
     "caption": "How Riaya picks the 2 or 3 doctors the AI offers.",
-    "shows": "Six numbered steps: locate the patient (Google Places, Tunisia), candidate doctors (verified, speciality, mapped cabinet, Haversine up to 50 km), nearest free 30-min slot within a week plus up to 3 extra slots, score = km + minutes/10, road-distance polish of the top 8 (Geoapify Route Matrix, one call, 3 s timeout), AI offers 2 to 3 doctors in km. Fallbacks: 24 city centres, 3 nearest beyond 50 km flagged far away, keep straight-line order. Side note: the plan never changes the ranking (Free doctors are not hidden). Source: src/bestfit_pipeline.js (rendered with src/build.cjs, shared look in src/kit.js)."
+    "shows": "Six numbered steps: locate the patient (Google Places, Tunisia), candidate doctors (verified, speciality, mapped cabinet, Haversine up to 50 km), nearest free 30-min slot within a week plus up to 3 extra slots, score = km + minutes/10, road-distance polish of the top 8 (Google Routes API, one call, 3 s timeout), AI offers 2 to 3 doctors in km. Fallbacks: 24 city centres, 3 nearest beyond 50 km flagged far away, keep straight-line order. Side note: the plan never changes the ranking (Free doctors are not hidden). Source: src/bestfit_pipeline.js (rendered with src/build.cjs, shared look in src/kit.js)."
   },
   {
     "file": "plan_limits_flow.png",
@@ -93,7 +93,7 @@
     "file": "bpmn_booking.png",
     "title": "BPMN A: from the call to the pending request",
     "caption": "BPMN 2.0 process of a phone booking, with the abuse review path.",
-    "shows": "Pool 'Riaya phone booking' with lanes Patient, AI system, Doctor, Administrator. Start (patient calls), gateway number blocked (end: rejected as busy), collect reason/place/time with an abuse escalation boundary event (report, admin review, block 7 d / 30 d / for good or dismiss), gateway urgent signs (advise SAMU 190), best-fit search, gateway urgent: one pending request or up to 3 urgent requests in a group, merge, doctor sees the request, link event to figure B. Rendered with bpmn-js; sources src/bpmn/booking.cjs, src/bpmn/bpmn_booking.bpmn (generator src/bpmn/gen.cjs)."
+    "shows": "Pool 'Riaya phone booking' with lanes Patient, AI system, Doctor, Administrator. Start (patient calls), gateway number blocked (end: rejected as busy), collect reason/place/time with an abuse escalation boundary event (report, admin review, block 7 d / 30 d / for good or dismiss), gateway urgent signs (advise SAMU 190), best-fit search, gateway urgent: one pending request or urgent requests sent in waves of 3, merge, doctor sees the request, link event to figure B. Rendered with bpmn-js; sources src/bpmn/booking.cjs, src/bpmn/bpmn_booking.bpmn (generator src/bpmn/gen.cjs)."
   },
   {
     "file": "bpmn_callback_review.png",

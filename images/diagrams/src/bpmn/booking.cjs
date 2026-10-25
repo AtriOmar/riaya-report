@@ -27,7 +27,7 @@ module.exports = {
     T('fit', L.A, 715, 210, 'Best-fit search, offer 2 to 3 doctors'),
     {id: 'gwKind', type: 'exclusiveGateway', lane: L.A, cx: 880, cy: 210, name: 'Urgent?', lpos: 't', lw: 90, lh: 24},
     T('create', L.A, 1040, 210, 'Create a pending request'),
-    T('create3', L.A, 1040, 365, 'Create up to 3 urgent requests, one group', 'warn'),
+    T('create3', L.A, 1040, 365, 'Send urgent requests in waves of 3', 'warn'),
     {id: 'gwMerge', type: 'exclusiveGateway', lane: L.A, cx: 1200, cy: 365},
     T('see', L.D, 1200, 525, 'See the request live, urgent badge'),
     {id: 'link', type: 'intermediateThrowEvent', def: 'link', link: 'B', lane: L.D, cx: 1350, cy: 525, name: 'To answer flow (B)', lw: 120, lh: 44},

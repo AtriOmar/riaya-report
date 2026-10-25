@@ -50,13 +50,13 @@ function draw(K) {
   E({pts: [K.P('ghcr', 'r'), [380, 640], [380, 785], K.P('compose', 'l')], label: '2. pull', at: [380, 712], kind: 'teal'});
 
   // external services
-  const ex = ['twilio', 'gemini', 'openrouter', 'whatsapp', 'google-places', 'geoapify', 'cloudflare-r2', 'konnect'];
-  const exNames = ['Twilio', 'Gemini', 'OpenRouter', 'WhatsApp', 'Google', 'Geoapify', 'R2', 'Konnect'];
+  const ex = ['twilio', 'gemini', 'openrouter', 'whatsapp', 'google-places', 'cloudflare-r2', 'konnect'];
+  const exNames = ['Twilio', 'Gemini', 'OpenRouter', 'WhatsApp', 'Google', 'R2', 'Konnect'];
   K.zone({x: 20, y: 900, w: 1160, h: 140, title: 'External services', kind: 'ext'});
   E({pts: [[c3, 836], [c3, 900]], label: 'outbound HTTPS', at: [c3, 868]});
   E({pts: [K.P('compose', 't'), K.P('web', 'b')], dash: true, kind: 'teal', label: '3. up -d', at: [c2, 712]});
   ex.forEach((s, i) => {
-    const x = 188 + i * 112;
+    const x = 604 - ((ex.length - 1) * 112 + 56) / 2 + 4 + i * 112;
     K.el(K.gNodes, 'rect', {x: x - 4, y: 958, width: 56, height: 56, rx: 12, fill: '#FFFFFF', stroke: '#D9D9D9'});
     K.el(K.gNodes, 'image', {href: LG + s + '.png', x: x + 6, y: 968, width: 36, height: 36});
     K.text(x + 24, 1032, exNames[i], {size: 16, color: '#111111', anchor: 'middle', weight: 500});

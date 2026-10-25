@@ -90,10 +90,11 @@ ${laneDi}${di}${(spec.messageFlows || []).map(m => { const pts = m.pts.map(p => 
   const xml = build(spec);
   const here = __dirname;
   fs.writeFileSync(path.join(here, `${out}.bpmn`), xml);
-  const fontDir = path.join(here, '..', 'fonts');
+  // The report folder has a space in its path, so the font URLs must be encoded.
+  const fontUrl = `file://${encodeURI(path.join(here, '..', 'fonts'))}`;
   const html = `<!doctype html><html><head><meta charset="utf-8">
 <link rel="stylesheet" href="file://${BPMNJS}/dist/assets/diagram-js.css"><link rel="stylesheet" href="file://${BPMNJS}/dist/assets/bpmn-js.css">
-<style>@font-face{font-family:Inter;font-weight:400;src:url("file://${fontDir}/Inter-Regular.ttf")}@font-face{font-family:Inter;font-weight:600;src:url("file://${fontDir}/Inter-SemiBold.ttf")}
+<style>@font-face{font-family:Inter;font-weight:400;src:url("${fontUrl}/Inter-Regular.ttf")}@font-face{font-family:Inter;font-weight:600;src:url("${fontUrl}/Inter-SemiBold.ttf")}
 html,body{margin:0;background:#fff}#c{width:3000px;height:2000px}</style></head><body><div id="c"></div>
 <script src="file://${BPMNJS}/dist/bpmn-viewer.production.min.js"></script>
 <script>
@@ -119,7 +120,7 @@ html,body{margin:0;background:#fff}#c{width:3000px;height:2000px}</style></head>
   // style the exported svg: Inter font, white background, padding
   let svg = res.svg.replace(/font-family:\s*[^;"]+/g, 'font-family: Inter, sans-serif');
   fs.writeFileSync(path.join(here, `${out}.svg`), svg);
-  const page2 = `<!doctype html><html><head><meta charset="utf-8"><style>@font-face{font-family:Inter;font-weight:400;src:url("file://${fontDir}/Inter-Regular.ttf")}@font-face{font-family:Inter;font-weight:600;src:url("file://${fontDir}/Inter-SemiBold.ttf")}body{margin:0;background:#fff}text,tspan{fill:#111 !important}#root{display:inline-block;padding:24px;background:#fff}</style></head><body><div id="root">${svg}</div></body></html>`;
+  const page2 = `<!doctype html><html><head><meta charset="utf-8"><style>@font-face{font-family:Inter;font-weight:400;src:url("${fontUrl}/Inter-Regular.ttf")}@font-face{font-family:Inter;font-weight:600;src:url("${fontUrl}/Inter-SemiBold.ttf")}body{margin:0;background:#fff}text,tspan{fill:#111 !important}#root{display:inline-block;padding:24px;background:#fff}</style></head><body><div id="root">${svg}</div></body></html>`;
   fs.writeFileSync(hp, page2);
   await p.setViewport({width: 2600, height: 1600, deviceScaleFactor: 2});
   await p.goto('file://' + hp, {waitUntil: 'networkidle0'});
