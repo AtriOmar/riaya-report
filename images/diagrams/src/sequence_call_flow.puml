@@ -34,7 +34,7 @@ H -> A : createCall(from)
 H --> T : openStream(), startRecording()
 T -> S : mediaStream()
 S -> A : getCallerContext(from)
-A --> S : name, language, people on the line,\nlast booking place, refused request
+A --> S : name, language, people on the line,\nlast booking place, unanswered request
 S -> G : openSession(instructions, tools)
 note right of G
   instructions include the current time
@@ -44,20 +44,20 @@ loop each turn, until the AI ends the call
   T -> S : callerAudio
   S -> G : callerAudio
   alt patient named a new place
-    G -> S : searchLocation(city, place)
+    G -> S : search_location(city, place)
     S -> A : searchPlaces()
     A -> GP : search(place)
     GP --> A : coordinates
     A --> S : places
     S --> G : places
   else speciality, place and time are known
-    G -> S : findAvailableSlots(speciality, coordinates, time)
+    G -> S : find_available_slots(speciality, coordinates, time)
     S -> A : findSlots()
     A -> A : keep verified doctors not\nexcluded from referrals
     A --> S : doctors, slots
     S --> G : doctors, slots
   else patient chose a doctor
-    G -> S : bookAppointment(doctor, slot)
+    G -> S : book_appointment(doctor, slot)
     S -> A : book(place)
     A -> E : create(status = pending)
     A -> Q : add timeout job (10 min)
@@ -68,7 +68,7 @@ loop each turn, until the AI ends the call
   G --> S : aiAudio
   S --> T : aiAudio
 end
-G -> S : endCall()
+G -> S : end_call()
 S -> T : hangUp()
 T -> A : recordingReady(url)
 @enduml
