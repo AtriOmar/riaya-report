@@ -3,19 +3,19 @@
     "file": "class_diagram_people_care.png",
     "title": "Class diagram: people and care",
     "caption": "People, phones, patient files, appointments and patient billing.",
-    "shows": "person, person_phone (relationship to the phone owner), patient as the doctor-person link, appointment (personId, patientId, contactPhone, status, source, urgent, emergencyGroupId), review, consultation, patient_medical_file, invoice with invoice_item and invoice_payment. doctor_profile is a reference stub. Source: src/class_diagram_people_care.mmd (Mermaid)."
+    "shows": "person, person_phone (relationship to the phone owner), patient as the doctor-person link, appointment (personId, patientId, contactPhone, status, source, urgent, emergencyGroupId, emergencyWave, patient place), review, consultation, patient_medical_file, invoice with invoice_item and invoice_payment. doctor_profile is a reference stub. Source: src/class_diagram_people_care.mmd (Mermaid). Legend under the diagram (added by src/add_legend.cjs from render_mmd.sh): yellow = introduced in this diagram, gray = detailed in another class diagram."
   },
   {
     "file": "class_diagram_practice.png",
     "title": "Class diagram: accounts, practice and doctor AI",
     "caption": "Accounts, doctor verification, secretaries, recordings and the AI assistant.",
-    "shows": "Better Auth user, doctor_application, doctor_profile, speciality, cities, secretary, consultation_recording, recording_usage, ai_chat_conversation and ai_chat_message. patient is a reference stub. Source: src/class_diagram_practice.mmd (Mermaid)."
+    "shows": "Better Auth user, doctor_application, doctor_profile, speciality, cities, secretary, consultation_recording, recording_usage, ai_chat_conversation and ai_chat_message. patient is a reference stub. Source: src/class_diagram_practice.mmd (Mermaid). Legend under the diagram (added by src/add_legend.cjs from render_mmd.sh): yellow = introduced in this diagram, gray = detailed in another class diagram."
   },
   {
     "file": "class_diagram_calls_billing.png",
     "title": "Class diagram: calls, abuse and Riaya billing",
     "caption": "Phone calls, abuse handling and what doctors pay Riaya.",
-    "shows": "call, call_event, call_report, blocked_phone (admin user reviews and blocks), subscription, billing_invoice (subscription or top_up, Konnect reference) and whatsapp_usage. appointment and doctor_profile are reference stubs. Source: src/class_diagram_calls_billing.mmd (Mermaid)."
+    "shows": "call, call_event, call_report, blocked_phone (admin user reviews and blocks), subscription, billing_invoice (subscription or top_up, Konnect reference) and whatsapp_usage. appointment and doctor_profile are reference stubs. Source: src/class_diagram_calls_billing.mmd (Mermaid). Legend under the diagram (added by src/add_legend.cjs from render_mmd.sh): yellow = introduced in this diagram, gray = detailed in another class diagram."
   },
   {
     "file": "sequence_call_flow.png",
@@ -69,7 +69,7 @@
     "file": "activity_urgent_booking.png",
     "title": "Activity: urgent booking",
     "caption": "Life-threatening signs, SAMU advice and the emergency group of requests.",
-    "shows": "Swimlanes Patient / Riaya / Doctors. Life-threatening signs lead to 'call the SAMU at 190' first, then urgent requests are offered (also for urgent-only cases); if the patient agrees, best fit from now and up to 3 urgent pending requests in one emergency group; doctors see an urgent badge; first event: a doctor accepts (that request confirmed, siblings cancelled, WhatsApp confirmation), a doctor refuses (only that request cancelled, others stay open), the patient cancels one or 10 min pass (whole group cancelled, callback on timeout). Source: src/activity_urgent_booking.js (rendered with src/build.cjs, shared look in src/kit.js)."
+    "shows": "Swimlanes Patient / Riaya / Doctors. Life-threatening signs lead to 'call the SAMU at 190' first, then urgent requests are offered (also for urgent-only cases); if the patient agrees, best fit from now; if no doctor is free within a few hours, a normal booking is offered; otherwise a wave of 3 urgent pending requests in one group; doctors see an urgent badge; first event: a doctor accepts (that request confirmed, siblings cancelled, WhatsApp confirmation), a doctor refuses (only that request cancelled, others stay open), 4 min pass or all refuse (next wave to 3 other doctors, at most 3 waves; after the last one the group is cancelled and the patient is called back). Patient cancellation is in the chapter text only. Source: src/activity_urgent_booking.js (rendered with src/build.cjs, shared look in src/kit.js)."
   },
   {
     "file": "activity_refusal_timeout.png",
