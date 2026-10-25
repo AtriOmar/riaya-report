@@ -75,7 +75,7 @@
     "file": "activity_refusal_timeout.png",
     "title": "Activity: accept, refuse or timeout",
     "caption": "What happens after a normal phone booking.",
-    "shows": "Swimlanes Patient / Riaya / Doctor. Pending request with a 10 min timer, live on the doctor calendar. Accept: confirm, link patient file, WhatsApp confirmation, review job 2 h after the visit, patient rates from the link. Refuse: cancel and keep the request 24 h in Redis. No answer: timeout job cancels. Then blocked numbers get nothing; otherwise Riaya calls back (refused: up to 3 other doctors; timeout: call again) with a WhatsApp fallback from the platform account. Note: urgent requests get no callback. Source: src/activity_refusal_timeout.js (rendered with src/build.cjs, shared look in src/kit.js)."
+    "shows": "Swimlanes Patient / Riaya / Doctor. Pending request with a 10 min timer, live on the doctor calendar. Accept: confirm, link patient file, WhatsApp confirmation, review job 2 h after the visit, patient rates from the link. Refuse: cancel and keep the request 24 h in Redis. No answer: timeout job cancels. Then blocked numbers get nothing; otherwise Riaya calls back (up to 3 other doctors for the same request, after a refusal or a timeout) with a WhatsApp fallback from the platform account. Note: urgent requests get no callback. Source: src/activity_refusal_timeout.js (rendered with src/build.cjs, shared look in src/kit.js)."
   },
   {
     "file": "bestfit_pipeline.png",
@@ -99,7 +99,7 @@
     "file": "bpmn_callback_review.png",
     "title": "BPMN B: answer, callbacks and review",
     "caption": "BPMN 2.0 process after the request: event-based gateway, callbacks and review.",
-    "shows": "Black-box pools Patient (top) and Doctor (bottom), pool Riaya with lanes AI system and Server and jobs. Link catch from A, event-based gateway: message 'doctor accepts' (confirm, link file, WhatsApp, 2 h timer after the visit, review link), 10 min timer (cancel) or message 'doctor refuses' (cancel, keep request 24 h in Redis); merge, gateway blocked number (nothing sent) else callback with 3 other doctors or 'call again', gateway answered, WhatsApp fallback from the platform account. Message flows to the patient: WhatsApp, rating link, phone call. Sources src/bpmn/callback.cjs, src/bpmn/bpmn_callback_review.bpmn."
+    "shows": "Black-box pools Patient (top) and Doctor (bottom), pool Riaya with lanes AI system and Server and jobs. Link catch from A, event-based gateway: message 'doctor accepts' (confirm, link file, WhatsApp, 2 h timer after the visit, review link), 10 min timer (cancel) or message 'doctor refuses' (cancel, keep request 24 h in Redis); merge, gateway blocked number (nothing sent) else callback with 3 other doctors (both paths keep the request 24 h), gateway answered, WhatsApp fallback from the platform account. Message flows to the patient: WhatsApp, rating link, phone call. Sources src/bpmn/callback.cjs, src/bpmn/bpmn_callback_review.bpmn."
   },
   {
     "file": "bpmn_global.png",

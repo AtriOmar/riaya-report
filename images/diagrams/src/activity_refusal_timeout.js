@@ -23,10 +23,10 @@ function draw(K) {
   K.end({id: 'e1', cx: P, cy: 1000});
   // refuse / timeout
   K.act({id: 'ref', cx: R, cy: 570, text: 'Cancel it, keep the\nrequest 24 h in Redis', kind: 'warn'});
-  K.act({id: 'to', cx: RR, cy: 570, text: 'Timeout job\ncancels it', kind: 'warn'});
+  K.act({id: 'to', cx: RR, cy: 570, text: 'Cancel it, keep\nit 24 h too', kind: 'warn'});
   K.dec({id: 'blk', cx: R, cy: 720, text: 'Blocked\nnumber?'});
   K.end({id: 'e2', cx: RR + 40, cy: 720});
-  K.act({id: 'cb', cx: R, cy: 860, text: 'Call the patient back\nrefused: 3 other doctors\ntimeout: call again', kind: 'sys'});
+  K.act({id: 'cb', cx: R, cy: 860, text: 'Call the patient back,\noffer 3 other doctors', kind: 'sys'});
   K.dec({id: 'pick', cx: R, cy: 1010, text: 'Answered?'});
   K.act({id: 'wam', cx: RR + 20, cy: 1010, text: 'Same message on\nWhatsApp (platform)', kind: 'sys'});
   K.end({id: 'e3', cx: RR + 20, cy: 1120});
@@ -62,5 +62,5 @@ function draw(K) {
   E({pts: [K.P('pick', 'b'), [R, 1130], K.P('talk', 'r')], kind: 'amber'});
   K.guard(R + 14, 1080, 'yes', '#111111', 'start');
   E({pts: [K.P('talk', 'b'), K.P('e4', 't')]});
-  K.text(D, 560, 'Urgent request:\nno callback,\nother doctors of\nthe group can\nstill accept.', {size: 16, color: '#404040', anchor: 'middle'});
+  K.text(D, 560, 'Urgent request: a refusal\nleaves the others open;\nthe next wave goes out\nwhen all refuse or time\nruns out.', {size: 16, color: '#404040', anchor: 'middle'});
 }
