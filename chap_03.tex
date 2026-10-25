@@ -56,14 +56,14 @@ Riaya is not a full microservices system. It has two services with clear interfa
     \item The voice server asks the web application whether the number is blocked. A blocked caller is rejected with a busy signal before any AI starts. If the web application does not answer within about 1.5 seconds, the call goes on, so an outage never turns patients away.
     \item In parallel, the voice server creates the call record and finds or creates the person behind the phone number, both through the web API. It answers Twilio with TwiML that opens a media stream WebSocket, and it starts a two-channel recording of the call.
     \item A session object bridges the phone audio (8~kHz $\mu$-law) and the Gemini Live session. A copy of the caller's audio goes to the caller transcriber, which cuts it into sentences and sends each one to a transcription model through OpenRouter.
-    \item When Gemini Live calls a tool, the tool sends a request to the internal API: look up a place with Google Places, search for doctors and free slots (the best-fit search, which asks the Geoapify Route Matrix for road distances), or book. A booking creates a pending appointment, and the web application adds a job that will cancel it if no doctor answers within 10 minutes.
+    \item When Gemini Live calls a tool, the tool sends a request to the internal API: look up a place with Google Places, search for doctors and free slots (the best-fit search, which asks the Google Routes API for road distances), or book. A booking creates a pending appointment, and the web application adds a job that will cancel it if no doctor answers within 10 minutes.
     \item During the call, the voice server pushes every transcript line and every tool call over its \texttt{/dashboard} WebSocket. Each booking also sends an \texttt{appointment\_booked} event on the same feed. The administrator's Live Calls page listens to it, and so does the doctor's calendar, where the new request appears with a sound.
     \item When the call ends, the call record is closed and its events are saved through the web API. Twilio then sends the finished recording to a webhook of the web application, which checks Twilio's signature and copies the audio to Cloudflare R2.
 \end{enumerate}
 
 \paragraph{Background jobs.} Three BullMQ queues run on Redis: the 10-minute timeout of a pending request, the review request two hours after a visit, and the daily subscription renewal. The web application produces the jobs and the workers in the voice server consume them. A worker does not hold the business logic: it calls an internal route of the web application to process the job and, for a timeout or a refusal, places the callback through Twilio or sends the WhatsApp fallback.
 
-\paragraph{Web-side services.} Browsers reach the web application through Nginx, which handles TLS and routes requests. The web application is the only service that talks to PostgreSQL. It calls OpenRouter for the doctor AI assistant and the transcription of consultation recordings, creates presigned upload URLs for Cloudflare R2, starts Konnect payments and receives their webhook, and calls Google Places and Geoapify for the best-fit search.
+\paragraph{Web-side services.} Browsers reach the web application through Nginx, which handles TLS and routes requests. The web application is the only service that talks to PostgreSQL. It calls OpenRouter for the doctor AI assistant and the transcription of consultation recordings, creates presigned upload URLs for Cloudflare R2, starts Konnect payments and receives their webhook, and calls Google Places and the Google Routes API for the best-fit search.
 
 \paragraph{WhatsApp.} Each doctor links a WhatsApp account by scanning a QR code that the voice server streams to the WhatsApp page over a WebSocket. After that, the web application asks the voice server to send each message, and the message leaves from the doctor's own number. The platform account, linked by the administrator, sends the system messages that do not come from a doctor.
 
@@ -91,7 +91,7 @@ Riaya is not a full microservices system. It has two services with clear interfa
         Messaging & WhatsApp through Baileys & One linked session per doctor \\
         Files & Cloudflare R2 & Documents and recordings, uploaded with presigned URLs \\
         Payments & Konnect & Pro plan and recording hour packs \\
-        Maps & Google Places, Geoapify & Patient location, road distance to doctors \\
+        Maps & Google Places, Google Routes API & Patient location, road distance to doctors \\
         Infrastructure & Docker, Docker Compose, GitHub Actions, GHCR, Nginx, Ubuntu & Build, delivery and hosting \\
         Tooling & pnpm, GitHub, Notion & Packages, code hosting, task board \\
         \bottomrule
@@ -173,16 +173,15 @@ BullMQ queues on Redis run the delayed work: the timeout of a pending request, t
     \label{fig:logos_jobs}
 \end{figure}
 
-\subsection{Third-Party Services: WhatsApp, Cloudflare R2, Konnect, Google Places, Geoapify}
-Baileys links each doctor's own WhatsApp account, so patients receive messages from their doctor's number. Cloudflare R2 stores documents and recordings, which browsers upload to it directly. Konnect, a Tunisian payment gateway, handles the Pro plan and the recording hour packs. Google Places finds the places that callers name (\secref{subsec:geocoding-evaluation}), and the Geoapify Route Matrix gives road distances to the best doctors.
+\subsection{Third-Party Services: WhatsApp, Cloudflare R2, Konnect, Google Maps Platform}
+Baileys links each doctor's own WhatsApp account, so patients receive messages from their doctor's number. Cloudflare R2 stores documents and recordings, which browsers upload to it directly. Konnect, a Tunisian payment gateway, handles the Pro plan and the recording hour packs. Google Places finds the places that callers name (\secref{subsec:geocoding-evaluation}), and the Google Routes API gives road distances to the best doctors.
 
 \begin{figure}[H]
     \centering
     \stacklogo{baileys.png}{WhatsApp (Baileys)}\hfill
     \stacklogo{cloudflare-r2.png}{Cloudflare R2}\hfill
     \stacklogo{konnect.png}{Konnect}\hfill
-    \stacklogo{google-places.png}{Google Places}\hfill
-    \stacklogo{geoapify.png}{Geoapify}
+    \stacklogo{google-places.png}{Google Maps Platform}
     \caption{Third-party services}
     \label{fig:logos_thirdparty}
 \end{figure}
