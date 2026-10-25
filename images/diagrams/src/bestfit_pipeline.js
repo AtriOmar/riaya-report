@@ -43,7 +43,7 @@ function draw(K) {
     ['slot', 'Nearest free slot', ['30-minute slot around the preferred time', 'starting once the patient can get there', 'within one week, before or after', 'plus up to 3 extra later slots'], I + 'calendar-check.svg'],
     ['score', 'Score and sort', ['score = km + minutes away / 10', '10 minutes of waiting counts as 1 km'], I + 'list-check.svg'],
     ['road', 'Road-distance polish', ['top 8 re-ranked by driving km,', 'slots redone with the real drive time', 'Google Routes API, one call, 3 s timeout'], LG + 'google-places.png'],
-    ['say', 'AI offers 2 to 3 doctors', ['name, cabinet address, distance in km, time', 'never a drive time'], I + 'comments.svg'],
+    ['say', 'AI offers the 2 best doctors', ['name, cabinet, distance in km, time', 'more on request, never a drive time'], I + 'comments.svg'],
   ];
   steps.forEach(([id, t, l, ic], i) => {
     const bottom = step(id, i + 1, y, t, l, ic);
